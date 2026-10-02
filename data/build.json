@@ -1,12 +1,12 @@
 {
   "name": "Team BOB pirate raft",
   "updated": "2026-10-02",
-  "notes": "The team's actual build. Edit it in raft-simulation.html (Parts tab), export it, and commit it here. Status: planned | bought | installed.",
+  "notes": "The team's actual build. Edit it in raft-simulation.html (Parts tab), export it, and commit it here. Status: planned | bought | installed. Frame config inferred from purchases (3 double sani tees, 5 sticks): one rail per drum line plus a center spine, 5 beams. Confirm against the mockup.",
   "config": {
     "preset": "cat2",
     "frameLength": 84,
     "frameWidth": 72,
-    "beamCount": 4,
+    "beamCount": 5,
     "pontoonSpacing": 47,
     "drumOffset": 0,
     "drumSpread": 20,
@@ -28,7 +28,9 @@
     },
     "failedDrum": null,
     "frameStyle": "fitted",
-    "fittingTakeoff": 1.25
+    "fittingTakeoff": 1.25,
+    "railsPerPontoon": 1,
+    "centerSpine": true
   },
   "parts": [
     {
@@ -45,45 +47,17 @@
       "notes": ""
     },
     {
-      "catalog_id": "S001",
-      "name": "PVC pipe 1-1/2\" x 10 ft (cut to size)",
+      "catalog_id": "S007",
+      "name": "1-1/2\" x 10 ft PVC Sch 40 DWV pipe (plain end)",
       "role": "pipe",
       "category": "frame",
       "material": "pvc",
       "quantity": 5,
       "weight_lb_each": 5.1,
       "weight_measured": false,
-      "unit_cost_usd": 34.98,
+      "unit_cost_usd": 11.96,
       "status": "bought",
-      "notes": "5 full sticks bought 2026-10-01 after a dry-fit mockup with precut pieces. Cut to the simulator's cut list.",
-      "foam_filled": true
-    },
-    {
-      "catalog_id": "S005",
-      "name": "1-1/2\" PVC/DWV 90\u00b0 elbow",
-      "role": "elbow",
-      "category": "frame",
-      "material": "pvc",
-      "quantity": 6,
-      "weight_lb_each": 0.2,
-      "weight_measured": false,
-      "unit_cost_usd": 1.6,
-      "status": "planned",
-      "notes": "",
-      "foam_filled": true
-    },
-    {
-      "catalog_id": "FT04",
-      "name": "1-1/2\" DWV sanitary tee (HxHxH)",
-      "role": "tee",
-      "category": "frame",
-      "material": "pvc",
-      "quantity": 10,
-      "weight_lb_each": 0.35,
-      "weight_measured": false,
-      "unit_cost_usd": 4.5,
-      "status": "planned",
-      "notes": "Quantity from the simulator; confirm the price.",
+      "notes": "Receipt 2026-10-01.",
       "foam_filled": true
     },
     {
@@ -92,26 +66,96 @@
       "role": "cross",
       "category": "frame",
       "material": "pvc",
-      "quantity": 4,
+      "quantity": 3,
       "weight_lb_each": 0.45,
       "weight_measured": false,
       "unit_cost_usd": 7.23,
-      "status": "planned",
-      "notes": "Price from shelf tag. Quantity from the simulator's fitted 2-drum frame; update to what you bought.",
+      "status": "bought",
+      "notes": "Receipt 2026-10-01.",
+      "foam_filled": true
+    },
+    {
+      "catalog_id": "FT04",
+      "name": "1-1/2\" DWV sanitary tee (HxHxH)",
+      "role": "tee",
+      "category": "frame",
+      "material": "pvc",
+      "quantity": 4,
+      "weight_lb_each": 0.35,
+      "weight_measured": false,
+      "unit_cost_usd": 3.76,
+      "status": "bought",
+      "notes": "Receipt 2026-10-01.",
+      "foam_filled": true
+    },
+    {
+      "catalog_id": "FT07",
+      "name": "1-1/2\" furniture-grade 4-way side-outlet tee (Zernmiarder, 12-pack)",
+      "role": "side-tee",
+      "category": "frame",
+      "material": "pvc",
+      "quantity": 24,
+      "weight_lb_each": 0.3,
+      "weight_measured": false,
+      "unit_cost_usd": 1.85,
+      "status": "bought",
+      "notes": "2 \u00d7 12-pack from Amazon. Enter the actual price.",
+      "foam_filled": true
+    },
+    {
+      "catalog_id": "S005",
+      "name": "1-1/2\" DWV 90\u00b0 elbow (HxH)",
+      "role": "elbow",
+      "category": "frame",
+      "material": "pvc",
+      "quantity": 16,
+      "weight_lb_each": 0.2,
+      "weight_measured": false,
+      "unit_cost_usd": 1.09,
+      "status": "bought",
+      "notes": "Receipt 2026-10-01.",
+      "foam_filled": true
+    },
+    {
+      "catalog_id": "FT05",
+      "name": "1-1/2\" DWV 45\u00b0 elbow (HxH)",
+      "role": "elbow45",
+      "category": "frame",
+      "material": "pvc",
+      "quantity": 5,
+      "weight_lb_each": 0.15,
+      "weight_measured": false,
+      "unit_cost_usd": 2.56,
+      "status": "bought",
+      "notes": "Receipt 2026-10-01.",
       "foam_filled": true
     },
     {
       "catalog_id": "S006",
-      "name": "PVC coupling 1-1/2\" Sch 40",
+      "name": "1-1/2\" DWV coupling (HxH)",
       "role": "coupling",
       "category": "frame",
       "material": "pvc",
-      "quantity": 1,
+      "quantity": 4,
       "weight_lb_each": 0.15,
       "weight_measured": false,
-      "unit_cost_usd": 1.2,
-      "status": "planned",
-      "notes": "",
+      "unit_cost_usd": 1.36,
+      "status": "bought",
+      "notes": "Receipt 2026-10-01.",
+      "foam_filled": true
+    },
+    {
+      "catalog_id": "FT06",
+      "name": "1-1/2\" PVC DWV hub cap",
+      "role": "cap",
+      "category": "frame",
+      "material": "pvc",
+      "quantity": 4,
+      "weight_lb_each": 0.08,
+      "weight_measured": false,
+      "unit_cost_usd": 2.09,
+      "status": "bought",
+      "notes": "Receipt 2026-10-01.",
       "foam_filled": true
     },
     {
@@ -193,17 +237,19 @@
       "notes": ""
     },
     {
-      "catalog_id": "R001",
-      "name": "Heavy-duty UV cable ties 17\", 120 lb (100-pack)",
+      "catalog_id": "R004",
+      "name": "36 in. heavy-duty cable tie, black",
       "role": "zip-tie",
       "category": "rigging",
       "material": "nylon",
-      "quantity": 2,
-      "weight_lb_each": 0,
+      "quantity": 4,
+      "weight_lb_each": 0.6,
       "weight_measured": false,
-      "unit_cost_usd": 24.98,
-      "status": "planned",
-      "notes": ""
+      "unit_cost_usd": 16.36,
+      "status": "bought",
+      "notes": "Receipt 2026-10-01. Over 18\" as bought: confirm with the organizers.",
+      "length_in": 36,
+      "pack_count": 10
     },
     {
       "catalog_id": "R002",
@@ -362,6 +408,69 @@
       "unit_cost_usd": 7.99,
       "status": "planned",
       "notes": ""
+    }
+  ],
+  "receipts": [
+    {
+      "store": "Home Depot",
+      "date": "2026-10-01",
+      "subtotal_usd": 206.01,
+      "tax_usd": 17.0,
+      "total_usd": 223.01,
+      "lines": [
+        [
+          "36 in. heavy-duty cable tie, black",
+          4,
+          16.36
+        ],
+        [
+          "1-1/2\" DWV sani tee HxHxH",
+          4,
+          3.76
+        ],
+        [
+          "1-1/2\" DWV 45\u00b0 elbow HxH",
+          5,
+          2.56
+        ],
+        [
+          "1-1/2\" DWV double sani tee HxHxHxH",
+          3,
+          7.23
+        ],
+        [
+          "1-1/2\" DWV coupling HxH",
+          4,
+          1.36
+        ],
+        [
+          "1-1/2\" PVC DWV hub cap",
+          4,
+          2.09
+        ],
+        [
+          "1-1/2\" DWV 90\u00b0 elbow HxH",
+          16,
+          1.09
+        ],
+        [
+          "1-1/2\" x 10' PVC40-DWV PE pipe",
+          5,
+          11.96
+        ]
+      ]
+    },
+    {
+      "store": "Amazon",
+      "date": "2026-10",
+      "total_usd": null,
+      "lines": [
+        [
+          "Zernmiarder 1-1/2\" 4-way side-outlet tee, 12-pack",
+          2,
+          null
+        ]
+      ]
     }
   ]
 }
