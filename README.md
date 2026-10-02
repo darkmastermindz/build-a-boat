@@ -11,7 +11,7 @@ recommendations.
 
 ## 🌐 Live site
 
-**https://bob-raft-sim.netlify.app**: the simulator, deployed on Netlify,
+**https://bob-sim.netlify.app**: the simulator, deployed on Netlify,
 with shared design profiles.
 
 ## 🚀 Quick start
@@ -113,7 +113,7 @@ node --test tests/*.test.js
 
 ## ☁️ Netlify
 
-Project: `bob-raft-sim`. The build runs `npm test && npm run build`, publishes
+Project: `bob-sim`. The build runs `npm test && npm run build`, publishes
 `dist/`, and deploys `netlify/functions/profiles.mts`.
 
 - `/`: the simulator. `/raft-render.html`: the original render.
