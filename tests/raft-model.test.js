@@ -108,3 +108,43 @@ test('long zip ties are flagged against the 18" rule', () => {
   const r = M.analyze(b, rules, { skipLeak: true }).rules.find(x => x.id === 'ties');
   assert.ok(r && r.level === 'warn');
 });
+
+test('weights: predicted vs bought so far', () => {
+  const a = M.analyze(build, rules, { skipLeak: true });
+  const w = a.weights;
+  assert.ok(w.predicted > 0 && w.onHand >= 0 && w.onHand <= w.predicted);
+  near(w.remaining, w.predicted - w.onHand, 1e-9, 'remaining');
+  const b = clone(build); b.parts.forEach(p => { p.status = 'bought'; });
+  b.parts.find(p => p.role === 'drum').quantity = 2;
+  const all = M.analyze(b, rules, { skipLeak: true }).weights;
+  near(all.onHand, all.predicted, 1e-6, 'everything bought');
+});
+
+test('shopping list covers what the layout still needs', () => {
+  const catalog = require('../data/catalog.json');
+  const a = M.analyze(build, rules, { skipLeak: true, catalog });
+  const bought = M.inventory(build.parts.filter(p => p.status === 'bought' || p.status === 'installed'));
+  for (const role of ['drum', 'pipe', 'cross', 'tee', 'elbow']) {
+    const need = a.requirements.items[role] || 0, have = bought[role] || 0;
+    const row = a.shopping.rows.find(r => r.role === role && r.priority === 'needed');
+    if (need > have) assert.ok(row && row.qty >= need - have, role);
+    else assert.ok(!row, `${role} should not be on the list`);
+  }
+  assert.ok(a.shopping.rows.every(r => !(r.role === 'zip-tie' && /36 in/i.test(r.name))), 'does not suggest ties over 18"');
+});
+
+test('no addresses, phone numbers or payment details in data and docs', () => {
+  const fs = require('fs'), path = require('path');
+  const root = path.join(__dirname, '..');
+  const files = [...fs.readdirSync(path.join(root, 'data')).map(f => 'data/' + f), 'docs/design.md', 'README.md', 'PLAN.md', 'reports/latest-report.md'];
+  const bad = [
+    /"(address|phone)"\s*:/i,
+    /\b\d{2,6} [A-Z][a-z]+(?: [A-Z][a-z]+)* (?:St|Ave|Blvd|Dr|Rd|Ct|Pike|Plaza|Hwy)\b/,
+    /\(\d{3}\)\s?\d{3}-\d{4}/,
+    /X{6,}\d{4}|AUTH CODE|\bAMEX\b|Home Depot #\d+/i,
+  ];
+  for (const f of files) {
+    const t = fs.readFileSync(path.join(root, f), 'utf8');
+    bad.forEach(re => assert.ok(!re.test(t), `${f} matches ${re}`));
+  }
+});

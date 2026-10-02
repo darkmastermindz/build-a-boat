@@ -60,7 +60,7 @@
   table{width:100%;border-collapse:collapse;font-size:12.5px}
   th,td{padding:5px 4px;border-bottom:1px solid var(--line);text-align:left;vertical-align:middle}
   th{font-weight:600;color:var(--muted);font-size:11.5px;text-transform:uppercase;letter-spacing:.3px}
-  td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
+  td.num,th.num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
   .part{border-bottom:1px solid var(--line);padding:8px 0}
   .part .ph{display:grid;grid-template-columns:1fr 24px;gap:6px;align-items:center}
   .part .ph input{font-weight:600;padding:4px 6px}
@@ -181,6 +181,11 @@
     </section>
 
     <section class="pane" id="pane-check">
+      <h2>Weight</h2>
+      <table id="weightTable"></table>
+      <h2>Next shopping trip</h2>
+      <p class="blurb">What's still needed for this layout after what's marked <b>bought</b>, plus planned extras. Change the layout or mark parts bought, and the list updates.</p>
+      <div style="overflow-x:auto"><table id="shopTable"></table></div>
       <h2>Competition rules</h2>
       <ul class="msgs" id="rulesList"></ul>
       <h2>Recommendations</h2>
@@ -400,12 +405,12 @@ function renderParts(){
 let pending = false;
 function changed(){ if (!loadingProfile) markDirty(); store.set(build); if (!pending) { pending = true; requestAnimationFrame(() => { pending = false; update(); }); } }
 function update(){
-  A = M.analyze(build, rules);
+  A = M.analyze(build, rules, { catalog });
   renderStats(); renderCheck(); buildBoat(); renderHud();
   const fd = $('failedDrum'), cur = build.config.failedDrum;
   fd.replaceChildren(el('option', { value:'' }, 'None'), ...A.geometry.drums.map(d => el('option', { value: d.id, selected: cur === d.id }, `Drum ${d.id + 1} (${d.x >= 0 ? 'fwd' : 'aft'} ${d.z < 0 ? 'port' : d.z > 0 ? 'stbd' : 'center'})`)));
   const w = A.weights.total, wm = A.weights.measured;
-  $('partsTotals').textContent = `Boat weight ${f1(w)} lb (${f1(wm)} lb measured) · List total ${money(A.cost)} · Bought ${money(A.spent)}`;
+  $('partsTotals').textContent = `Predicted final weight ${f1(w)} lb · Bought so far ${f1(A.weights.onHand)} lb on the boat + ${f1(A.weights.spareOnHand)} lb spares/offcuts · Still to buy ${f1(A.weights.remaining)} lb · Measured ${f1(wm)} lb · List total ${money(A.cost)} · Spent ${money(A.spent)}`;
   if ($('pane-compare').classList.contains('active')) renderCompare();
 }
 function renderStats(){
@@ -414,7 +419,8 @@ function renderStats(){
   const warns = A.recommendations.filter(x => x.level === 'warn').length;
   const chip = (cls, val, label) => el('span', { class: 'stat ' + cls }, el('b', {}, val), label);
   $('stats').replaceChildren(
-    chip(w >= max ? 'err' : w > max - 10 ? 'warn' : 'ok', f0(w) + ' lb', ` / ${max}`),
+    chip(w >= max ? 'err' : w > max - 10 ? 'warn' : 'ok', f0(w) + ' lb', ` predicted / ${max}`),
+    chip('', f0(A.weights.onHand) + ' lb', 'bought so far'),
     chip('', A.geometry.drums.length, 'drums'),
     chip(!s.ok || s.loadPct > 80 ? 'err' : s.loadPct > 60 ? 'warn' : 'ok', s.ok ? f0(s.loadPct) + '%' : (s.reason || '✕'), 'load'),
     chip('', s.ok ? f1(s.maxDraft) + '"' : '—', 'draft'),
@@ -428,6 +434,21 @@ function msgList(target, items){
     el('li', {}, el('span', { class: 'dot ' + m.level, title: m.level }), el('div', {}, el('div', { class:'t' }, m.title), m.detail ? el('div', { class:'d' }, m.detail) : ''))));
 }
 function renderCheck(){
+  const W = A.weights, max = rules.max_boat_weight_lb || 150;
+  $('weightTable').replaceChildren(
+    ...[['Predicted final boat', W.predicted, `${f0(max - W.predicted)} lb under the ${max} lb limit`],
+        ['Bought so far (on the boat)', W.onHand, `${f0(W.predicted ? W.onHand / W.predicted * 100 : 0)}% of predicted`],
+        ['Bought spares and offcuts', W.spareOnHand, 'Not counted in the boat weight'],
+        ['Still to buy', W.remaining, ''],
+        ['Measured on a scale', W.measured, 'Tick "measured" in Parts as you weigh things']]
+      .map(([k, v, note]) => el('tr', {}, el('td', {}, k), el('td', { class:'num' }, f1(v) + ' lb'), el('td', { class:'small muted' }, note))));
+  const sh = A.shopping;
+  $('shopTable').replaceChildren(
+    el('tr', {}, el('th', {}, 'Item'), el('th', { class:'num' }, 'Qty'), el('th', { class:'num' }, 'Est.'), el('th', {}, 'Where')),
+    ...sh.rows.map(r => el('tr', {},
+      el('td', {}, el('div', {}, r.name, r.priority !== 'needed' ? el('span', { class:'tag' }, r.priority) : '', r.estimate ? el('span', { class:'tag' }, 'price est.') : ''), el('div', { class:'small muted' }, r.why)),
+      el('td', { class:'num' }, `${r.qty}`), el('td', { class:'num' }, money(r.cost)), el('td', { class:'small' }, r.source))),
+    el('tr', {}, el('td', {}, el('b', {}, 'Needed')), el('td', {}), el('td', { class:'num' }, el('b', {}, money(sh.neededCost))), el('td', { class:'small muted' }, `${money(sh.totalCost)} with spare + optional`)));
   msgList($('rulesList'), A.rules);
   msgList($('recList'), A.recommendations.filter(r => !A.rules.some(x => x.title === r.title)));
   const have = M.inventory(build.parts);

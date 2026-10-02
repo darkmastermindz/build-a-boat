@@ -24,7 +24,7 @@ const rules = read('rules.json');
 const catalog = read('catalog.json');
 const dateStr = new Date().toISOString().split('T')[0];
 
-const a = M.analyze(build, rules);
+const a = M.analyze(build, rules, { catalog });
 const g = a.geometry, c = g.config, s = a.solution;
 const cmp = M.comparePresets(build, rules);
 const icon = { ok: '✅', warn: '⚠️', error: '❌', info: 'ℹ️' };
@@ -66,7 +66,26 @@ Generated from \`data/build.json\` by \`scripts/raft-model.js\`. Open
 | Deck | ${c.deck.length}" × ${c.deck.width}" × ${c.deck.thickness}" |
 | Overall size | ${ft(g.overall.length)} × ${ft(g.overall.width)} × ${ft(g.overall.height)} |
 | Crew | ${c.crew.count} × ${c.crew.weightEach} lb |
-| Boat weight | ${f1(a.weights.total)} lb (${f0(a.weights.measuredShare * 100)}% measured) |
+| Predicted final weight | ${f1(a.weights.predicted)} lb (limit ${rules.max_boat_weight_lb || 150}) |
+| Bought so far | ${f1(a.weights.onHand)} lb on the boat + ${f1(a.weights.spareOnHand)} lb spares/offcuts |
+| Measured | ${f1(a.weights.measured)} lb (${f0(a.weights.measuredShare * 100)}% of predicted) |
+
+## Weight
+
+| | lb |
+|---|---|
+| **Predicted final boat** | **${f1(a.weights.predicted)}** |
+| Bought so far (on the boat) | ${f1(a.weights.onHand)} |
+| Bought spares and offcuts (not on the boat) | ${f1(a.weights.spareOnHand)} |
+| Still to buy | ${f1(a.weights.remaining)} |
+| Measured on a scale | ${f1(a.weights.measured)} |
+
+## Next shopping trip
+
+| Item | Qty | Est. | Priority | Where | Why |
+|------|-----|------|----------|-------|-----|
+${a.shopping.rows.map(r => `| ${r.name} | ${r.qty} | ${money(r.cost)}${r.estimate ? ' (est.)' : ''} | ${r.priority} | ${r.source} | ${r.why} |`).join('\n')}
+| **Needed** | | **${money(a.shopping.neededCost)}** | | | ${money(a.shopping.totalCost)} including spare and optional |
 
 ## Physics
 

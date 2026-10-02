@@ -128,7 +128,7 @@
       "price_options": {
         "home_depot": 1.09
       },
-      "price_basis": "Home Depot #3603, 8135 University City Blvd, Charlotte (receipt 2026-10-01)",
+      "price_basis": "Home Depot receipt 2026-10-01",
       "estimate": false,
       "weight_lb_each": 0.2,
       "source": "Home Depot",
@@ -149,7 +149,7 @@
       "price_options": {
         "home_depot": 1.36
       },
-      "price_basis": "Home Depot #3603, 8135 University City Blvd, Charlotte (receipt 2026-10-01)",
+      "price_basis": "Home Depot receipt 2026-10-01",
       "estimate": false,
       "weight_lb_each": 0.15,
       "source": "Home Depot",
@@ -240,7 +240,7 @@
       "estimate": true,
       "weight_lb_each": 0.1,
       "source": "Harbor Freight (Kannapolis, NC)",
-      "url": "https://www.harborfreight.com/storelocator/1034-cloverleaf-plaza-kannapolis-28083",
+      "url": "https://www.harborfreight.com",
       "notes": "Bonding PVC to deck and patching. Check that the total volume is enough; buy extra if not.",
       "origin": "sheet"
     },
@@ -262,7 +262,7 @@
       "estimate": true,
       "weight_lb_each": 0.7,
       "source": "Harbor Freight (Kannapolis, NC)",
-      "url": "https://www.harborfreight.com/storelocator/1034-cloverleaf-plaza-kannapolis-28083",
+      "url": "https://www.harborfreight.com",
       "notes": "Seal drum bungs, pipe ends and deck seams.",
       "origin": "sheet"
     },
@@ -650,7 +650,7 @@
       "price_options": {
         "home_depot": 7.23
       },
-      "price_basis": "Home Depot #3603, 8135 University City Blvd, Charlotte (receipt 2026-10-01)",
+      "price_basis": "Home Depot receipt 2026-10-01",
       "estimate": false,
       "weight_lb_each": 0.45,
       "source": "Home Depot",
@@ -713,7 +713,7 @@
       "price_options": {
         "home_depot": 3.76
       },
-      "price_basis": "Home Depot #3603, 8135 University City Blvd, Charlotte (receipt 2026-10-01)",
+      "price_basis": "Home Depot receipt 2026-10-01",
       "estimate": false,
       "weight_lb_each": 0.35,
       "source": "Home Depot",
@@ -734,7 +734,7 @@
       "price_options": {
         "home_depot": 11.96
       },
-      "price_basis": "Home Depot #3603, 8135 University City Blvd, Charlotte (receipt 2026-10-01)",
+      "price_basis": "Home Depot receipt 2026-10-01",
       "estimate": false,
       "weight_lb_each": 5.1,
       "source": "Home Depot",
@@ -755,7 +755,7 @@
       "price_options": {
         "home_depot": 2.56
       },
-      "price_basis": "Home Depot #3603, 8135 University City Blvd, Charlotte (receipt 2026-10-01)",
+      "price_basis": "Home Depot receipt 2026-10-01",
       "estimate": false,
       "weight_lb_each": 0.15,
       "source": "Home Depot",
@@ -776,7 +776,7 @@
       "price_options": {
         "home_depot": 2.09
       },
-      "price_basis": "Home Depot #3603, 8135 University City Blvd, Charlotte (receipt 2026-10-01)",
+      "price_basis": "Home Depot receipt 2026-10-01",
       "estimate": false,
       "weight_lb_each": 0.08,
       "source": "Home Depot",
@@ -818,7 +818,7 @@
       "price_options": {
         "home_depot": 16.36
       },
-      "price_basis": "Home Depot #3603, 8135 University City Blvd, Charlotte (receipt 2026-10-01)",
+      "price_basis": "Home Depot receipt 2026-10-01",
       "estimate": false,
       "weight_lb_each": 0.6,
       "pack_count": 10,

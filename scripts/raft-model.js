@@ -264,17 +264,33 @@
     });
   }
 
+  const isBought = p => p.status === 'bought' || p.status === 'installed';
+
+  // predicted: the finished boat as configured (all listed parts, pipe and
+  //   fittings counted by what the layout uses, drums by the layout's count).
+  // onHand: the part of that predicted weight already bought.
+  // spareOnHand: bought pipe/fittings the layout doesn't use (offcuts, spares).
   function weights(build, g) {
     const parts = boatParts(build.parts);
     const drumPart = parts.find(p => p.role === 'drum');
     const drumEach = drumPart ? +drumPart.weight_lb_each || DRUM.emptyWeight : DRUM.emptyWeight;
-    let total = g.drums.length * drumEach, measured = g.drums.length * drumEach * (drumPart && drumPart.weight_measured ? 1 : 0);
-    const byRole = { drum: g.drums.length * drumEach };
+    const drumW = g.drums.length * drumEach;
+    let total = drumW, measured = drumPart && drumPart.weight_measured ? drumW : 0;
+    let onHand = drumPart && isBought(drumPart) ? Math.min(drumW, (+drumPart.quantity || 0) * drumEach) : 0;
+    let boughtListed = 0;
+    const byRole = { drum: drumW };
     partWeights(build, g).forEach(({ part: p, w }) => {
       total += w; if (p.weight_measured) measured += w;
       byRole[p.role] = (byRole[p.role] || 0) + w;
+      if (isBought(p)) { onHand += w; boughtListed += (+p.quantity || 0) * (+p.weight_lb_each || 0); }
     });
-    return { total, measured, drumEach, byRole, measuredShare: total ? measured / total : 0 };
+    const usedBought = onHand - (drumPart && isBought(drumPart) ? Math.min(drumW, (+drumPart.quantity || 0) * drumEach) : 0);
+    return {
+      total, predicted: total, measured, drumEach, byRole, onHand,
+      spareOnHand: Math.max(0, boughtListed - usedBought),
+      remaining: Math.max(0, total - onHand),
+      measuredShare: total ? measured / total : 0,
+    };
   }
 
   function massItems(build, g, crewOverride) {
@@ -477,7 +493,8 @@
     const cost = parts.reduce((s, p) => s + (+p.quantity || 0) * (+p.unit_cost_usd || 0), 0);
     const spent = parts.filter(p => p.status === 'bought' || p.status === 'installed').reduce((s, p) => s + (+p.quantity || 0) * (+p.unit_cost_usd || 0), 0);
     const recs = recommend({ build, g, req, wt, sol, fwd, side, leaks, rulesOut, crewW });
-    return { geometry: g, requirements: req, weights: wt, solution: sol, scenarios: { crewForward: fwd, crewSide: side, leaks }, rules: rulesOut, recommendations: recs, cost, spent, crewWeight: crewW };
+    const shopping = shoppingList(build, req, opts.catalog, rules);
+    return { shopping, geometry: g, requirements: req, weights: wt, solution: sol, scenarios: { crewForward: fwd, crewSide: side, leaks }, rules: rulesOut, recommendations: recs, cost, spent, crewWeight: crewW };
   }
 
   function recommend(a) {
@@ -561,6 +578,62 @@
     return have;
   }
 
+  // ── Next shopping trip ──
+  // What still has to be bought for the configured layout, given what's
+  // already marked bought/installed, plus planned extras and a spare stick
+  // when the cut list has little margin.
+  const DERIVED = ['drum', 'pipe', 'cross', 'tee', 'elbow', 'coupling', 'zip-tie', 'xps', 'coroplast', 'spray-foam', 'cement'];
+  function shoppingList(build, req, catalog, rules) {
+    const parts = build.parts || [];
+    const bought = inventory(parts.filter(isBought));
+    const items = (catalog && catalog.items) || [];
+    const byId = Object.fromEntries(items.map(x => [x.id, x]));
+    const info = p => Object.assign({}, byId[p.catalog_id] || {}, p);   // listed part + its catalog details
+    const ropeMax = (rules && rules.max_securing_material_length_in) || 18;
+    const pick = role => {
+      const listed = parts.filter(p => (inventory([p])[role] || 0) > 0);
+      const okLen = x => !(role === 'zip-tie' && +x.length_in > ropeMax);
+      const fromList = listed.find(okLen);
+      if (fromList) return info(fromList);
+      const cands = items.filter(x => (inventory([Object.assign({ quantity: 1 }, x)])[role] || 0) > 0 && okLen(x)).sort((a, b) => a.unit_cost_usd - b.unit_cost_usd);
+      return cands[0] || (listed[0] ? info(listed[0]) : null);
+    };
+    const rows = [];
+    DERIVED.forEach(role => {
+      const need = req.items[role] || 0, have = bought[role] || 0;
+      if (need <= have) return;
+      const src = pick(role);
+      const per = role === 'zip-tie' ? (+(src && src.pack_count) || 100) : 1;
+      const qty = Math.ceil((need - have) / per);
+      rows.push({
+        role, name: src ? src.name : role, qty, unit: role === 'zip-tie' ? 'pack' : (src && src.unit) || 'each',
+        unitCost: src ? +src.unit_cost_usd || 0 : 0, estimate: !!(src && src.estimate),
+        source: src ? src.source || '' : '', priority: 'needed',
+        why: `Layout needs ${need}${role === 'zip-tie' ? ' ties' : ''}; ${have} bought.` + (role === 'zip-tie' && parts.some(p => p.role === 'zip-tie' && +p.length_in > ropeMax) ? ` Suggests ties of ${ropeMax}" or less, since the longer ones may break the rule.` : ''),
+      });
+    });
+    const slack = (bought.pipe || 0) * STOCK - req.pipeLength_in - req.cuts.length * KERF;
+    if ((bought.pipe || 0) >= req.items.pipe && slack < 24) {
+      const src = pick('pipe');
+      rows.push({ role: 'pipe', name: src ? src.name : 'pipe', qty: 1, unit: 'piece', unitCost: src ? +src.unit_cost_usd || 0 : 0, estimate: false, source: src ? src.source || '' : '', priority: 'spare', why: `Only ${slack.toFixed(0)}" of pipe to spare. A spare stick covers a mis-cut.` });
+    }
+    parts.filter(p => p.status === 'planned' && !DERIVED.includes(p.role) && !(inventory([p]).tee || inventory([p]).elbow) && (+p.quantity || 0) > 0 && (+p.unit_cost_usd || 0) > 0).forEach(raw => {
+      let p = info(raw), why = 'Planned on the parts list, not bought yet.';
+      if (SINKS.has(p.material) && !FASTENER_ROLES.has(p.role)) {
+        const alt = items.filter(x => x.role === p.role && !SINKS.has(x.material)).sort((a, b) => a.unit_cost_usd - b.unit_cost_usd)[0];
+        if (alt) { why = `Swapped for ${alt.name}: ${p.name} may not float.`; p = Object.assign({}, alt, { quantity: p.quantity }); }
+        else why += ' May not float: bucket-test it.';
+      }
+      const priority = p.category === 'tools' ? 'needed' : ['comfort', 'decor', 'finish'].includes(p.category) ? 'optional' : 'needed';
+      rows.push({ role: p.role, name: p.name, qty: +p.quantity, unit: p.unit || 'each', unitCost: +p.unit_cost_usd || 0, estimate: !!p.estimate, source: p.source || '', priority, why });
+    });
+    rows.forEach(r => { r.cost = r.qty * r.unitCost; });
+    const order = { needed: 0, spare: 1, optional: 2 };
+    rows.sort((a, b) => order[a.priority] - order[b.priority]);
+    const sum = pr => rows.filter(r => pr.includes(r.priority)).reduce((t, r) => t + r.cost, 0);
+    return { rows, neededCost: sum(['needed']), totalCost: sum(['needed', 'spare', 'optional']) };
+  }
+
   function comparePresets(build, rules) {
     return Object.keys(PRESETS).map(id => {
       const cfg = Object.assign({}, build.config, { preset: id, drums: undefined, failedDrum: null });
@@ -579,7 +652,7 @@
 
   return {
     WATER, DRUM, PIPE_R, RAIL_OFFSET, PRESETS, DEFAULT_CONFIG, inventory,
-    withDefaults, geometry, requirements, weights, massItems, crewPositions, solve, checkRules, analyze, comparePresets,
+    withDefaults, geometry, requirements, shoppingList, weights, massItems, crewPositions, solve, checkRules, analyze, comparePresets,
     segArea, drumMaxLb,
   };
 });
