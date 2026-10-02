@@ -1,0 +1,954 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BOB – Build-a-Boat Simulator | Whitewater Center</title>
+  <style>
+    :root {
+      --water: #1a6ea8;
+      --water-light: #2196f3;
+      --hull: #8B4513;
+      --deck: #d2a679;
+      --pvc: #e0e0e0;
+      --sky: #87ceeb;
+      --foam: #fff;
+      --ui-bg: #1a1a2e;
+      --ui-panel: #16213e;
+      --ui-accent: #0f3460;
+      --ui-highlight: #e94560;
+      --text: #eaeaea;
+      --text-dim: #aaa;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      background: var(--ui-bg);
+      color: var(--text);
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+
+    header {
+      background: var(--ui-panel);
+      border-bottom: 2px solid var(--ui-highlight);
+      padding: 12px 20px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    header h1 { font-size: 1.4rem; letter-spacing: 1px; }
+    header .subtitle { color: var(--text-dim); font-size: 0.85rem; }
+    header .badge {
+      margin-left: auto;
+      background: var(--ui-highlight);
+      padding: 4px 10px;
+      border-radius: 12px;
+      font-size: 0.8rem;
+      font-weight: 600;
+    }
+
+    .app-layout {
+      display: flex;
+      flex: 1;
+      gap: 0;
+      overflow: hidden;
+    }
+
+    /* ── Sidebar ── */
+    .sidebar {
+      width: 320px;
+      min-width: 280px;
+      background: var(--ui-panel);
+      border-right: 1px solid #2a2a4a;
+      display: flex;
+      flex-direction: column;
+      overflow-y: auto;
+    }
+
+    .sidebar-section {
+      border-bottom: 1px solid #2a2a4a;
+      padding: 14px 16px;
+    }
+
+    .sidebar-section h3 {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--ui-highlight);
+      margin-bottom: 10px;
+    }
+
+    .param-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 8px;
+      gap: 8px;
+    }
+
+    .param-row label {
+      font-size: 0.82rem;
+      color: var(--text-dim);
+      flex: 1;
+    }
+
+    .param-row input[type="range"] {
+      flex: 1.2;
+      accent-color: var(--ui-highlight);
+    }
+
+    .param-row .val {
+      font-size: 0.82rem;
+      min-width: 40px;
+      text-align: right;
+      color: var(--text);
+    }
+
+    .metric-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    .metric-card {
+      background: var(--ui-accent);
+      border-radius: 6px;
+      padding: 8px;
+      text-align: center;
+    }
+
+    .metric-card .m-val {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: #4fc3f7;
+    }
+
+    .metric-card .m-label {
+      font-size: 0.7rem;
+      color: var(--text-dim);
+      margin-top: 2px;
+    }
+
+    .btn {
+      display: block;
+      width: 100%;
+      padding: 9px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.85rem;
+      font-weight: 600;
+      transition: opacity 0.15s;
+      margin-bottom: 6px;
+    }
+    .btn:hover { opacity: 0.85; }
+    .btn-primary { background: var(--ui-highlight); color: #fff; }
+    .btn-secondary { background: var(--ui-accent); color: var(--text); }
+
+    /* ── Canvas area ── */
+    .canvas-area {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      background: var(--sky);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .view-tabs {
+      display: flex;
+      background: rgba(0,0,0,0.4);
+      gap: 2px;
+      padding: 6px 10px;
+    }
+
+    .view-tab {
+      padding: 5px 14px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 0.8rem;
+      border: none;
+      background: transparent;
+      color: var(--text-dim);
+      transition: all 0.15s;
+    }
+    .view-tab.active {
+      background: var(--ui-highlight);
+      color: #fff;
+    }
+
+    canvas {
+      flex: 1;
+      display: block;
+      width: 100%;
+    }
+
+    .sim-overlay {
+      position: absolute;
+      bottom: 12px;
+      right: 14px;
+      display: flex;
+      gap: 6px;
+    }
+
+    .sim-btn {
+      padding: 7px 14px;
+      border-radius: 20px;
+      border: none;
+      cursor: pointer;
+      font-size: 0.8rem;
+      font-weight: 600;
+    }
+    #btnPlay  { background: #4caf50; color: #fff; }
+    #btnPause { background: #ff9800; color: #fff; }
+    #btnReset { background: #607d8b; color: #fff; }
+
+    /* ── BOM table ── */
+    .bom-panel {
+      display: none;
+      flex-direction: column;
+      flex: 1;
+      overflow: hidden;
+    }
+    .bom-panel.active { display: flex; }
+
+    .bom-wrapper {
+      overflow: auto;
+      flex: 1;
+      padding: 16px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.82rem;
+    }
+
+    th {
+      background: var(--ui-accent);
+      padding: 8px 10px;
+      text-align: left;
+      position: sticky;
+      top: 0;
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--text-dim);
+    }
+
+    td {
+      padding: 7px 10px;
+      border-bottom: 1px solid #2a2a4a;
+    }
+
+    tr:hover td { background: rgba(255,255,255,0.04); }
+
+    .cat-badge {
+      display: inline-block;
+      padding: 2px 7px;
+      border-radius: 10px;
+      font-size: 0.7rem;
+      font-weight: 600;
+      text-transform: capitalize;
+    }
+
+    .bom-summary {
+      padding: 12px 16px;
+      background: var(--ui-panel);
+      border-top: 1px solid #2a2a4a;
+      display: flex;
+      gap: 20px;
+      align-items: center;
+    }
+
+    .bom-total { font-size: 1.1rem; font-weight: 700; color: #4fc3f7; }
+
+    footer {
+      background: var(--ui-panel);
+      border-top: 1px solid #2a2a4a;
+      text-align: center;
+      padding: 8px;
+      font-size: 0.75rem;
+      color: var(--text-dim);
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div>
+    <h1>⛵ BOB — Build-a-Boat Simulator</h1>
+    <div class="subtitle">Whitewater Center Competition Design Tool</div>
+  </div>
+  <div class="badge">v1.0</div>
+</header>
+
+<div class="app-layout">
+
+  <!-- ── Sidebar ── -->
+  <aside class="sidebar">
+
+    <div class="sidebar-section">
+      <h3>Boat Dimensions</h3>
+      <div class="param-row">
+        <label>Length (ft)</label>
+        <input type="range" id="rLength" min="6" max="20" step="0.5" value="10" />
+        <span class="val" id="vLength">10</span>
+      </div>
+      <div class="param-row">
+        <label>Width (ft)</label>
+        <input type="range" id="rWidth" min="2" max="8" step="0.5" value="4" />
+        <span class="val" id="vWidth">4</span>
+      </div>
+      <div class="param-row">
+        <label>Hull Height (ft)</label>
+        <input type="range" id="rHull" min="0.5" max="3" step="0.25" value="1.5" />
+        <span class="val" id="vHull">1.5</span>
+      </div>
+      <div class="param-row">
+        <label>PVC Tubes</label>
+        <input type="range" id="rTubes" min="2" max="6" step="1" value="4" />
+        <span class="val" id="vTubes">4</span>
+      </div>
+      <div class="param-row">
+        <label>Crew Weight (lbs)</label>
+        <input type="range" id="rCrew" min="100" max="600" step="10" value="300" />
+        <span class="val" id="vCrew">300</span>
+      </div>
+    </div>
+
+    <div class="sidebar-section">
+      <h3>Physics Metrics</h3>
+      <div class="metric-grid">
+        <div class="metric-card">
+          <div class="m-val" id="mDisplacement">—</div>
+          <div class="m-label">Displacement (lbs)</div>
+        </div>
+        <div class="metric-card">
+          <div class="m-val" id="mFreeboard">—</div>
+          <div class="m-label">Freeboard (in)</div>
+        </div>
+        <div class="metric-card">
+          <div class="m-val" id="mStability">—</div>
+          <div class="m-label">Stability Score</div>
+        </div>
+        <div class="metric-card">
+          <div class="m-val" id="mBoatWeight">—</div>
+          <div class="m-label">Est. Boat Wt (lbs)</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="sidebar-section">
+      <h3>Simulation</h3>
+      <div class="param-row">
+        <label>Wave Height (ft)</label>
+        <input type="range" id="rWave" min="0" max="2" step="0.1" value="0.3" />
+        <span class="val" id="vWave">0.3</span>
+      </div>
+      <div class="param-row">
+        <label>Current Speed (mph)</label>
+        <input type="range" id="rCurrent" min="0" max="8" step="0.5" value="2" />
+        <span class="val" id="vCurrent">2</span>
+      </div>
+    </div>
+
+    <div class="sidebar-section">
+      <h3>Actions</h3>
+      <button class="btn btn-primary" onclick="exportReport()">📄 Export Improvement Report</button>
+      <button class="btn btn-secondary" onclick="switchView('bom')">📦 View Full BOM</button>
+      <button class="btn btn-secondary" onclick="switchView('sim')">🎬 Back to Simulation</button>
+    </div>
+
+  </aside>
+
+  <!-- ── Main Area ── -->
+  <main class="canvas-area" id="simArea">
+
+    <div class="view-tabs">
+      <button class="view-tab active" onclick="switchView('side')">Side View</button>
+      <button class="view-tab" onclick="switchView('top')">Top View</button>
+      <button class="view-tab" onclick="switchView('front')">Front View</button>
+    </div>
+
+    <canvas id="boatCanvas"></canvas>
+
+    <div class="sim-overlay">
+      <button class="sim-btn" id="btnPlay"  onclick="startSim()">▶ Play</button>
+      <button class="sim-btn" id="btnPause" onclick="pauseSim()">⏸ Pause</button>
+      <button class="sim-btn" id="btnReset" onclick="resetSim()">↺ Reset</button>
+    </div>
+
+  </main>
+
+  <!-- ── BOM Panel ── -->
+  <main class="bom-panel" id="bomArea">
+    <div class="bom-wrapper">
+      <table id="bomTable">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Part Name</th>
+            <th>Category</th>
+            <th>Qty</th>
+            <th>Unit $</th>
+            <th>Total $</th>
+            <th>Source</th>
+            <th>Notes</th>
+          </tr>
+        </thead>
+        <tbody id="bomBody"></tbody>
+      </table>
+    </div>
+    <div class="bom-summary">
+      <span>Total Parts: <strong id="bsTotalParts">—</strong></span>
+      <span class="bom-total">Grand Total: $<span id="bsTotal">—</span></span>
+      <button class="btn btn-primary" style="width:auto;margin:0;padding:7px 16px" onclick="exportReport()">📄 Export Report</button>
+    </div>
+  </main>
+
+</div>
+
+<footer>BOB Simulator — Whitewater Center Build-a-Boat Competition | Data from data/bom.json</footer>
+
+<script>
+// ──────────────────────────────────────────────
+//  BOM DATA (mirrored from data/bom.json)
+// ──────────────────────────────────────────────
+const BOM_DATA = {
+  "project": "Build-a-Boat Competition - Whitewater Center",
+  "version": "1.0.0",
+  "parts": [
+    {"id":"P001","name":"PVC Pipe 4\" Diameter x 10ft","category":"hull","quantity":4,"unit":"piece","unit_cost_usd":18.99,"total_cost_usd":75.96,"source":"Home Depot","notes":"Main pontoon tubes for buoyancy"},
+    {"id":"P002","name":"PVC End Cap 4\"","category":"hull","quantity":8,"unit":"piece","unit_cost_usd":3.49,"total_cost_usd":27.92,"source":"Home Depot","notes":"Seal ends of pontoon tubes"},
+    {"id":"P003","name":"2x6 Pressure Treated Lumber x 10ft","category":"deck","quantity":6,"unit":"piece","unit_cost_usd":12.49,"total_cost_usd":74.94,"source":"Home Depot","notes":"Deck framing and cross-members"},
+    {"id":"P004","name":"3/4\" Plywood Sheet 4x8","category":"deck","quantity":2,"unit":"sheet","unit_cost_usd":45.97,"total_cost_usd":91.94,"source":"Home Depot","notes":"Deck surface"},
+    {"id":"P005","name":"Galvanized Carriage Bolts 3/8\" x 3\" (50pk)","category":"fasteners","quantity":2,"unit":"pack","unit_cost_usd":14.99,"total_cost_usd":29.98,"source":"Home Depot","notes":"Structural fasteners"},
+    {"id":"P006","name":"PVC Cement + Primer Kit","category":"adhesive","quantity":1,"unit":"kit","unit_cost_usd":11.98,"total_cost_usd":11.98,"source":"Home Depot","notes":"Seal PVC joints and end caps"},
+    {"id":"P007","name":"Rope 3/8\" Nylon Braided 50ft","category":"rigging","quantity":1,"unit":"roll","unit_cost_usd":15.99,"total_cost_usd":15.99,"source":"Home Depot","notes":"Lashing and safety lines"},
+    {"id":"P008","name":"Paddle (canoe style)","category":"propulsion","quantity":2,"unit":"piece","unit_cost_usd":24.99,"total_cost_usd":49.98,"source":"REI / Amazon","notes":"Propulsion paddles for crew"},
+    {"id":"P009","name":"Life Jacket / PFD Type III","category":"safety","quantity":2,"unit":"piece","unit_cost_usd":29.99,"total_cost_usd":59.98,"source":"REI / Amazon","notes":"Required safety equipment per person"},
+    {"id":"P010","name":"Waterproof Exterior Paint (1 gal)","category":"finish","quantity":1,"unit":"gallon","unit_cost_usd":34.97,"total_cost_usd":34.97,"source":"Home Depot","notes":"Weather protection for deck"},
+    {"id":"P011","name":"L-Bracket Galvanized 3\" (4pk)","category":"fasteners","quantity":4,"unit":"pack","unit_cost_usd":6.49,"total_cost_usd":25.96,"source":"Home Depot","notes":"Attach pontoons to frame"},
+    {"id":"P012","name":"Hose Clamps 4\" (10pk)","category":"fasteners","quantity":1,"unit":"pack","unit_cost_usd":9.99,"total_cost_usd":9.99,"source":"Home Depot","notes":"Secondary PVC retention"}
+  ]
+};
+
+const CAT_COLORS = {
+  hull: '#1565c0', deck: '#6d4c41', fasteners: '#546e7a',
+  adhesive: '#7b1fa2', rigging: '#2e7d32', propulsion: '#e65100',
+  safety: '#c62828', finish: '#558b2f'
+};
+
+// ──────────────────────────────────────────────
+//  State
+// ──────────────────────────────────────────────
+let params = { length:10, width:4, hull:1.5, tubes:4, crew:300, wave:0.3, current:2 };
+let simState = { running: false, t: 0, boatX: 0, boatY: 0, roll: 0, wavePhase: 0 };
+let currentView = 'side';
+let animId = null;
+
+// ──────────────────────────────────────────────
+//  DOM helpers
+// ──────────────────────────────────────────────
+function bind(sliderId, valId, key) {
+  const s = document.getElementById(sliderId);
+  const v = document.getElementById(valId);
+  s.addEventListener('input', () => {
+    params[key] = parseFloat(s.value);
+    v.textContent = s.value;
+    updateMetrics();
+    if (!simState.running) drawFrame();
+  });
+}
+
+bind('rLength','vLength','length');
+bind('rWidth','vWidth','width');
+bind('rHull','vHull','hull');
+bind('rTubes','vTubes','tubes');
+bind('rCrew','vCrew','crew');
+bind('rWave','vWave','wave');
+bind('rCurrent','vCurrent','current');
+
+// ──────────────────────────────────────────────
+//  Physics / Metrics
+// ──────────────────────────────────────────────
+function calcMetrics() {
+  const PVC_DIAM = 4/12; // ft
+  const PVC_VOL_PER_FT = Math.PI * (PVC_DIAM/2)**2; // ft³/ft
+  const totalTubeVol = params.tubes * params.length * PVC_VOL_PER_FT; // ft³
+  const displacement = totalTubeVol * 62.4; // lbs (fresh water)
+
+  const lumberWeight = 6 * params.length * 3.5; // ~3.5 lb/ft for 2x6
+  const plywoodWeight = 2 * (params.length * params.width) * 2.5; // ~2.5 lb/ft²
+  const boatWeight = lumberWeight + plywoodWeight + 40; // +misc
+
+  const totalLoad = boatWeight + params.crew;
+  const freeboard = ((displacement - totalLoad) / (params.width * params.length * 62.4)) * 12; // in
+
+  const stability = Math.min(100, Math.round(
+    (params.width / params.length * 50) +
+    (params.tubes / 4 * 30) +
+    (freeboard > 0 ? Math.min(20, freeboard * 3) : 0)
+  ));
+
+  return { displacement: Math.round(displacement), freeboard: Math.max(0, freeboard).toFixed(1), stability, boatWeight: Math.round(boatWeight) };
+}
+
+function updateMetrics() {
+  const m = calcMetrics();
+  document.getElementById('mDisplacement').textContent = m.displacement;
+  document.getElementById('mFreeboard').textContent = m.freeboard + '"';
+  document.getElementById('mStability').textContent = m.stability + '/100';
+  document.getElementById('mBoatWeight').textContent = m.boatWeight;
+}
+
+// ──────────────────────────────────────────────
+//  Canvas / Drawing
+// ──────────────────────────────────────────────
+const canvas = document.getElementById('boatCanvas');
+const ctx = canvas.getContext('2d');
+
+function resizeCanvas() {
+  canvas.width = canvas.offsetWidth;
+  canvas.height = canvas.offsetHeight;
+  drawFrame();
+}
+
+window.addEventListener('resize', resizeCanvas);
+
+function drawFrame() {
+  const W = canvas.width, H = canvas.height;
+  if (!W || !H) return;
+
+  if (currentView === 'side') drawSide(W, H);
+  else if (currentView === 'top') drawTop(W, H);
+  else if (currentView === 'front') drawFront(W, H);
+}
+
+// ─── Side View ───
+function drawSide(W, H) {
+  ctx.clearRect(0, 0, W, H);
+
+  // Sky gradient
+  const skyGrad = ctx.createLinearGradient(0, 0, 0, H*0.55);
+  skyGrad.addColorStop(0, '#87ceeb');
+  skyGrad.addColorStop(1, '#b0e0ff');
+  ctx.fillStyle = skyGrad;
+  ctx.fillRect(0, 0, W, H*0.55);
+
+  const waterY = H * 0.55 + simState.boatY;
+  const scale = W / (params.length * 12 + 8); // px per ft
+  const pxLen = params.length * scale;
+  const pxWidth = params.width * scale;
+  const pxHull = params.hull * scale;
+  const boatX0 = (W - pxLen) / 2 + simState.boatX;
+
+  // Wave water
+  drawWater(W, H, waterY);
+
+  // PVC tubes (submerged portion)
+  const tubeD = (4/12) * scale;
+  const tubeSpacing = pxWidth / (params.tubes + 1);
+  for (let i = 0; i < params.tubes; i++) {
+    const tx = boatX0;
+    const ty = waterY - tubeD * 0.4 + simState.roll * (i - params.tubes/2) * 3;
+    ctx.fillStyle = '#ccc';
+    ctx.strokeStyle = '#999';
+    ctx.lineWidth = 1;
+    roundRect(ctx, tx, ty, pxLen, tubeD, tubeD/2);
+    ctx.fill(); ctx.stroke();
+  }
+
+  // Hull / Frame
+  ctx.fillStyle = '#a0522d';
+  roundRect(ctx, boatX0, waterY - pxHull*0.6, pxLen, pxHull*0.6, 6);
+  ctx.fill();
+
+  // Deck
+  ctx.fillStyle = '#d4a76a';
+  ctx.fillRect(boatX0 - 4, waterY - pxHull*0.6 - pxHull*0.18, pxLen + 8, pxHull*0.18);
+
+  // Railing lines
+  ctx.strokeStyle = '#8B4513';
+  ctx.lineWidth = 2;
+  for (let x = boatX0; x < boatX0 + pxLen; x += 24) {
+    ctx.beginPath();
+    ctx.moveTo(x, waterY - pxHull*0.6 - pxHull*0.18);
+    ctx.lineTo(x, waterY - pxHull*0.6 - pxHull*0.45);
+    ctx.stroke();
+  }
+  ctx.beginPath();
+  ctx.moveTo(boatX0, waterY - pxHull*0.45);
+  ctx.lineTo(boatX0 + pxLen, waterY - pxHull*0.45);
+  ctx.stroke();
+
+  // Water reflection
+  ctx.fillStyle = 'rgba(255,255,255,0.08)';
+  ctx.fillRect(boatX0 + 10, waterY + 4, pxLen - 20, 6);
+
+  // Info overlay
+  const m = calcMetrics();
+  ctx.fillStyle = 'rgba(0,0,0,0.55)';
+  roundRect(ctx, 12, 12, 220, 90, 8);
+  ctx.fill();
+  ctx.fillStyle = '#fff';
+  ctx.font = '700 13px monospace';
+  ctx.fillText(`${params.length}ft × ${params.width}ft × ${params.hull}ft hull`, 20, 32);
+  ctx.font = '12px monospace';
+  ctx.fillStyle = '#4fc3f7';
+  ctx.fillText(`Displacement: ${m.displacement} lbs`, 20, 52);
+  ctx.fillText(`Freeboard: ${m.freeboard}"`, 20, 68);
+  ctx.fillStyle = m.stability > 60 ? '#66bb6a' : '#ff7043';
+  ctx.fillText(`Stability: ${m.stability}/100`, 20, 84);
+}
+
+// ─── Top View ───
+function drawTop(W, H) {
+  ctx.clearRect(0, 0, W, H);
+  ctx.fillStyle = '#0d47a1';
+  ctx.fillRect(0, 0, W, H);
+  drawTopWater(W, H);
+
+  const scale = Math.min(W, H) / (Math.max(params.length, params.width) * 2.5);
+  const pxLen = params.length * scale;
+  const pxWid = params.width * scale;
+  const cx = W/2, cy = H/2;
+
+  // Main deck
+  ctx.fillStyle = '#d4a76a';
+  roundRect(ctx, cx - pxLen/2, cy - pxWid/2, pxLen, pxWid, 8);
+  ctx.fill();
+
+  // Cross beams
+  ctx.strokeStyle = '#a0522d';
+  ctx.lineWidth = Math.max(2, pxWid*0.1);
+  const beamCount = Math.floor(params.length / 2);
+  for (let i = 1; i < beamCount; i++) {
+    const bx = cx - pxLen/2 + (pxLen / beamCount) * i;
+    ctx.beginPath();
+    ctx.moveTo(bx, cy - pxWid/2);
+    ctx.lineTo(bx, cy + pxWid/2);
+    ctx.stroke();
+  }
+
+  // PVC tubes
+  const tubeD = (4/12) * scale;
+  const gap = (pxWid - params.tubes * tubeD) / (params.tubes + 1);
+  for (let i = 0; i < params.tubes; i++) {
+    const ty = cy - pxWid/2 + gap * (i+1) + tubeD * i;
+    ctx.fillStyle = '#e0e0e0';
+    ctx.strokeStyle = '#aaa';
+    ctx.lineWidth = 1;
+    roundRect(ctx, cx - pxLen/2 - 4, ty, pxLen + 8, tubeD, tubeD/2);
+    ctx.fill(); ctx.stroke();
+  }
+
+  // Paddles
+  drawPaddle(ctx, cx - pxLen/2 - 30, cy - 10, scale);
+  drawPaddle(ctx, cx + pxLen/2 + 10, cy - 10, scale);
+
+  // Label
+  ctx.fillStyle = 'rgba(0,0,0,0.6)';
+  roundRect(ctx, 12, 12, 180, 50, 8);
+  ctx.fill();
+  ctx.fillStyle = '#fff';
+  ctx.font = '700 12px monospace';
+  ctx.fillText('TOP VIEW', 20, 30);
+  ctx.font = '11px monospace';
+  ctx.fillStyle = '#4fc3f7';
+  ctx.fillText(`${params.length}ft × ${params.width}ft | ${params.tubes} tubes`, 20, 50);
+}
+
+// ─── Front View ───
+function drawFront(W, H) {
+  ctx.clearRect(0, 0, W, H);
+
+  const skyGrad = ctx.createLinearGradient(0, 0, 0, H*0.6);
+  skyGrad.addColorStop(0, '#87ceeb');
+  skyGrad.addColorStop(1, '#b0e0ff');
+  ctx.fillStyle = skyGrad;
+  ctx.fillRect(0, 0, W, H);
+
+  const waterY = H * 0.6;
+  drawWater(W, H, waterY);
+
+  const scale = Math.min(W, H) / (Math.max(params.width, params.hull*3) * 4);
+  const pxWid = params.width * scale;
+  const pxHull = params.hull * scale;
+  const cx = W/2, tubeD = (4/12) * scale;
+
+  // PVC end caps (circles)
+  const gap = (pxWid - params.tubes * tubeD) / (params.tubes + 1);
+  for (let i = 0; i < params.tubes; i++) {
+    const tx = cx - pxWid/2 + gap*(i+1) + tubeD*i + tubeD/2;
+    const ty = waterY - tubeD*0.4 + simState.roll * (i - params.tubes/2) * 4;
+    ctx.beginPath();
+    ctx.arc(tx, ty, tubeD/2, 0, Math.PI*2);
+    ctx.fillStyle = '#ddd';
+    ctx.fill();
+    ctx.strokeStyle = '#999';
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+  }
+
+  // Hull body
+  ctx.fillStyle = '#a0522d';
+  roundRect(ctx, cx - pxWid/2, waterY - pxHull*0.7, pxWid, pxHull*0.7, 6);
+  ctx.fill();
+
+  // Deck
+  ctx.fillStyle = '#d4a76a';
+  ctx.fillRect(cx - pxWid/2 - 6, waterY - pxHull*0.7 - pxHull*0.2, pxWid+12, pxHull*0.2);
+
+  // Railing
+  ctx.strokeStyle = '#8B4513';
+  ctx.lineWidth = 3;
+  ctx.beginPath();
+  ctx.moveTo(cx - pxWid/2 - 6, waterY - pxHull);
+  ctx.lineTo(cx + pxWid/2 + 6, waterY - pxHull);
+  ctx.stroke();
+
+  // Roll indicator
+  const rollDeg = (simState.roll * 8).toFixed(1);
+  ctx.fillStyle = 'rgba(0,0,0,0.6)';
+  roundRect(ctx, 12, 12, 200, 60, 8);
+  ctx.fill();
+  ctx.fillStyle = '#fff';
+  ctx.font = '700 12px monospace';
+  ctx.fillText('FRONT VIEW', 20, 30);
+  ctx.font = '11px monospace';
+  ctx.fillStyle = '#4fc3f7';
+  ctx.fillText(`Width: ${params.width}ft | Hull: ${params.hull}ft`, 20, 48);
+  ctx.fillStyle = Math.abs(rollDeg) > 5 ? '#ff7043' : '#66bb6a';
+  ctx.fillText(`Roll: ${rollDeg}°`, 20, 64);
+}
+
+// ─── Helpers ───
+function drawWater(W, H, waterY) {
+  const waterGrad = ctx.createLinearGradient(0, waterY, 0, H);
+  waterGrad.addColorStop(0, '#1565c0');
+  waterGrad.addColorStop(1, '#0d47a1');
+  ctx.fillStyle = waterGrad;
+  ctx.beginPath();
+  ctx.moveTo(0, waterY);
+  for (let x = 0; x <= W; x += 8) {
+    const wh = params.wave * Math.sin((x * 0.02) + simState.wavePhase) * 20;
+    ctx.lineTo(x, waterY + wh);
+  }
+  ctx.lineTo(W, H); ctx.lineTo(0, H); ctx.closePath();
+  ctx.fill();
+
+  // Foam caps
+  ctx.strokeStyle = 'rgba(255,255,255,0.35)';
+  ctx.lineWidth = 1.5;
+  for (let x = 0; x <= W; x += 8) {
+    if (Math.sin((x * 0.035) + simState.wavePhase * 1.3) > 0.7) {
+      const wh = params.wave * Math.sin((x * 0.02) + simState.wavePhase) * 20;
+      ctx.beginPath();
+      ctx.moveTo(x, waterY + wh);
+      ctx.lineTo(x+12, waterY + wh - 2);
+      ctx.stroke();
+    }
+  }
+}
+
+function drawTopWater(W, H) {
+  ctx.fillStyle = 'rgba(255,255,255,0.05)';
+  for (let y = 0; y < H; y += 40) {
+    ctx.fillRect(0, y + simState.wavePhase * 5 % 40, W, 3);
+  }
+}
+
+function drawPaddle(ctx, x, y, scale) {
+  ctx.fillStyle = '#a0522d';
+  ctx.fillRect(x, y, 6, 60 * Math.max(0.3, scale/30));
+  ctx.fillStyle = '#1a6ea8';
+  ctx.fillRect(x - 8, y + 40 * Math.max(0.3, scale/30), 22, 16);
+}
+
+function roundRect(ctx, x, y, w, h, r) {
+  ctx.beginPath();
+  ctx.roundRect(x, y, w, h, r);
+}
+
+// ──────────────────────────────────────────────
+//  Simulation loop
+// ──────────────────────────────────────────────
+function animate() {
+  simState.t += 0.02;
+  simState.wavePhase += 0.04 + params.current * 0.01;
+  simState.boatX += params.current * 0.15;
+  if (simState.boatX > canvas.width * 0.4) simState.boatX = -canvas.width * 0.4;
+
+  simState.boatY = params.wave * Math.sin(simState.t * 1.5) * 8;
+  simState.roll  = params.wave * Math.sin(simState.t * 1.1 + 0.5) * 0.6;
+
+  drawFrame();
+  animId = requestAnimationFrame(animate);
+}
+
+function startSim() {
+  if (!simState.running) {
+    simState.running = true;
+    animate();
+  }
+}
+function pauseSim() {
+  simState.running = false;
+  cancelAnimationFrame(animId);
+}
+function resetSim() {
+  pauseSim();
+  simState.t = 0; simState.boatX = 0; simState.boatY = 0;
+  simState.roll = 0; simState.wavePhase = 0;
+  drawFrame();
+}
+
+// ──────────────────────────────────────────────
+//  View switching
+// ──────────────────────────────────────────────
+function switchView(view) {
+  const tabs = document.querySelectorAll('.view-tab');
+  const simArea = document.getElementById('simArea');
+  const bomArea = document.getElementById('bomArea');
+
+  if (view === 'bom') {
+    simArea.style.display = 'none';
+    bomArea.style.display = 'flex';
+    pauseSim();
+    return;
+  }
+  if (view === 'sim') {
+    simArea.style.display = '';
+    bomArea.style.display = 'none';
+    view = 'side';
+  }
+
+  currentView = view;
+  tabs.forEach(t => t.classList.remove('active'));
+  const idx = ['side','top','front'].indexOf(view);
+  if (tabs[idx]) tabs[idx].classList.add('active');
+  drawFrame();
+}
+
+// ──────────────────────────────────────────────
+//  BOM Table
+// ──────────────────────────────────────────────
+function buildBOM() {
+  const tbody = document.getElementById('bomBody');
+  let grandTotal = 0;
+  BOM_DATA.parts.forEach(p => {
+    grandTotal += p.total_cost_usd;
+    const color = CAT_COLORS[p.category] || '#555';
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td><code>${p.id}</code></td>
+      <td>${p.name}</td>
+      <td><span class="cat-badge" style="background:${color}">${p.category}</span></td>
+      <td>${p.quantity} ${p.unit}</td>
+      <td>$${p.unit_cost_usd.toFixed(2)}</td>
+      <td><strong>$${p.total_cost_usd.toFixed(2)}</strong></td>
+      <td>${p.source}</td>
+      <td style="color:var(--text-dim);font-size:0.78rem">${p.notes}</td>
+    `;
+    tbody.appendChild(tr);
+  });
+  document.getElementById('bsTotalParts').textContent = BOM_DATA.parts.length;
+  document.getElementById('bsTotal').textContent = grandTotal.toFixed(2);
+}
+
+// ──────────────────────────────────────────────
+//  Export Report
+// ──────────────────────────────────────────────
+function exportReport() {
+  const m = calcMetrics();
+  const total = BOM_DATA.parts.reduce((s, p) => s + p.total_cost_usd, 0);
+  const now = new Date().toISOString().split('T')[0];
+
+  const lines = [
+    `# BOB – Build-a-Boat Improvement Report`,
+    `**Date:** ${now}`,
+    `**Project:** ${BOM_DATA.project}`,
+    ``,
+    `## Current Design Parameters`,
+    `| Parameter | Value |`,
+    `|-----------|-------|`,
+    `| Length | ${params.length} ft |`,
+    `| Width | ${params.width} ft |`,
+    `| Hull Height | ${params.hull} ft |`,
+    `| PVC Tubes | ${params.tubes} |`,
+    `| Crew Weight | ${params.crew} lbs |`,
+    ``,
+    `## Physics Assessment`,
+    `| Metric | Value |`,
+    `|--------|-------|`,
+    `| Displacement | ${m.displacement} lbs |`,
+    `| Freeboard | ${m.freeboard} in |`,
+    `| Stability Score | ${m.stability}/100 |`,
+    `| Est. Boat Weight | ${m.boatWeight} lbs |`,
+    ``,
+    `## Cost Summary`,
+    `| Category | Cost |`,
+    `|----------|------|`,
+    ...Object.entries(
+      BOM_DATA.parts.reduce((acc, p) => {
+        acc[p.category] = (acc[p.category] || 0) + p.total_cost_usd;
+        return acc;
+      }, {})
+    ).map(([cat, cost]) => `| ${cat} | $${cost.toFixed(2)} |`),
+    `| **TOTAL** | **$${total.toFixed(2)}** |`,
+    ``,
+    `## Improvement Prompts`,
+    ``,
+    `### Stability (Score: ${m.stability}/100)`,
+    m.stability < 70
+      ? `- ⚠️ Consider widening beam to ${(params.width + 1).toFixed(1)} ft (+stability, +cost ~$30)`
+      : `- ✅ Stability is good. Consider adding safety rope along rails.`,
+    ``,
+    `### Buoyancy`,
+    m.freeboard < 2
+      ? `- ⚠️ Freeboard is low (${m.freeboard}"). Add 1-2 PVC tubes or reduce crew weight.`
+      : `- ✅ Good freeboard. Consider reducing tube count to save $${(18.99 * 2).toFixed(2)}.`,
+    ``,
+    `### Weight Reduction`,
+    `- Consider switching from 2x6 lumber to 2x4 lumber (-${Math.round(m.boatWeight * 0.15)} lbs, -$${(12.49 * 2).toFixed(2)})`,
+    ``,
+    `### Next Steps`,
+    `1. Review BOM for bulk purchase discounts`,
+    `2. Source lumber locally to reduce transport cost`,
+    `3. Test buoyancy in shallow pool before race day`,
+    ``,
+    `## Full BOM`,
+    `| ID | Name | Qty | Unit $ | Total $ | Source |`,
+    `|----|------|-----|--------|---------|--------|`,
+    ...BOM_DATA.parts.map(p =>
+      `| ${p.id} | ${p.name} | ${p.quantity} ${p.unit} | $${p.unit_cost_usd.toFixed(2)} | $${p.total_cost_usd.toFixed(2)} | ${p.source} |`
+    ),
+    ``,
+    `---`,
+    `*Generated by BOB Simulator — Whitewater Center Build-a-Boat Competition*`
+  ].join('\n');
+
+  const blob = new Blob([lines], { type: 'text/markdown' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `bob-report-${now}.md`;
+  a.click();
+}
+
+// ──────────────────────────────────────────────
+//  Init
+// ──────────────────────────────────────────────
+buildBOM();
+updateMetrics();
+resizeCanvas();
+startSim();
+</script>
+</body>
+</html>

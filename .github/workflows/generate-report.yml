@@ -1,0 +1,64 @@
+name: Generate Boat Improvement Report
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Report version label (e.g. v1.1)"
+        required: false
+        default: "latest"
+      notes:
+        description: "Brief description of improvements made"
+        required: false
+        default: ""
+  push:
+    paths:
+      - "data/bom.json"
+      - "index.html"
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  generate-report:
+    name: Generate BOM & Improvement Report
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Generate Markdown report
+        id: report
+        run: node scripts/generate-report.js "${{ github.event.inputs.version || 'latest' }}" "${{ github.event.inputs.notes || '' }}"
+
+      - name: Commit report to repository
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add reports/
+          if git diff --staged --quiet; then
+            echo "No report changes to commit."
+          else
+            git commit -m "chore: generate boat improvement report [${{ github.event.inputs.version || 'latest' }}]"
+            git push
+          fi
+
+      - name: Upload report artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: boat-improvement-report-${{ github.event.inputs.version || 'latest' }}
+          path: reports/
+          retention-days: 90
+
+      - name: Print report summary
+        run: |
+          echo "### 🚣 BOB Improvement Report Generated" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          cat reports/latest-report.md >> $GITHUB_STEP_SUMMARY
