@@ -1,0 +1,561 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Raft Simulator</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;700&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#E6EEEC; --bg2:#D6E2DF; --panel:#F7F9F8; --ink:#1E2A2E; --muted:#5B6B70; --line:#C5D3D0;
+    --accent:#2F6B78; --accent-ink:#fff; --ok:#2E7D4F; --warn:#B26A00; --err:#B3261E; --info:#3B5BA9;
+    --chip:#fff; --input:#fff;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#121A1C; --bg2:#0D1416; --panel:#172124; --ink:#E4ECEA; --muted:#93A5A8; --line:#2A3A3E;
+      --accent:#5FB3C4; --accent-ink:#0D1416; --ok:#5CC48A; --warn:#F0B04A; --err:#FF7A70; --info:#8FA8FF;
+      --chip:#1E2B2F; --input:#1E2B2F;
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#121A1C; --bg2:#0D1416; --panel:#172124; --ink:#E4ECEA; --muted:#93A5A8; --line:#2A3A3E;
+    --accent:#5FB3C4; --accent-ink:#0D1416; --ok:#5CC48A; --warn:#F0B04A; --err:#FF7A70; --info:#8FA8FF;
+    --chip:#1E2B2F; --input:#1E2B2F;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{background:var(--bg);color:var(--ink);font:14px/1.4 Barlow,system-ui,sans-serif;display:grid;grid-template-rows:auto 1fr;overflow:hidden}
+  header{display:flex;align-items:center;gap:16px;flex-wrap:wrap;padding:10px 16px;border-bottom:1px solid var(--line);background:var(--panel)}
+  h1{font:700 22px/1 "Barlow Condensed",sans-serif;letter-spacing:.2px;white-space:nowrap}
+  .stats{display:flex;gap:6px;flex-wrap:wrap}
+  .stat{background:var(--chip);border:1px solid var(--line);border-radius:999px;padding:3px 10px;font-size:12px;color:var(--muted);white-space:nowrap}
+  .stat b{font:700 16px "Barlow Condensed",sans-serif;color:var(--ink);margin-right:3px}
+  .stat.err{border-color:var(--err)} .stat.err b{color:var(--err)}
+  .stat.warn{border-color:var(--warn)} .stat.warn b{color:var(--warn)}
+  .stat.ok b{color:var(--ok)}
+  main{display:grid;grid-template-columns:minmax(320px,400px) 1fr;min-height:0}
+  aside{background:var(--panel);border-right:1px solid var(--line);display:flex;flex-direction:column;min-height:0}
+  .tabs{display:flex;border-bottom:1px solid var(--line)}
+  .tabs button{flex:1;background:none;border:0;border-bottom:3px solid transparent;padding:10px 4px;font:600 13px Barlow,sans-serif;color:var(--muted);cursor:pointer}
+  .tabs button[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--accent)}
+  .tabs .count{display:inline-block;min-width:18px;padding:0 5px;border-radius:9px;background:var(--err);color:#fff;font-size:11px;margin-left:4px}
+  .tabs .count.w{background:var(--warn)}
+  .pane{display:none;overflow:auto;padding:14px 16px 24px;flex:1}
+  .pane.active{display:block}
+  h2{font:700 15px "Barlow Condensed",sans-serif;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);margin:14px 0 8px}
+  h2:first-child{margin-top:0}
+  .row{display:grid;grid-template-columns:110px 1fr 56px;align-items:center;gap:8px;margin:6px 0}
+  .row label{font-size:13px}
+  .row output{text-align:right;font-variant-numeric:tabular-nums;font-size:13px}
+  input[type=range]{width:100%;accent-color:var(--accent)}
+  select,input[type=text],input[type=number]{width:100%;background:var(--input);color:var(--ink);border:1px solid var(--line);border-radius:6px;padding:5px 7px;font:inherit}
+  .blurb{font-size:12.5px;color:var(--muted);margin:6px 0 4px}
+  .toggles{display:flex;gap:14px;flex-wrap:wrap;margin:6px 0}
+  .toggles label{display:flex;gap:6px;align-items:center;font-size:13px}
+  .btn{background:var(--accent);color:var(--accent-ink);border:0;border-radius:6px;padding:7px 12px;font:600 13px Barlow,sans-serif;cursor:pointer}
+  .btn.ghost{background:transparent;color:var(--ink);border:1px solid var(--line)}
+  .btn:focus-visible,.tabs button:focus-visible,.layers button:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+  .btns{display:flex;gap:6px;flex-wrap:wrap;margin:10px 0}
+  table{width:100%;border-collapse:collapse;font-size:12.5px}
+  th,td{padding:5px 4px;border-bottom:1px solid var(--line);text-align:left;vertical-align:middle}
+  th{font-weight:600;color:var(--muted);font-size:11.5px;text-transform:uppercase;letter-spacing:.3px}
+  td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
+  .part{border-bottom:1px solid var(--line);padding:8px 0}
+  .part .ph{display:grid;grid-template-columns:1fr 24px;gap:6px;align-items:center}
+  .part .ph input{font-weight:600;padding:4px 6px}
+  .part .meta{margin:3px 0 6px}
+  .part .pc{display:grid;grid-template-columns:52px 60px 28px 72px 1fr;gap:6px;align-items:end}
+  .part .pc label{display:flex;flex-direction:column;font-size:10.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.3px;gap:2px}
+  .part .pc input[type=number]{padding:3px 4px}
+  .part .pc select{padding:3px 2px;font-size:12px}
+  .part .pc input[type=checkbox]{width:16px;height:16px;margin:5px 0}
+  .btn.sm{padding:3px 9px;font-size:12px}
+  #cmpTable{font-size:12px}
+  #cmpTable td,#cmpTable th{padding:5px 3px}
+  .x{background:none;border:0;color:var(--muted);cursor:pointer;font-size:16px;line-height:1}
+  .msgs{list-style:none}
+  .msgs li{display:grid;grid-template-columns:18px 1fr;gap:8px;padding:7px 0;border-bottom:1px solid var(--line)}
+  .msgs .t{font-weight:600}
+  .msgs .d{color:var(--muted);font-size:12.5px}
+  .dot{width:10px;height:10px;border-radius:50%;margin-top:5px}
+  .dot.ok{background:var(--ok)} .dot.warn{background:var(--warn)} .dot.error{background:var(--err)} .dot.info{background:var(--info)}
+  .stage{position:relative;min-height:0;background:linear-gradient(var(--bg),var(--bg2))}
+  .stage canvas{display:block;width:100%;height:100%;touch-action:none}
+  .hud{position:absolute;top:10px;left:12px;font-size:12.5px;color:var(--muted);pointer-events:none;line-height:1.5}
+  .hud b{color:var(--ink);font-weight:600}
+  .layers{position:absolute;left:0;right:0;bottom:0;padding:10px;display:flex;gap:6px;flex-wrap:wrap;justify-content:center}
+  .layers button{font:500 12.5px Barlow,sans-serif;border:1.5px solid var(--ink);background:var(--panel);color:var(--ink);padding:5px 11px;border-radius:999px;cursor:pointer}
+  .layers button[aria-pressed="false"]{background:transparent;opacity:.5;text-decoration:line-through}
+  .banner{background:var(--warn);color:#1a1200;padding:8px 16px;font-size:13px;display:none}
+  .banner.show{display:block}
+  .best{outline:2px solid var(--ok);outline-offset:-2px}
+  .tag{display:inline-block;font-size:10.5px;padding:0 5px;border-radius:4px;border:1px solid var(--line);color:var(--muted);margin-left:4px}
+  .muted{color:var(--muted)}
+  .small{font-size:12px}
+  @media (max-width:820px){
+    body{overflow:auto;height:auto;display:block}
+    main{display:flex;flex-direction:column}
+    .stage{height:52vh;order:-1}
+    aside{border-right:0;border-top:1px solid var(--line)}
+    .pane{overflow:visible}
+  }
+</style>
+</head>
+<body>
+<header>
+  <h1>🏴‍☠️ Raft simulator</h1>
+  <div class="stats" id="stats"></div>
+</header>
+<div class="banner" id="banner"></div>
+<main>
+  <aside>
+    <div class="tabs" role="tablist">
+      <button role="tab" aria-selected="true" data-tab="config">Configure</button>
+      <button role="tab" aria-selected="false" data-tab="parts">Parts</button>
+      <button role="tab" aria-selected="false" data-tab="check">Check<span id="checkCount"></span></button>
+      <button role="tab" aria-selected="false" data-tab="compare">Compare</button>
+    </div>
+
+    <section class="pane active" id="pane-config">
+      <h2>Layout</h2>
+      <select id="preset" aria-label="Drum layout preset"></select>
+      <p class="blurb" id="presetBlurb"></p>
+      <div id="sliders"></div>
+      <div class="toggles">
+        <label><input type="checkbox" id="bow"> Bow frame + guard</label>
+        <label><input type="checkbox" id="noodleRail"> Noodle rail</label>
+      </div>
+      <h2>Crew</h2>
+      <div id="crewSliders"></div>
+      <h2>What if</h2>
+      <div class="row"><label for="failedDrum">Drum leaks</label><select id="failedDrum" style="grid-column:span 2"></select></div>
+      <p class="blurb">Pick a drum to flood it and see whether the boat still floats level.</p>
+    </section>
+
+    <section class="pane" id="pane-parts">
+      <p class="blurb">This is the team's <b>actual</b> build list. Weights and costs feed the simulation and rules check. Tick "measured" once a part has been weighed. Changes are saved in this browser; use <b>Export</b> and commit the file as <code>data/build.json</code>.</p>
+      <div class="btns">
+        <select id="catalogPick" aria-label="Suggested material" style="flex:1;min-width:180px"></select>
+        <button class="btn" id="addCatalog">Add</button>
+        <button class="btn ghost" id="addCustom">Custom part</button>
+      </div>
+      <div id="partsTable"></div>
+      <p class="small muted" id="partsTotals" style="margin-top:8px"></p>
+      <div class="btns">
+        <button class="btn" id="exportBuild">Export build.json</button>
+        <label class="btn ghost" style="display:inline-flex;align-items:center">Import<input type="file" id="importBuild" accept=".json,application/json" hidden></label>
+        <button class="btn ghost" id="resetBuild">Reset to repo version</button>
+      </div>
+    </section>
+
+    <section class="pane" id="pane-check">
+      <h2>Competition rules</h2>
+      <ul class="msgs" id="rulesList"></ul>
+      <h2>Recommendations</h2>
+      <ul class="msgs" id="recList"></ul>
+      <h2>Needed for this layout vs parts list</h2>
+      <table id="reqTable"></table>
+      <h2>Pipe cut list (10 ft sticks)</h2>
+      <table id="cutTable"></table>
+    </section>
+
+    <section class="pane" id="pane-compare">
+      <p class="blurb">Every layout, run with your current parts list, frame and crew. Green outline marks the best legal option: under the weight limit, no errors, stable both ways, and survives a leak where possible.</p>
+      <div style="overflow-x:auto"><table id="cmpTable"></table></div>
+      <div id="cmpNotes" class="small muted" style="margin-top:10px"></div>
+    </section>
+  </aside>
+
+  <div class="stage" id="stage">
+    <div class="hud" id="hud"></div>
+    <div class="layers" id="layers"></div>
+  </div>
+</main>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="scripts/raft-model.js"></script>
+<script>
+'use strict';
+const M = window.RaftModel;
+const STORE = 'bob-build-v1';
+const store = {
+  get(){ try { return JSON.parse(localStorage.getItem(STORE)); } catch(e){ return null; } },
+  set(v){ try { localStorage.setItem(STORE, JSON.stringify(v)); } catch(e){} },
+  clear(){ try { localStorage.removeItem(STORE); } catch(e){} },
+};
+const clone = o => JSON.parse(JSON.stringify(o));
+const $ = id => document.getElementById(id);
+function el(tag, attrs, ...kids){
+  const n = document.createElement(tag);
+  for (const [k,v] of Object.entries(attrs||{})) {
+    if (k === 'class') n.className = v;
+    else if (k.startsWith('on')) n.addEventListener(k.slice(2), v);
+    else if (k in n && typeof v !== 'string') n[k] = v;
+    else n.setAttribute(k, v);
+  }
+  kids.flat().forEach(k => n.append(k instanceof Node ? k : document.createTextNode(k == null ? '' : String(k))));
+  return n;
+}
+const f0 = v => (v == null || !isFinite(v)) ? '—' : v.toFixed(0);
+const f1 = v => (v == null || !isFinite(v)) ? '—' : v.toFixed(1);
+const money = v => '$' + v.toFixed(2);
+
+let repoBuild = null, catalog = { items: [] }, rules = {}, build = null, A = null;
+
+async function loadJSON(path){
+  const r = await fetch(path, { cache: 'no-cache' });
+  if (!r.ok) throw new Error(path + ' ' + r.status);
+  return r.json();
+}
+async function boot(){
+  try {
+    [repoBuild, catalog, rules] = await Promise.all([loadJSON('data/build.json'), loadJSON('data/catalog.json'), loadJSON('data/rules.json')]);
+  } catch (e) {
+    const b = $('banner');
+    b.textContent = 'Could not load data/*.json (' + e.message + '). Serve the repo folder (e.g. "npx serve .") or import a build.json. Running with defaults.';
+    b.classList.add('show');
+    repoBuild = repoBuild || { name: 'Untitled', config: clone(M.DEFAULT_CONFIG), parts: [] };
+    rules = rules && rules.max_boat_weight_lb ? rules : { max_boat_weight_lb: 150, max_dimensions_ft: { length: 10, width: 10, height: 5 }, max_wall_height_ft: 2, max_wood_thickness_in: 0.25, max_securing_material_length_in: 18 };
+  }
+  build = store.get() || clone(repoBuild);
+  build.config = M.withDefaults(build.config);
+  initControls(); initParts(); initScene(); update();
+}
+
+// ── Controls ─────────────────────────────────
+const SL = [
+  ['frameLength','Frame length',48,120,6,'"'],
+  ['frameWidth','Beam length',48,110,2,'"'],
+  ['beamCount','Cross beams',2,6,1,''],
+  ['pontoonSpacing','Pontoon spacing',28,90,1,'"'],
+  ['drumOffset','Drums fore/aft',-30,30,1,'"'],
+  ['drumSpread','Triangle spread',10,45,1,'"', c => c.preset === 'tri3bow'],
+  ['deck.length','Deck length',36,96,6,'"'],
+  ['deck.width','Deck width',18,48,2,'"'],
+  ['mastHeight','Mast above deck',0,40,1,'"'],
+];
+const CREW = [
+  ['crew.count','People',1,4,1,''],
+  ['crew.weightEach','Weight each',100,260,5,' lb'],
+  ['crew.xOffset','Seat fore/aft',-30,30,1,'"'],
+  ['crew.zOffset','Lean side',-10,10,1,'"'],
+];
+const getp = (o,p) => p.split('.').reduce((a,k)=>a[k], o);
+const setp = (o,p,v) => { const ks=p.split('.'); const last=ks.pop(); ks.reduce((a,k)=>a[k],o)[last]=v; };
+function sliderRow(def){
+  const [path,label,min,max,step,unit] = def;
+  const id = 's_' + path.replace('.','_');
+  const out = el('output', { id: id+'_o' });
+  const inp = el('input', { type:'range', id, min, max, step, oninput: e => { setp(build.config, path, +e.target.value); out.textContent = e.target.value + unit; changed(); } });
+  const row = el('div', { class:'row', 'data-path': path }, el('label', { for: id }, label), inp, out);
+  return row;
+}
+function initControls(){
+  const sel = $('preset');
+  Object.entries(M.PRESETS).forEach(([id,p]) => sel.append(el('option', { value:id }, p.label)));
+  sel.onchange = () => { if (sel.value === 'custom') return; build.config.preset = sel.value; delete build.config.drums; build.config.failedDrum = null; ensureWidth(); syncControls(); changed(); };
+  SL.forEach(d => $('sliders').append(sliderRow(d)));
+  CREW.forEach(d => $('crewSliders').append(sliderRow(d)));
+  $('bow').onchange = e => { build.config.bow = e.target.checked; changed(); };
+  $('noodleRail').onchange = e => { build.config.noodleRail = e.target.checked; changed(); };
+  $('failedDrum').onchange = e => { build.config.failedDrum = e.target.value === '' ? null : +e.target.value; changed(); };
+  document.querySelectorAll('.tabs button').forEach(b => b.onclick = () => {
+    document.querySelectorAll('.tabs button').forEach(x => x.setAttribute('aria-selected', x === b));
+    document.querySelectorAll('.pane').forEach(p => p.classList.toggle('active', p.id === 'pane-' + b.dataset.tab));
+    if (b.dataset.tab === 'compare') renderCompare();
+  });
+  syncControls();
+}
+function ensureWidth(){
+  const g = M.geometry(build.config);
+  const need = Math.ceil(2 * (g.outerZ + M.PIPE_R));
+  if (build.config.frameWidth < need) build.config.frameWidth = Math.min(110, need);
+}
+function syncControls(){
+  const c = build.config;
+  const sel = $('preset'), custom = Array.isArray(c.drums);
+  let opt = sel.querySelector('option[value=custom]');
+  if (custom && !opt) sel.append(opt = el('option', { value:'custom' }, `Custom (${c.drums.length} drums from build.json)`));
+  if (!custom && opt) opt.remove();
+  sel.value = custom ? 'custom' : c.preset;
+  $('presetBlurb').textContent = custom ? 'Custom drum positions from build.json (config.drums). Pick a layout to replace them.' : M.PRESETS[c.preset].blurb;
+  [...SL, ...CREW].forEach(([path,, , , , unit, show]) => {
+    const id = 's_' + path.replace('.','_');
+    $(id).value = getp(c, path); $(id + '_o').textContent = getp(c, path) + unit;
+    if (show) $(id).closest('.row').style.display = show(c) ? '' : 'none';
+  });
+  $('bow').checked = !!c.bow; $('noodleRail').checked = !!c.noodleRail;
+}
+
+// ── Parts ────────────────────────────────────
+const STATUSES = ['planned','bought','installed'];
+function initParts(){
+  const pick = $('catalogPick');
+  const groups = {};
+  catalog.items.forEach(it => (groups[it.category] = groups[it.category] || []).push(it));
+  pick.append(el('option', { value:'' }, 'Add a suggested material…'));
+  Object.entries(groups).forEach(([cat, items]) => {
+    const og = el('optgroup', { label: cat });
+    items.forEach(it => og.append(el('option', { value: it.id }, `${it.name}: $${it.unit_cost_usd.toFixed(2)}${it.estimate ? ' (est.)' : ''}`)));
+    pick.append(og);
+  });
+  $('addCatalog').onclick = () => {
+    const it = catalog.items.find(x => x.id === pick.value); if (!it) return;
+    const p = { catalog_id: it.id, name: it.name, role: it.role, category: it.category, material: it.material, quantity: Math.max(1, it.suggested_quantity || 1),
+      weight_lb_each: it.weight_lb_each || 0, weight_measured: false, unit_cost_usd: it.unit_cost_usd, status: 'planned', notes: '' };
+    ['foam_filled','max_piece_length_in','thickness_in'].forEach(k => { if (k in it) p[k] = it[k]; });
+    build.parts.push(p); renderParts(); changed();
+  };
+  $('addCustom').onclick = () => { build.parts.push({ name: 'New part', role: 'other', category: 'other', material: 'unknown', quantity: 1, weight_lb_each: 0, weight_measured: false, unit_cost_usd: 0, status: 'planned', notes: '' }); renderParts(); changed(); };
+  $('exportBuild').onclick = () => {
+    const out = clone(build); out.updated = new Date().toISOString().slice(0,10);
+    const blob = new Blob([JSON.stringify(out, null, 2) + '\n'], { type: 'application/json' });
+    const a = el('a', { href: URL.createObjectURL(blob), download: 'build.json' }); document.body.append(a); a.click(); a.remove();
+  };
+  $('importBuild').onchange = async e => {
+    const f = e.target.files[0]; if (!f) return;
+    try { const b = JSON.parse(await f.text()); if (!Array.isArray(b.parts)) throw new Error('missing parts'); b.config = M.withDefaults(b.config); build = b; syncControls(); renderParts(); changed(); }
+    catch (err) { alert('Could not import: ' + err.message); }
+    e.target.value = '';
+  };
+  $('resetBuild').onclick = () => { if (!confirm('Discard local changes and reload data/build.json?')) return; store.clear(); build = clone(repoBuild); build.config = M.withDefaults(build.config); syncControls(); renderParts(); changed(); };
+  renderParts();
+}
+function renderParts(){
+  const t = $('partsTable'); t.replaceChildren();
+  build.parts.forEach((p, i) => {
+    const num = (k, step, label) => el('label', {}, label, el('input', { type:'number', min:0, step, value: p[k] ?? 0, onchange: e => { p[k] = +e.target.value; changed(); } }));
+    const status = el('label', {}, 'Status', el('select', { onchange: e => { p.status = e.target.value; changed(); } }, STATUSES.map(s => el('option', { value:s, selected: p.status === s }, s))));
+    t.append(el('div', { class:'part' },
+      el('div', { class:'ph' },
+        el('input', { type:'text', value: p.name, 'aria-label':'Part name', onchange: e => { p.name = e.target.value; changed(); } }),
+        el('button', { class:'x', title:'Remove', 'aria-label':'Remove ' + p.name, onclick: () => { build.parts.splice(i,1); renderParts(); changed(); } }, '×')),
+      el('div', { class:'meta small muted' }, `${p.role} · ${p.material || '?'}`, p.foam_filled ? el('span', { class:'tag' }, 'foam-filled') : '', p.max_piece_length_in ? el('span', { class:'tag' }, `≤${p.max_piece_length_in}" pieces`) : '', p.thickness_in ? el('span', { class:'tag' }, `${p.thickness_in}" thick`) : ''),
+      el('div', { class:'pc' },
+        num('quantity', 1, 'Qty'), num('weight_lb_each', 0.1, 'lb ea'),
+        el('label', { title:'Weighed?' }, '⚖', el('input', { type:'checkbox', checked: !!p.weight_measured, 'aria-label':'Weight measured', onchange: e => { p.weight_measured = e.target.checked; changed(); } })),
+        num('unit_cost_usd', 0.01, '$ ea'), status)));
+  });
+}
+
+// ── Analysis → UI ────────────────────────────
+let pending = false;
+function changed(){ store.set(build); if (!pending) { pending = true; requestAnimationFrame(() => { pending = false; update(); }); } }
+function update(){
+  A = M.analyze(build, rules);
+  renderStats(); renderCheck(); buildBoat(); renderHud();
+  const fd = $('failedDrum'), cur = build.config.failedDrum;
+  fd.replaceChildren(el('option', { value:'' }, 'None'), ...A.geometry.drums.map(d => el('option', { value: d.id, selected: cur === d.id }, `Drum ${d.id + 1} (${d.x >= 0 ? 'fwd' : 'aft'} ${d.z < 0 ? 'port' : d.z > 0 ? 'stbd' : 'center'})`)));
+  const w = A.weights.total, wm = A.weights.measured;
+  $('partsTotals').textContent = `Boat weight ${f1(w)} lb (${f1(wm)} lb measured) · List total ${money(A.cost)} · Bought ${money(A.spent)}`;
+  if ($('pane-compare').classList.contains('active')) renderCompare();
+}
+function renderStats(){
+  const s = A.solution, w = A.weights.total, max = rules.max_boat_weight_lb || 150;
+  const errs = [...A.rules, ...A.recommendations].filter(x => x.level === 'error').length;
+  const warns = A.recommendations.filter(x => x.level === 'warn').length;
+  const chip = (cls, val, label) => el('span', { class: 'stat ' + cls }, el('b', {}, val), label);
+  $('stats').replaceChildren(
+    chip(w >= max ? 'err' : w > max - 10 ? 'warn' : 'ok', f0(w) + ' lb', ` / ${max}`),
+    chip('', A.geometry.drums.length, 'drums'),
+    chip(!s.ok || s.loadPct > 80 ? 'err' : s.loadPct > 60 ? 'warn' : 'ok', s.ok ? f0(s.loadPct) + '%' : (s.reason || '✕'), 'load'),
+    chip('', s.ok ? f1(s.maxDraft) + '"' : '—', 'draft'),
+    chip('', money(A.cost), 'list'),
+    chip(errs ? 'err' : warns ? 'warn' : 'ok', errs ? errs : warns ? warns : '✓', errs ? 'errors' : warns ? 'warnings' : 'all clear'));
+  $('checkCount').replaceChildren(errs ? el('span', { class:'count' }, errs) : warns ? el('span', { class:'count w' }, warns) : '');
+}
+function msgList(target, items){
+  const order = { error:0, warn:1, info:2, ok:3 };
+  target.replaceChildren(...[...items].sort((a,b) => order[a.level]-order[b.level]).map(m =>
+    el('li', {}, el('span', { class: 'dot ' + m.level, title: m.level }), el('div', {}, el('div', { class:'t' }, m.title), m.detail ? el('div', { class:'d' }, m.detail) : ''))));
+}
+function renderCheck(){
+  msgList($('rulesList'), A.rules);
+  msgList($('recList'), A.recommendations.filter(r => !A.rules.some(x => x.title === r.title)));
+  const have = {}; build.parts.forEach(p => have[p.role] = (have[p.role]||0) + (+p.quantity||0));
+  const names = { drum:'Drums', pipe:'1-1/2" pipe (10 ft)', elbow:'90° elbows', coupling:'Couplings', 'zip-tie':'Zip ties (100-pk)', xps:'XPS 4×8', coroplast:'Coroplast 4×8', 'spray-foam':'Spray foam cans', cement:'PVC cement kit' };
+  $('reqTable').replaceChildren(el('tr', {}, el('th', {}, 'Item'), el('th', { class:'num' }, 'Need'), el('th', { class:'num' }, 'Listed'), el('th', {}, '')),
+    ...Object.entries(A.requirements.items).map(([k, need]) => { const h = have[k]||0; return el('tr', {}, el('td', {}, names[k]||k), el('td', { class:'num' }, need), el('td', { class:'num' }, h), el('td', {}, el('span', { class: 'dot ' + (h < need ? 'warn' : 'ok') }))); }));
+  $('cutTable').replaceChildren(el('tr', {}, el('th', {}, '#'), el('th', {}, 'Cuts'), el('th', { class:'num' }, 'Offcut')),
+    ...A.requirements.sticks.map((s, i) => el('tr', {}, el('td', {}, i+1), el('td', {}, s.cuts.map(c => `${c.label} ${c.len}"`).join(' · ')), el('td', { class:'num' }, f0(s.left) + '"'))));
+}
+function renderCompare(){
+  const rows = M.comparePresets(build, rules);
+  const max = rules.max_boat_weight_lb || 150;
+  const score = r => (r.ok && r.errors === 0 && r.weight < max && r.gmPitch > 0 && r.gmRoll > 0 ? 100 : 0) + (r.survivesLeak ? 20 : 0) - r.loadPct * 0.2 + Math.min(r.gmPitch, 60) * 0.1;
+  const best = rows.reduce((a, b) => score(b) > score(a) ? b : a, rows[0]);
+  const yes = v => v ? '✓' : '✕';
+  $('cmpTable').replaceChildren(
+    el('tr', {}, ...['Layout','lb','Load','Draft','Roll GM','Pitch GM','Bow fwd','Leak',''].map((h,i) => el('th', { class: i && i < 8 ? 'num' : '' }, h))),
+    ...rows.map(r => el('tr', { class: r === best ? 'best' : '' },
+      el('td', {}, r.label, r.id === build.config.preset ? el('span', { class:'tag' }, 'current') : ''),
+      el('td', { class:'num', style: r.weight >= max ? 'color:var(--err)' : '' }, f0(r.weight)),
+      el('td', { class:'num' }, r.ok ? f0(r.loadPct) + '%' : '✕'),
+      el('td', { class:'num' }, r.ok ? f1(r.maxDraft) + '"' : '—'),
+      el('td', { class:'num', style: r.gmRoll < 0 ? 'color:var(--err)' : '' }, f0(r.gmRoll) + '"'),
+      el('td', { class:'num', style: r.gmPitch < 0 ? 'color:var(--warn)' : '' }, f0(r.gmPitch) + '"'),
+      el('td', { class:'num' }, isFinite(r.bowFwd) ? f1(r.bowFwd) + '"' : 'dives'),
+      el('td', { class:'num' }, yes(r.survivesLeak)),
+      el('td', {}, el('button', { class:'btn ghost sm', onclick: () => { build.config.preset = r.id; delete build.config.drums; build.config.failedDrum = null; ensureWidth(); syncControls(); changed(); } }, 'Use')))));
+  $('cmpNotes').replaceChildren(
+    el('p', {}, 'GM is metacentric height: positive means it rights itself, negative means it tips until something else touches the water. "Bow fwd" is frame clearance at the bow with everyone seated at the front of the deck.'),
+    el('p', { style:'margin-top:6px' }, `Suggested: ${best.label}. ${best.blurb}`));
+}
+function renderHud(){
+  const s = A.solution, g = A.geometry;
+  const lines = s.ok ? [
+    ['Draft', f1(s.maxDraft) + '"'], ['Frame clearance', f1(s.minFreeboard) + '"'], ['Trim', f1(s.pitchDeg) + '°'], ['Heel', f1(s.rollDeg) + '°'],
+    ['Reserve', f0(s.maxLb - s.W) + ' lb']] : [['Status', s.reason === 'sinks' ? 'Sinks: not enough flotation' : 'Capsizes']];
+  lines.push(['Size', `${f1(g.overall.length/12)} × ${f1(g.overall.width/12)} × ${f1(g.overall.height/12)} ft`]);
+  $('hud').replaceChildren(...lines.map(([k,v]) => el('div', {}, k + ': ', el('b', {}, v))));
+}
+
+// ── 3D scene ─────────────────────────────────
+let renderer, scene, camera, pivot, boat, water, G = {};
+const LAYERS = ['drums','frame','deck','bow','lash','crew','water'];
+const MAT = {};
+function initScene(){
+  const stage = $('stage');
+  renderer = new THREE.WebGLRenderer({ antialias:true, alpha:true });
+  renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+  stage.prepend(renderer.domElement);
+  scene = new THREE.Scene();
+  camera = new THREE.PerspectiveCamera(38, 1, 1, 3000);
+  scene.add(new THREE.HemisphereLight(0xffffff, 0x8aa3a0, 0.85));
+  const sun = new THREE.DirectionalLight(0xffffff, 0.75); sun.position.set(80,160,120); scene.add(sun);
+  const mat = (c, o) => new THREE.MeshStandardMaterial(Object.assign({ color:c, roughness:.55, metalness:0 }, o||{}));
+  Object.assign(MAT, { pvc: mat(0xF4F3EE), fit: mat(0xFFFFFF), drum: mat(0x1F5FBF), drumDark: mat(0x174a96), failed: mat(0xC0392B, { transparent:true, opacity:.45 }),
+    tie: mat(0x1a1a1a), skin: mat(0xF7F7F5), xps: mat(0xE9A0B4), noodle: mat(0x33B5E5), pfd: mat(0xF07F1E), helmet: mat(0xF2C230), skinTone: mat(0xC99A73),
+    guard: new THREE.MeshStandardMaterial({ color:0xF7F7F5, roughness:.7, side:THREE.DoubleSide }) });
+  pivot = new THREE.Group(); scene.add(pivot);
+  boat = new THREE.Group(); pivot.add(boat);
+  water = new THREE.Mesh(new THREE.PlaneGeometry(900, 900), new THREE.MeshStandardMaterial({ color:0x2F6B78, transparent:true, opacity:.42, roughness:.25 }));
+  water.rotation.x = -Math.PI/2; scene.add(water);
+  G.water = water;
+  const bar = $('layers');
+  LAYERS.forEach(k => bar.append(el('button', { 'aria-pressed':'true', onclick: e => { const on = e.target.getAttribute('aria-pressed') !== 'true'; e.target.setAttribute('aria-pressed', on); G[k].visible = on; } }, k[0].toUpperCase() + k.slice(1))));
+  orbit(); resize(); addEventListener('resize', resize);
+  loop(0);
+}
+function disposeGroup(g){ g.traverse(o => { if (o.geometry) o.geometry.dispose(); }); }
+function buildBoat(){
+  LAYERS.filter(k => k !== 'water').forEach(k => { if (G[k]) { disposeGroup(G[k]); boat.remove(G[k]); } const vis = G[k] ? G[k].visible : true; G[k] = new THREE.Group(); G[k].visible = vis; boat.add(G[k]); });
+  const g = A.geometry, c = g.config, R = M.PIPE_R, r = M.DRUM.dia/2, DL = M.DRUM.len;
+  const up = new THREE.Vector3(0,1,0);
+  const pipe = (a, b, grp, rad, m) => {
+    a = new THREE.Vector3(...a); b = new THREE.Vector3(...b);
+    const d = b.clone().sub(a), len = d.length();
+    const mesh = new THREE.Mesh(new THREE.CylinderGeometry(rad||R, rad||R, len, 18), m || MAT.pvc);
+    mesh.position.copy(a).add(b).multiplyScalar(.5); mesh.quaternion.setFromUnitVectors(up, d.normalize());
+    grp.add(mesh); return mesh;
+  };
+  const joint = p => { const s = new THREE.Mesh(new THREE.SphereGeometry(1.3, 16, 12), MAT.fit); s.position.set(...p); G.frame.add(s); };
+  // drums
+  g.drums.forEach(d => {
+    const m = d.failed ? MAT.failed : MAT.drum;
+    const cyl = new THREE.Mesh(new THREE.CylinderGeometry(r, r, DL, 44), m);
+    cyl.rotation.z = Math.PI/2; cyl.position.set(d.x, r, d.z); G.drums.add(cyl);
+    [-DL/6, DL/6].forEach(o => { const rib = new THREE.Mesh(new THREE.TorusGeometry(r+.15, .35, 8, 44), d.failed ? MAT.failed : MAT.drumDark); rib.rotation.y = Math.PI/2; rib.position.set(d.x+o, r, d.z); G.drums.add(rib); });
+    const bung = new THREE.Mesh(new THREE.CylinderGeometry(1.2, 1.2, .6, 14), MAT.fit); bung.rotation.z = Math.PI/2; bung.position.set(d.x + DL/2 + .3, r + 6, d.z); G.drums.add(bung);
+    // zip-tie bands
+    [-10, 10].forEach(o => { const band = new THREE.Mesh(new THREE.TorusGeometry(r+.4, .3, 6, 44), MAT.tie); band.rotation.y = Math.PI/2; band.position.set(d.x+o, r, d.z); G.lash.add(band);
+      const span = new THREE.Mesh(new THREE.CylinderGeometry(.3,.3, 2*M.RAIL_OFFSET, 6), MAT.tie); span.rotation.x = Math.PI/2; span.position.set(d.x+o, g.railY + R + .3, d.z); G.lash.add(span); });
+  });
+  // rails + beams + ties
+  g.rails.forEach(rl => pipe([rl.x0, g.railY, rl.z], [rl.x1, g.railY, rl.z], G.frame));
+  g.beams.forEach(x => {
+    pipe([x, g.beamY, -c.frameWidth/2], [x, g.beamY, c.frameWidth/2], G.frame);
+    g.rails.forEach(rl => [-1,1].forEach(k => { const t = new THREE.Mesh(new THREE.TorusGeometry(1.6, .18, 6, 18), MAT.tie); t.position.set(x, g.railY + R, rl.z); t.rotation.set(0, k*Math.PI/4, Math.PI/2); G.lash.add(t); }));
+  });
+  // deck sandwich
+  const dk = c.deck;
+  const deck = new THREE.Mesh(new THREE.BoxGeometry(dk.length, dk.thickness, dk.width), [MAT.xps, MAT.xps, MAT.skin, MAT.skin, MAT.xps, MAT.xps]);
+  deck.position.set(0, g.deckBottom + dk.thickness/2, 0); G.deck.add(deck);
+  // bow
+  if (g.bow) {
+    const L2 = c.frameLength/2, topY = g.bow.topY, bx = g.bow.x1, oz = g.outerZ;
+    [-1,1].forEach(s => { const z = s*oz; joint([L2, g.railY, z]); pipe([L2, g.railY, z], [L2, topY, z], G.bow); joint([L2, topY, z]); pipe([L2, topY, z], [bx, topY, z], G.bow); joint([bx, topY, z]); });
+    pipe([bx, topY, -oz], [bx, topY, oz], G.bow);
+    const fx = g.beams[g.beams.length-1];
+    const curve = new THREE.QuadraticBezierCurve(new THREE.Vector2(fx, g.beamY - R), new THREE.Vector2(bx + 2, g.beamY - 6), new THREE.Vector2(bx, topY + R));
+    const pts = curve.getPoints(20), W = oz + R, pos = [], idx = [];
+    pts.forEach(p => pos.push(p.x, p.y, -W, p.x, p.y, W));
+    for (let i = 0; i < pts.length-1; i++) { const a = i*2; idx.push(a, a+1, a+2, a+1, a+3, a+2); }
+    const geo = new THREE.BufferGeometry(); geo.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); geo.setIndex(idx); geo.computeVertexNormals();
+    G.bow.add(new THREE.Mesh(geo, MAT.guard));
+    if (c.noodleRail) pipe([bx, topY + R + 1.2, -oz], [bx, topY + R + 1.2, oz], G.bow, 1.25, MAT.noodle);
+  }
+  if (c.noodleRail) [-1,1].forEach(s => pipe([-dk.length/2, g.deckTop + 1.25, s*(dk.width/2 - 1.25)], [dk.length/2, g.deckTop + 1.25, s*(dk.width/2 - 1.25)], G.deck, 1.25, MAT.noodle));
+  // mast + Jolly Roger
+  if (c.mastHeight > 0) {
+    const mx = dk.length/2 - 8;
+    pipe([mx, g.deckTop, 0], [mx, g.deckTop + c.mastHeight, 0], G.deck);
+    const fh = Math.min(14, c.mastHeight * .45), fw = fh * 1.5;
+    const flag = new THREE.Mesh(new THREE.PlaneGeometry(fw, fh), new THREE.MeshStandardMaterial({ map: flagTexture(), side: THREE.DoubleSide, roughness: .9 }));
+    flag.position.set(mx - fw/2 - R, g.deckTop + c.mastHeight - fh/2, 0); G.deck.add(flag);
+  }
+  // crew
+  M.crewPositions(c, c.crew).forEach(p => {
+    const y0 = g.deckTop;
+    const torso = new THREE.Mesh(new THREE.CylinderGeometry(6, 7, 20, 14), MAT.pfd); torso.position.set(p.x, y0 + 12, p.z); G.crew.add(torso);
+    const legs = new THREE.Mesh(new THREE.BoxGeometry(18, 5, 12), MAT.skinTone); legs.position.set(p.x + 9, y0 + 2.5, p.z); G.crew.add(legs);
+    const head = new THREE.Mesh(new THREE.SphereGeometry(4.6, 16, 12), MAT.helmet); head.position.set(p.x, y0 + 27, p.z); G.crew.add(head);
+  });
+  const s = A.solution;
+  boat.position.y = -(s.ok ? s.d : 2*r + 4);
+  pivot.rotation.set(s.ok ? -Math.atan(s.p) : 0, 0, s.ok ? Math.atan(s.t) : 0, 'XZY');
+  target.set(8, Math.max(4, g.deckTop - (s.ok ? s.d : 0) - 6), 0);
+  place();
+}
+let flagTex = null;
+function flagTexture(){
+  if (flagTex) return flagTex;
+  const cv = document.createElement('canvas'); cv.width = 192; cv.height = 128;
+  const x = cv.getContext('2d');
+  x.fillStyle = '#111'; x.fillRect(0, 0, 192, 128);
+  x.strokeStyle = '#eee'; x.lineWidth = 9; x.lineCap = 'round';
+  x.beginPath(); x.moveTo(60, 98); x.lineTo(132, 110); x.moveTo(132, 98); x.lineTo(60, 110); x.stroke();
+  x.fillStyle = '#eee'; x.beginPath(); x.arc(96, 54, 30, 0, Math.PI*2); x.fill(); x.fillRect(80, 70, 32, 20);
+  x.fillStyle = '#111'; x.beginPath(); x.arc(85, 52, 7, 0, Math.PI*2); x.arc(107, 52, 7, 0, Math.PI*2); x.fill();
+  x.fillRect(84, 78, 4, 10); x.fillRect(94, 78, 4, 10); x.fillRect(104, 78, 4, 10);
+  flagTex = new THREE.CanvasTexture(cv); return flagTex;
+}
+const target = new THREE.Vector3(8, 4, 0);
+let th = -0.75, ph = 1.08, rad = 230;
+function place(){ camera.position.set(target.x + rad*Math.sin(ph)*Math.cos(th), target.y + rad*Math.cos(ph), target.z + rad*Math.sin(ph)*Math.sin(th)); camera.lookAt(target); }
+const pts = new Map(); let pinch = 0, idle = performance.now();
+function orbit(){
+  const cv = renderer.domElement;
+  cv.addEventListener('pointerdown', e => { cv.setPointerCapture(e.pointerId); pts.set(e.pointerId, [e.clientX, e.clientY]); });
+  cv.addEventListener('pointermove', e => {
+    if (!pts.has(e.pointerId)) return;
+    const p = pts.get(e.pointerId);
+    if (pts.size === 1) { th += (e.clientX - p[0]) * .008; ph = Math.min(1.52, Math.max(.15, ph - (e.clientY - p[1]) * .008)); }
+    pts.set(e.pointerId, [e.clientX, e.clientY]);
+    if (pts.size === 2) { const [a, b] = [...pts.values()], d = Math.hypot(a[0]-b[0], a[1]-b[1]); if (pinch) rad = Math.min(600, Math.max(80, rad * pinch / d)); pinch = d; }
+    place(); idle = performance.now();
+  });
+  const end = e => { pts.delete(e.pointerId); if (pts.size < 2) pinch = 0; };
+  cv.addEventListener('pointerup', end); cv.addEventListener('pointercancel', end);
+  cv.addEventListener('wheel', e => { e.preventDefault(); rad = Math.min(600, Math.max(80, rad * (1 + e.deltaY * .001))); place(); idle = performance.now(); }, { passive:false });
+}
+function resize(){
+  const st = $('stage'), w = st.clientWidth, h = st.clientHeight;
+  renderer.setSize(w, h); camera.aspect = w / Math.max(1, h); camera.updateProjectionMatrix();
+  rad = w < 600 ? 300 : 230; place();
+}
+const still = matchMedia('(prefers-reduced-motion: reduce)').matches;
+function loop(t){
+  if (!still) {
+    water.position.y = Math.sin(t * .0012) * .35;
+    pivot.position.y = Math.sin(t * .0012 - .4) * .35;
+    if (!pts.size && t - idle > 6000 && t - idle < 12000) { th += .0018; place(); }
+  }
+  renderer.render(scene, camera); requestAnimationFrame(loop);
+}
+
+boot();
+</script>
+</body>
+</html>
