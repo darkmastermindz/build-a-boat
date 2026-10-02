@@ -21,7 +21,7 @@ Generated from `data/build.json` by `scripts/raft-model.js`. Open
 | Overall size | 8.6 ft × 5.8 ft × 4.7 ft |
 | Crew | 2 × 175 lb |
 | Predicted final weight | 106.0 lb (limit 150) |
-| Bought so far | 33.7 lb on the boat + 9.0 lb spares/offcuts |
+| Bought so far | 73.7 lb on the boat + 9.0 lb spares/offcuts |
 | Measured | 0.0 lb (0% of predicted) |
 
 ## Weight
@@ -29,16 +29,15 @@ Generated from `data/build.json` by `scripts/raft-model.js`. Open
 | | lb |
 |---|---|
 | **Predicted final boat** | **106.0** |
-| Bought so far (on the boat) | 33.7 |
+| Bought so far (on the boat) | 73.7 |
 | Bought spares and offcuts (not on the boat) | 9.0 |
-| Still to buy | 72.3 |
+| Still to buy | 32.3 |
 | Measured on a scale | 0.0 |
 
 ## Next shopping trip
 
 | Item | Qty | Est. | Priority | Shop | Why |
 |------|-----|------|----------|------|-----|
-| Plastic 55-gallon drum (reconditioned) | 2 | $70.00 (est.) | needed | [Home Depot](https://www.homedepot.com/s/Plastic%2055-gallon%20drum) · [Lowe's](https://www.lowes.com/search?searchTerm=Plastic%2055-gallon%20drum) · [McManus Drum Co. Inc.](http://mcmanusdrum.com/) · [Lewis Container & Service](https://lewiscontainer.com/) | Layout needs 2; 0 bought. |
 | Heavy-duty UV cable ties 17", 120 lb (100-pack) | 1 | $24.98 | needed | [Home Depot](https://www.homedepot.com/s/Heavy-duty%20UV%20cable%20ties%2017%20in%2C%20120%20lb) · [Lowe's](https://www.lowes.com/search?searchTerm=Heavy-duty%20UV%20cable%20ties%2017%20in%2C%20120%20lb) · [Harbor Freight - Charlotte area](https://www.harborfreight.com) | Layout needs 56 ties; 40 bought. Suggests ties of 18" or less, since the longer ones may break the rule. |
 | XPS foam board 1" x 4 ft x 8 ft (FOAMULAR) | 1 | $24.97 | needed | [Home Depot](https://www.homedepot.com/p/p/315197840) · [Lowe's](https://www.lowes.com/search?searchTerm=XPS%20foam%20board%201%20in%20x%204%20ft%20x%208%20ft) | Layout needs 1; 0 bought. |
 | Coroplast corrugated plastic 4 mm, 4 x 8 ft | 2 | $76.58 | needed | [Home Depot](https://www.homedepot.com/s/Coroplast%20corrugated%20plastic%204%20mm%2C%204%20x%208%20ft) · [Lowe's](https://www.lowes.com/search?searchTerm=Coroplast%20corrugated%20plastic%204%20mm%2C%204%20x%208%20ft) | Layout needs 2; 0 bought. |
@@ -58,7 +57,7 @@ Generated from `data/build.json` by `scripts/raft-model.js`. Open
 | Foam paint brush multi-pack | 1 | $6.98 | optional | [Home Depot](https://www.homedepot.com/s/Foam%20paint%20brush%20multi-pack) · [Lowe's](https://www.lowes.com/search?searchTerm=Foam%20paint%20brush%20multi-pack) | Planned on the parts list, not bought yet. |
 | Painter's tape 0.94 in x 60 yd | 1 | $6.47 | optional | [Home Depot](https://www.homedepot.com/s/Painter's%20tape%200.94%20in%20x%2060%20yd) · [Lowe's](https://www.lowes.com/search?searchTerm=Painter's%20tape%200.94%20in%20x%2060%20yd) | Planned on the parts list, not bought yet. |
 | Fabric glue, 4 oz | 1 | $5.48 | optional | [Home Depot](https://www.homedepot.com/s/Fabric%20glue%2C%204%20oz) · [Lowe's](https://www.lowes.com/search?searchTerm=Fabric%20glue%2C%204%20oz) | Planned on the parts list, not bought yet. |
-| **Needed** | | **$269.94** | | | $460.33 including spare and optional |
+| **Needed** | | **$199.94** | | | $390.33 including spare and optional |
 
 Open `raft-simulation.html` → Check → Next shopping trip and enter a ZIP code for nearby Home Depot, Lowe's and local-supplier map links. The ZIP stays on your device.
 
@@ -90,6 +89,7 @@ Open `raft-simulation.html` → Check → Next shopping trip and enter a ZIP cod
 - ⚠️ **Fore-aft unstable: see-saws on the drums (GM -15")** — The drums are only 34.5" long under a 84" frame and the crew sits high, so the boat rocks bow-down or stern-down until the frame hits the water. Spread drums fore-aft (Triangle or Pontoon preset), keep the crew low and centered, or shorten the frame.
 - ⚠️ **Nose-dive risk with crew at the bow** — Moving the crew forward overwhelms the bow.
 - ⚠️ **Losing one drum sinks or capsizes the boat** — No redundancy. Seal and test the bung caps, or add a drum. Foam-filled rails and the XPS deck still float the wreck.
+- ℹ️ **List has 4 drums; configuration uses 2** — Extra drums are not counted in the weight.
 - ⚠️ **Pipe fits with only 21" to spare** — One mis-cut means another 10 ft stick. Measure twice, cut the long pieces first, or buy a spare stick.
 - ℹ️ **10 spare elbows on the list** — Keep for repairs or trim the list to save weight and cost.
 - ℹ️ **18 spare tees (3-way, incl. side-outlet tees) on the list** — Keep for repairs or trim the list to save weight and cost.
@@ -114,7 +114,7 @@ Open `raft-simulation.html` → Check → Next shopping trip and enter a ZIP cod
 
 | Item | Needed | Listed |
 |------|--------|--------|
-| drum | 2 | 2 |
+| drum | 2 | 4 |
 | pipe | 5 | 5 |
 | elbow | 6 | 16 |
 | tee | 10 | 4 ⚠️ |
@@ -138,7 +138,7 @@ Open `raft-simulation.html` → Check → Next shopping trip and enter a ZIP cod
 
 | Part | Role | Qty | lb ea | Measured | $ ea | Total | Status |
 |------|------|-----|-------|----------|------|-------|--------|
-| Plastic 55-gallon drum (reconditioned) | drum | 2 | 20 |  | $35.00 | $70.00 | planned |
+| Plastic 55-gallon drum (reconditioned) | drum | 4 | 20 |  | $35.00 | $140.00 | bought |
 | 1-1/2" x 10 ft PVC Sch 40 DWV pipe (plain end) | pipe | 5 | 5.1 |  | $11.96 | $59.80 | bought |
 | 1-1/2" DWV double sanitary tee (HxHxHxH) | cross | 3 | 0.45 |  | $7.23 | $21.69 | bought |
 | 1-1/2" DWV sanitary tee (HxHxH) | tee | 4 | 0.35 |  | $3.76 | $15.04 | bought |
@@ -166,7 +166,7 @@ Open `raft-simulation.html` → Check → Next shopping trip and enter a ZIP cod
 | Painter's tape 0.94 in x 60 yd | tape | 1 | 0.2 |  | $6.47 | $6.47 | planned |
 | Fabric glue, 4 oz | glue | 1 | 0.2 |  | $5.48 | $5.48 | planned |
 | Flush-cut snips | tool | 1 | 0 |  | $7.99 | $7.99 | planned |
-| **Total** | | | | | | **$710.73** | bought $250.41 |
+| **Total** | | | | | | **$780.73** | bought $390.41 |
 
 ## Suggested materials not on the list
 

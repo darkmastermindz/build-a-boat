@@ -62,7 +62,7 @@ Generated from \`data/build.json\` by \`scripts/raft-model.js\`. Open
 | Parameter | Value |
 |-----------|-------|
 | Layout | ${M.PRESETS[c.preset] ? M.PRESETS[c.preset].label : 'custom'} |
-| Drums | ${g.drums.length} × ${g.drum.label} (${g.drum.gallons} gal, ${g.drum.dia}" × ${g.drum.len}", ${g.drum.weight} lb${g.drum.weightMeasured ? ', weighed' : ''}) |
+| Drums | ${g.mixed ? g.drums.map(d => `${M.drumLabel(g, d)}: ${d.spec.gallons} gal, ${d.spec.dia}" × ${d.len}", ${d.spec.weight} lb${d.spec.weightMeasured ? ' (weighed)' : ''}`).join('<br>') : `${g.drums.length} × ${g.drum.label} (${g.drum.gallons} gal, ${g.drum.dia}" × ${g.drum.len}", ${g.drum.weight} lb${g.drum.weightMeasured ? ', weighed' : ''})`} |
 | Frame | ${c.frameLength}" rails × ${c.frameWidth}" beams, ${g.beams.length} beams, pontoon spacing ${c.pontoonSpacing}" |
 | Deck | ${c.deck.length}" × ${c.deck.width}" × ${c.deck.thickness}" |
 | Overall size | ${ft(g.overall.length)} × ${ft(g.overall.width)} × ${ft(g.overall.height)} |

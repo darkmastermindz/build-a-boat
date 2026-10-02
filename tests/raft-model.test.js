@@ -173,3 +173,34 @@ test('store links: product searches always, map searches only with a valid ZIP',
   assert.ok(near.some(l => l.kind === 'store' && /Home%20Depot%20near%2028202/.test(l.url)));
   assert.ok(near.some(l => l.kind === 'local'));
 });
+
+test('per-drum sizes: a smaller drum rides higher, lifts less and heels the boat toward it', () => {
+  const b = clone(build);
+  b.config.preset = 'quad4pontoon';
+  b.config.drumSpecs = [null, null, { size: 'custom', gallons: 45, dia: 20.5, len: 32, weight: 16 }, null];
+  const a = M.analyze(b, rules, { skipLeak: true }), g = a.geometry;
+  const small = g.drums[2], big = g.drums[0];
+  near(small.y0, big.r * 2 - 20.5, 1e-9, 'top-aligned under the frame');
+  assert.ok(M.drumMaxLb(small.spec) < M.drumMaxLb(big.spec));
+  near(a.weights.byRole.drum, 20 * 3 + 16, 1e-9, 'per-drum weights');
+  assert.ok(g.mixed);
+  // drum 3 sits on the starboard side (+z); less lift there means starboard sinks (roll < 0 lifts port)
+  assert.ok(small.z > 0 && a.solution.rollDeg < 0, `roll ${a.solution.rollDeg}`);
+  assert.ok(a.recommendations.some(r => /is smaller/.test(r.title)));
+  const same = clone(build); same.config.drumSpecs = [null, null];
+  assert.ok(!M.analyze(same, rules, { skipLeak: true }).geometry.mixed, 'null entries use the default');
+});
+
+test('placement suggestion only appears when it levels the boat', () => {
+  const b = clone(build);
+  b.config.preset = 'tri3inline';
+  b.config.drumSpecs = [{ size: 'hdpe-30-tight' }, null, null];   // small drum on the port side
+  const a = M.analyze(b, rules);
+  if (a.placement) {
+    const c2 = clone(b); c2.config.drumSpecs = a.placement.drumSpecs;
+    const after = M.analyze(c2, rules, { skipLeak: true }).solution;
+    assert.ok(Math.abs(after.rollDeg) + Math.abs(after.pitchDeg) < Math.abs(a.solution.rollDeg) + Math.abs(a.solution.pitchDeg));
+  } else {
+    assert.ok(Math.abs(a.solution.rollDeg) < 1, 'no suggestion only when already level');
+  }
+});
