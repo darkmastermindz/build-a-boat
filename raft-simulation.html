@@ -87,6 +87,11 @@
   .layers{position:absolute;left:0;right:0;bottom:0;padding:10px;display:flex;gap:6px;flex-wrap:wrap;justify-content:center}
   .layers button{font:500 12.5px Barlow,sans-serif;border:1.5px solid var(--ink);background:var(--panel);color:var(--ink);padding:5px 11px;border-radius:999px;cursor:pointer}
   .layers button[aria-pressed="false"]{background:transparent;opacity:.5;text-decoration:line-through}
+  .profiles{display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-left:auto}
+  .profiles select{width:auto;min-width:200px;max-width:min(320px,100%)}
+  .profiles input{width:180px}
+  .profiles .msg{font-size:12px;color:var(--muted)}
+  .profiles .msg.err{color:var(--err)}
   .banner{background:var(--warn);color:#1a1200;padding:8px 16px;font-size:13px;display:none}
   .banner.show{display:block}
   .best{outline:2px solid var(--ok);outline-offset:-2px}
@@ -106,6 +111,19 @@
 <header>
   <h1>🏴‍☠️ Raft simulator</h1>
   <div class="stats" id="stats"></div>
+  <div class="profiles">
+    <label for="profileSel" class="small muted">Design</label>
+    <select id="profileSel"></select>
+    <button class="btn sm" id="profSave">Save</button>
+    <button class="btn ghost sm" id="profSaveAs">Save as…</button>
+    <button class="btn ghost sm" id="profDelete">Delete</button>
+    <span id="profForm" hidden>
+      <input type="text" id="profName" placeholder="Profile name" maxlength="80" aria-label="Profile name">
+      <button class="btn sm" id="profConfirm">Save profile</button>
+      <button class="btn ghost sm" id="profCancel">Cancel</button>
+    </span>
+    <span class="msg" id="profMsg" role="status"></span>
+  </div>
 </header>
 <div class="banner" id="banner"></div>
 <main>
@@ -224,6 +242,7 @@ async function boot(){
   build = store.get() || clone(repoBuild);
   build.config = M.withDefaults(build.config);
   initControls(); initParts(); initScene(); update();
+  initProfiles();
 }
 
 // ── Controls ─────────────────────────────────
@@ -354,7 +373,7 @@ function renderParts(){
 
 // ── Analysis → UI ────────────────────────────
 let pending = false;
-function changed(){ store.set(build); if (!pending) { pending = true; requestAnimationFrame(() => { pending = false; update(); }); } }
+function changed(){ if (!loadingProfile) markDirty(); store.set(build); if (!pending) { pending = true; requestAnimationFrame(() => { pending = false; update(); }); } }
 function update(){
   A = M.analyze(build, rules);
   renderStats(); renderCheck(); buildBoat(); renderHud();
@@ -566,6 +585,130 @@ function loop(t){
     if (!pts.size && t - idle > 6000 && t - idle < 12000) { th += .0018; place(); }
   }
   renderer.render(scene, camera); requestAnimationFrame(loop);
+}
+
+// ── Design profiles ──────────────────────────
+// Built-in profiles ship in data/profiles.json. Team profiles are shared
+// through the Netlify Function at /api/profiles (Netlify Blobs). When that
+// API isn't available (e.g. a local static server), profiles are kept on
+// this device instead.
+const PSTORE = 'bob-profiles-v1', PACTIVE = 'bob-active-profile';
+let profiles = { builtin: [], shared: [], local: [] }, apiOK = false, active = null, dirty = false, loadingProfile = false, delArmed = 0;
+const lget = (k, d) => { try { return JSON.parse(localStorage.getItem(k)) ?? d; } catch (e) { return d; } };
+const lset = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} };
+const slug = t => t.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 50) || 'design';
+function profMsg(t, err){ const m = $('profMsg'); m.textContent = t || ''; m.classList.toggle('err', !!err); }
+function markDirty(){ if (!dirty) { dirty = true; renderProfileSelect(); } }
+function summary(){
+  const s = A.solution;
+  return { preset: build.config.preset, drums: A.geometry.drums.length, weight: +A.weights.total.toFixed(1), loadPct: s.ok ? +s.loadPct.toFixed(0) : null, crew: build.config.crew.count, cost: +A.cost.toFixed(2) };
+}
+async function api(path, opts){
+  const r = await fetch('/api/profiles' + path, Object.assign({ headers: { 'content-type': 'application/json' }, cache: 'no-store' }, opts || {}));
+  const ct = r.headers.get('content-type') || '';
+  if (!ct.includes('application/json')) throw new Error('Profile service unavailable');
+  const body = await r.json();
+  if (!r.ok) throw new Error(body.error || ('HTTP ' + r.status));
+  return body;
+}
+async function initProfiles(){
+  try { profiles.builtin = (await loadJSON('data/profiles.json')).profiles || []; } catch (e) { profiles.builtin = []; }
+  try { profiles.shared = (await api('')).profiles; apiOK = true; }
+  catch (e) { apiOK = false; profiles.local = lget(PSTORE, []); }
+  active = lget(PACTIVE, null);
+  $('profileSel').onchange = e => loadProfile(e.target.value);
+  $('profSave').onclick = saveProfile;
+  $('profSaveAs').onclick = () => openSaveAs();
+  $('profCancel').onclick = () => { $('profForm').hidden = true; };
+  $('profConfirm').onclick = () => saveAs($('profName').value);
+  $('profName').onkeydown = e => { if (e.key === 'Enter') saveAs(e.target.value); if (e.key === 'Escape') $('profForm').hidden = true; };
+  $('profDelete').onclick = deleteProfile;
+  renderProfileSelect();
+  if (!apiOK) profMsg('Saving on this device only');
+}
+function savedList(){ return apiOK ? profiles.shared : profiles.local; }
+function renderProfileSelect(){
+  const sel = $('profileSel'); sel.replaceChildren();
+  const key = active ? active.kind + ':' + active.id : '';
+  sel.append(el('option', { value: '' }, 'Working copy (not saved as a profile)'));
+  const group = (label, kind, list) => {
+    if (!list.length) return;
+    const og = el('optgroup', { label });
+    list.forEach(p => og.append(el('option', { value: kind + ':' + p.id, title: p.description || '' },
+      p.name + (p.summary ? ` · ${p.summary.drums} drums · ${Math.round(p.summary.weight)} lb` : '') + (kind + ':' + p.id === key && dirty ? ' (modified)' : ''))));
+    sel.append(og);
+  };
+  group('Suggested designs', 'builtin', profiles.builtin);
+  group(apiOK ? 'Team designs (shared)' : 'Saved on this device', apiOK ? 'shared' : 'local', savedList());
+  sel.value = key;
+  if (sel.value !== key) sel.value = '';
+  const canWrite = active && active.kind !== 'builtin';
+  $('profDelete').disabled = !canWrite; $('profDelete').style.opacity = canWrite ? '' : '.5';
+}
+async function loadProfile(val){
+  if (!val) { active = null; lset(PACTIVE, null); renderProfileSelect(); return; }
+  const [kind, id] = [val.slice(0, val.indexOf(':')), val.slice(val.indexOf(':') + 1)];
+  let p = null;
+  try {
+    if (kind === 'builtin') p = profiles.builtin.find(x => x.id === id);
+    else if (kind === 'local') p = profiles.local.find(x => x.id === id);
+    else p = await api('/' + encodeURIComponent(id));
+  } catch (e) { profMsg('Could not load: ' + e.message, true); return; }
+  if (!p) { profMsg('Profile not found', true); return; }
+  loadingProfile = true;
+  build = clone(p.build); build.config = M.withDefaults(build.config);
+  syncControls(); renderParts(); changed();
+  loadingProfile = false;
+  active = { kind, id: p.id, name: p.name }; dirty = false; lset(PACTIVE, active);
+  renderProfileSelect(); profMsg('Loaded ' + p.name);
+}
+async function writeProfile(id, name){
+  const payload = { name, build: clone(build), summary: summary() };
+  if (apiOK) {
+    const saved = await api('/' + encodeURIComponent(id), { method: 'PUT', body: JSON.stringify(payload) });
+    const i = profiles.shared.findIndex(x => x.id === id);
+    const row = { id: saved.id, name: saved.name, savedAt: saved.savedAt, summary: saved.summary };
+    if (i >= 0) profiles.shared[i] = row; else profiles.shared.unshift(row);
+    return 'shared';
+  }
+  const row = Object.assign({ id, savedAt: new Date().toISOString() }, payload);
+  const i = profiles.local.findIndex(x => x.id === id);
+  if (i >= 0) profiles.local[i] = row; else profiles.local.unshift(row);
+  lset(PSTORE, profiles.local);
+  return 'local';
+}
+async function saveProfile(){
+  if (!active || active.kind === 'builtin') return openSaveAs();
+  try { const kind = await writeProfile(active.id, active.name); active.kind = kind; dirty = false; lset(PACTIVE, active); renderProfileSelect(); profMsg('Saved ' + active.name); }
+  catch (e) { profMsg('Save failed: ' + e.message, true); }
+}
+function openSaveAs(){
+  $('profForm').hidden = false;
+  $('profName').value = active ? (active.kind === 'builtin' ? active.name + ' (team)' : active.name + ' copy') : (build.name || 'Our raft');
+  $('profName').focus(); $('profName').select();
+}
+async function saveAs(name){
+  name = (name || '').trim();
+  if (!name) { profMsg('Give the design a name', true); return; }
+  const taken = new Set([...savedList().map(p => p.id), ...profiles.builtin.map(p => p.id)]);
+  let id = slug(name), n = 2;
+  while (taken.has(id)) id = slug(name) + '-' + n++;
+  try {
+    const kind = await writeProfile(id, name);
+    active = { kind, id, name }; dirty = false; lset(PACTIVE, active);
+    $('profForm').hidden = true; renderProfileSelect();
+    profMsg(kind === 'shared' ? `Saved "${name}" for the team` : `Saved "${name}" on this device`);
+  } catch (e) { profMsg('Save failed: ' + e.message, true); }
+}
+async function deleteProfile(){
+  if (!active || active.kind === 'builtin') return;
+  if (Date.now() - delArmed > 4000) { delArmed = Date.now(); profMsg(`Click Delete again to remove "${active.name}"`); return; }
+  delArmed = 0;
+  try {
+    if (active.kind === 'shared') { await api('/' + encodeURIComponent(active.id), { method: 'DELETE' }); profiles.shared = profiles.shared.filter(x => x.id !== active.id); }
+    else { profiles.local = profiles.local.filter(x => x.id !== active.id); lset(PSTORE, profiles.local); }
+    profMsg(`Deleted "${active.name}"`); active = null; lset(PACTIVE, null); renderProfileSelect();
+  } catch (e) { profMsg('Delete failed: ' + e.message, true); }
 }
 
 boot();
