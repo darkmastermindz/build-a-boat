@@ -9,6 +9,7 @@ const files = {
   'raft-simulation.html': 'raft-simulation.html',
   'raft-render.html': 'raft-render.html',
   'legacy.html': 'index.html',
+  'favicon.svg': 'favicon.svg',
   'scripts/raft-model.js': 'scripts/raft-model.js',
   'data/build.json': 'data/build.json',
   'data/catalog.json': 'data/catalog.json',
