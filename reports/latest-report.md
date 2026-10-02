@@ -1,9 +1,8 @@
 # 🏴‍☠️ BOB – Build Report
 
-**Version:** v2.4
+**Version:** latest
 **Date:** 2026-10-02
-**Build:** Team BOB pirate raft  
-**Notes:** Receipt: spine frame, DWV fittings
+**Build:** Team BOB pirate raft
 **Race:** 2026-10-10, Class II-IV competition channel, U.S. National Whitewater Center, Charlotte NC
 
 Generated from `data/build.json` by `scripts/raft-model.js`. Open
@@ -21,7 +20,45 @@ Generated from `data/build.json` by `scripts/raft-model.js`. Open
 | Deck | 72" × 24" × 2.3" |
 | Overall size | 8.6 ft × 5.8 ft × 4.7 ft |
 | Crew | 2 × 175 lb |
-| Boat weight | 106.0 lb (0% measured) |
+| Predicted final weight | 106.0 lb (limit 150) |
+| Bought so far | 33.7 lb on the boat + 9.0 lb spares/offcuts |
+| Measured | 0.0 lb (0% of predicted) |
+
+## Weight
+
+| | lb |
+|---|---|
+| **Predicted final boat** | **106.0** |
+| Bought so far (on the boat) | 33.7 |
+| Bought spares and offcuts (not on the boat) | 9.0 |
+| Still to buy | 72.3 |
+| Measured on a scale | 0.0 |
+
+## Next shopping trip
+
+| Item | Qty | Est. | Priority | Where | Why |
+|------|-----|------|----------|-------|-----|
+| Plastic 55-gallon drum (reconditioned) | 2 | $70.00 (est.) | needed | McManus Drum Co. (Charlotte, NC) | Layout needs 2; 0 bought. |
+| Heavy-duty UV cable ties 17", 120 lb (100-pack) | 1 | $24.98 | needed | Lowe's | Layout needs 56 ties; 40 bought. Suggests ties of 18" or less, since the longer ones may break the rule. |
+| XPS foam board 1" x 4 ft x 8 ft (FOAMULAR) | 1 | $24.97 | needed | Home Depot | Layout needs 1; 0 bought. |
+| Coroplast corrugated plastic 4 mm, 4 x 8 ft | 2 | $76.58 | needed | Home Depot | Layout needs 2; 0 bought. |
+| Expanding spray foam, 12 oz (Great Stuff or similar) | 2 | $13.96 (est.) | needed | Home Depot / Lowe's | Layout needs 2; 0 bought. |
+| PVC primer + cement kit | 1 | $11.98 | needed | Home Depot | Layout needs 1; 0 bought. |
+| 2-part marine epoxy | 2 | $10.00 (est.) | needed | Harbor Freight (Charlotte area) | Planned on the parts list, not bought yet. |
+| 100% silicone / marine sealant, 10.1 oz | 3 | $19.50 (est.) | needed | Harbor Freight (Charlotte area) | Planned on the parts list, not bought yet. |
+| Polypropylene rope 3/8" (floats) | 1 | $9.98 (est.) | needed | Home Depot / Lowe's | Swapped for Polypropylene rope 3/8" (floats): 550 paracord, 100 ft may not float. |
+| Flush-cut snips | 1 | $7.99 (est.) | needed | Harbor Freight / Home Depot | Planned on the parts list, not bought yet. |
+| 1-1/2" x 10 ft PVC Sch 40 DWV pipe (plain end) | 1 | $11.96 | spare | Home Depot | Only 21" of pipe to spare. A spare stick covers a mis-cut. |
+| Pool noodles | 8 | $28.64 | optional | Home Depot | Planned on the parts list, not bought yet. |
+| Outdoor seat cushion, 18-24 in | 2 | $45.96 | optional | Lowe's | Planned on the parts list, not bought yet. May not float: bucket-test it. |
+| Outdoor acrylic craft paint set (18 colors) | 1 | $28.98 | optional | Lowe's | Planned on the parts list, not bought yet. |
+| Black outdoor fabric spray paint, 12 oz | 1 | $13.98 | optional | Lowe's | Planned on the parts list, not bought yet. |
+| Red outdoor fabric spray paint, 12 oz | 1 | $13.98 | optional | Lowe's | Planned on the parts list, not bought yet. |
+| Canvas drop cloth, 4 x 5 ft | 2 | $27.96 | optional | Lowe's | Planned on the parts list, not bought yet. May not float: bucket-test it. |
+| Foam paint brush multi-pack | 1 | $6.98 | optional | Lowe's | Planned on the parts list, not bought yet. |
+| Painter's tape 0.94 in x 60 yd | 1 | $6.47 | optional | Lowe's | Planned on the parts list, not bought yet. |
+| Fabric glue, 4 oz | 1 | $5.48 | optional | Lowe's | Planned on the parts list, not bought yet. |
+| **Needed** | | **$269.94** | | | $460.33 including spare and optional |
 
 ## Physics
 

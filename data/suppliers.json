@@ -4,8 +4,6 @@
     {
       "category": "Plumbing distributor (large PVC)",
       "name": "Ferguson Plumbing Supply",
-      "address": "[removed]",
-      "phone": "[removed]",
       "hours": "Call for hours",
       "website": "https://www.ferguson.com",
       "covers_part_ids": [
@@ -17,8 +15,6 @@
     {
       "category": "Plumbing distributor (large PVC)",
       "name": "Hubbard Supplyhouse",
-      "address": "[removed]",
-      "phone": "[removed]",
       "hours": "Mon-Fri 7:30 AM-5:00 PM",
       "website": "https://www.hubbardsupplyhouse.com/",
       "covers_part_ids": [
@@ -30,8 +26,6 @@
     {
       "category": "Plumbing distributor (large PVC)",
       "name": "Catawba Valley Supply - Charlotte area",
-      "address": "[removed]",
-      "phone": "[removed]",
       "hours": "Mon-Fri 7:30 AM-4:00 PM",
       "website": "https://cvsplumbing.com/",
       "covers_part_ids": [
@@ -43,8 +37,6 @@
     {
       "category": "Plumbing distributor (backup)",
       "name": "Hughes Supply",
-      "address": "[removed]",
-      "phone": "[removed]",
       "hours": "Mon-Fri 7:00 AM-4:30 PM",
       "website": null,
       "covers_part_ids": [
@@ -56,8 +48,6 @@
     {
       "category": "Plumbing distributor (backup)",
       "name": "Plumbers Wholesale Supply Inc",
-      "address": "[removed]",
-      "phone": "[removed]",
       "hours": "Mon-Thu 7-5, Fri 7-3",
       "website": null,
       "covers_part_ids": [
@@ -69,8 +59,6 @@
     {
       "category": "55-gallon drums",
       "name": "McManus Drum Co. Inc.",
-      "address": "[removed]",
-      "phone": "[removed]",
       "hours": "Call for hours",
       "website": "http://mcmanusdrum.com/",
       "covers_part_ids": [
@@ -82,8 +70,6 @@
     {
       "category": "55-gallon drums",
       "name": "Lewis Container & Service",
-      "address": "[removed]",
-      "phone": "[removed]",
       "hours": "Mon-Fri 7:00 AM-2:00 PM",
       "website": "https://lewiscontainer.com/",
       "covers_part_ids": [
@@ -95,8 +81,6 @@
     {
       "category": "55-gallon drums",
       "name": "Tallent Drum Company",
-      "address": "[removed]",
-      "phone": "[removed]",
       "hours": "Mon-Fri 8:00 AM-4:30 PM",
       "website": "http://tallentdrumcompany.com/",
       "covers_part_ids": [
@@ -108,8 +92,6 @@
     {
       "category": "55-gallon drums",
       "name": "Mauser Packaging Solutions - Charlotte",
-      "address": "[removed]",
-      "phone": "[removed]",
       "hours": "Mon-Fri 7:00 AM-5:00 PM",
       "website": null,
       "covers_part_ids": [
@@ -121,8 +103,6 @@
     {
       "category": "Hardware",
       "name": "Harbor Freight - Charlotte area",
-      "address": "[removed]",
-      "phone": "[removed]",
       "hours": "Mon-Sat 8-8, Sun 9-6",
       "website": "https://www.harborfreight.com",
       "covers_part_ids": [
@@ -136,8 +116,6 @@
     {
       "category": "Hardware / farm",
       "name": "Tractor Supply Co. - Charlotte area",
-      "address": "[removed]",
-      "phone": "[removed]",
       "hours": "Mon-Sat 8-9, Sun 9-7",
       "website": "https://www.tractorsupply.com",
       "covers_part_ids": [

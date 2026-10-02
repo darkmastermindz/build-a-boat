@@ -54,7 +54,7 @@ doc records the reasoning and the findings so far.
   - The frame sits on top of the drums.
   - Cut lengths are center-to-center minus the **fitting take-off** at each
     end. Measure it on a dry-fit tee before cutting; the default is 1.25".
-- Shelf prices (Home Depot, aisle 11):
+- Shelf prices (Home Depot):
 
   | Fitting | Price |
   |---------|-------|
@@ -68,7 +68,11 @@ doc records the reasoning and the findings so far.
   "Fit frame length to drums" shortens the rails to the drum length, which
   also saves pipe.
 
-### 2026-10-01: Home Depot receipt and Amazon order
+### Purchases so far
+
+Recorded in `data/build.json` (`receipts` and parts marked `bought`). Only
+item names, quantities and prices are kept: no store addresses, store
+numbers, card details or other personal information.
 
 | Item | Qty | Each | Total |
 |------|-----|------|-------|
@@ -99,8 +103,19 @@ What this tells the model:
 - **36" cable ties** are over the 18" securing-material limit as bought.
   **Ask the organizers** whether a long tie trimmed flush is judged by its
   installed length. The pack count is assumed to be 10; check the bag.
-- Weight counts only the pipe and fittings the layout uses. Spares stay on the
-  list but off the boat: **~106 lb** for the current plan.
+- **Weight** is reported two ways: the **predicted finished boat (~106 lb)**
+  and what's **bought so far (~34 lb on the boat, plus ~9 lb of spare
+  fittings and offcuts)**. Only the pipe and fittings the layout uses count
+  toward the boat.
+- **More shopping is planned.** The simulator's **Check → Next shopping
+  trip** (and the report) lists what the layout still needs after what's
+  marked bought. It covers:
+  - priority (needed / spare / optional), estimated cost and where to buy;
+  - a spare stick when the cut list is tight;
+  - floating swaps for materials that sink (paracord → polypropylene rope);
+  - rule-safe ties of 18" or less.
+
+  Mark items `bought` as you shop and the list shrinks.
 
 ## Shared frame concept (from the render)
 
