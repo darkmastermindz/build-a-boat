@@ -141,5 +141,5 @@ helmets are provided. Full details:
 and `data/rules.json`.
 
 ---
-
-*Whitewater Center Build Your Own Boat Competition*
+Team: “Knot So Fast”
+*Build Your Own Boat Competition*
