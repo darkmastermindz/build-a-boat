@@ -10,7 +10,7 @@
     "profiles": "node scripts/make-profiles.js"
   },
   "engines": {
-    "node": ">=20"
+    "node": ">=24"
   },
   "dependencies": {
     "@netlify/blobs": "^8.1.0"
