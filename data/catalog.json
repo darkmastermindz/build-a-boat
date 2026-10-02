@@ -118,7 +118,7 @@
     },
     {
       "id": "S005",
-      "name": "PVC 90\u00b0 elbow 1-1/2\" Sch 40",
+      "name": "1-1/2\" PVC/DWV 90\u00b0 elbow",
       "role": "elbow",
       "category": "frame",
       "material": "pvc",
@@ -131,7 +131,7 @@
       "weight_lb_each": 0.2,
       "source": "Home Depot / Lowe's",
       "url": "",
-      "notes": "Bow frame: rail to riser, riser to strut, strut to bow bar (x2 sides).",
+      "notes": "Frame corners and bow riser/strut bends.",
       "origin": "added",
       "foam_filled": true
     },
@@ -632,6 +632,88 @@
       "url": "",
       "notes": "Rules require zip ties trimmed flush. Tool only, not part of the boat.",
       "origin": "added"
+    },
+    {
+      "id": "FT01",
+      "name": "1-1/2\" DWV double sanitary tee (HxHxHxH)",
+      "role": "cross",
+      "category": "frame",
+      "material": "pvc",
+      "foam_filled": true,
+      "unit": "piece",
+      "suggested_quantity": 0,
+      "unit_cost_usd": 7.23,
+      "price_options": {
+        "home_depot": 7.23
+      },
+      "price_basis": "Home Depot shelf tag, Aisle 11 Bay 006 (photo 2026-10-01)",
+      "estimate": false,
+      "weight_lb_each": 0.45,
+      "source": "Home Depot",
+      "url": "https://www.homedepot.com",
+      "notes": "4-way joint where an inner rail meets a cross beam. Charlotte Pipe, SKU 0000-641-280. Foam-fill after assembly.",
+      "origin": "team"
+    },
+    {
+      "id": "FT02",
+      "name": "1-1/2\" DWV cleanout tee with plug",
+      "role": "cleanout-tee",
+      "category": "frame",
+      "material": "pvc",
+      "foam_filled": true,
+      "unit": "piece",
+      "suggested_quantity": 0,
+      "unit_cost_usd": 9.85,
+      "price_options": {
+        "home_depot": 9.85
+      },
+      "price_basis": "Home Depot shelf tag (photo 2026-10-01)",
+      "estimate": false,
+      "weight_lb_each": 0.5,
+      "source": "Home Depot",
+      "url": "https://www.homedepot.com",
+      "notes": "3-way with a removable plastic plug. Handy as a foam-fill or inspection port at a rail end.",
+      "origin": "team"
+    },
+    {
+      "id": "FT03",
+      "name": "1-1/2\" DWV wye (HxHxH)",
+      "role": "wye",
+      "category": "frame",
+      "material": "pvc",
+      "foam_filled": true,
+      "unit": "piece",
+      "suggested_quantity": 0,
+      "unit_cost_usd": 6.96,
+      "price_options": {
+        "home_depot": 6.96
+      },
+      "price_basis": "Home Depot shelf tag, SKU 0000-189-543 (photo 2026-10-01)",
+      "estimate": false,
+      "weight_lb_each": 0.4,
+      "source": "Home Depot",
+      "url": "https://www.homedepot.com",
+      "notes": "45\u00b0 branch. Use for angled bow braces.",
+      "origin": "team"
+    },
+    {
+      "id": "FT04",
+      "name": "1-1/2\" DWV sanitary tee (HxHxH)",
+      "role": "tee",
+      "category": "frame",
+      "material": "pvc",
+      "foam_filled": true,
+      "unit": "piece",
+      "suggested_quantity": 0,
+      "unit_cost_usd": 4.5,
+      "price_options": {},
+      "price_basis": "Estimate; check the shelf tag",
+      "estimate": true,
+      "weight_lb_each": 0.35,
+      "source": "Home Depot",
+      "url": "https://www.homedepot.com",
+      "notes": "3-way joint on the outer rails and end beams of a fitted frame.",
+      "origin": "team"
     }
   ]
 }

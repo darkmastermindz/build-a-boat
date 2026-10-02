@@ -64,7 +64,7 @@
   };
 
   const DEFAULT_CONFIG = {
-    preset: 'cat2', frameLength: 84, frameWidth: 72, beamCount: 4, pontoonSpacing: 47,
+    preset: 'cat2', frameStyle: 'stacked', fittingTakeoff: 1.25, frameLength: 84, frameWidth: 72, beamCount: 4, pontoonSpacing: 47,
     drumOffset: 0, drumSpread: 20, bow: true, bowRiser: 12, bowStrut: 18,
     deck: { length: 72, width: 24, thickness: 2.3 }, mastHeight: 30, noodleRail: true,
     crew: { count: 2, weightEach: 175, xOffset: 0, zOffset: 0 }, failedDrum: null,
@@ -104,17 +104,21 @@
     const raw = Array.isArray(c.drums) ? c.drums : PRESETS[c.preset].layout(c);
     const drums = raw.map((d, i) => ({ id: i, x: d.x, z: d.z, failed: c.failedDrum === i }));
     const lines = [...new Set(drums.map(d => +d.z.toFixed(2)))].sort((a, b) => a - b);
-    const railY = r + Math.sqrt(r * r - RAIL_OFFSET * RAIL_OFFSET) + PIPE_R;
-    const beamY = railY + 2 * PIPE_R;
+    // stacked: rails rest on the drums, beams lashed on top (the render).
+    // fitted: rails and beams in one plane joined by tees/crosses, sitting on the drum tops.
+    const fitted = c.frameStyle === 'fitted';
+    const railY = fitted ? 2 * r + PIPE_R : r + Math.sqrt(r * r - RAIL_OFFSET * RAIL_OFFSET) + PIPE_R;
+    const beamY = fitted ? railY : railY + 2 * PIPE_R;
     const deckBottom = beamY + PIPE_R;
     const deckTop = deckBottom + c.deck.thickness;
-    const L = c.frameLength, W = c.frameWidth;
+    const L = c.frameLength;
     const rails = [];
     lines.forEach(z => [-1, 1].forEach(s => rails.push({ z: z + s * RAIL_OFFSET, x0: -L / 2, x1: L / 2 })));
     const n = Math.max(2, Math.round(c.beamCount));
-    const inset = Math.min(6, L / 4);
+    const inset = fitted ? 0 : Math.min(6, L / 4);
     const beams = Array.from({ length: n }, (_, i) => -L / 2 + inset + i * (L - 2 * inset) / (n - 1));
     const outerZ = Math.max(...rails.map(rl => Math.abs(rl.z)));
+    const W = fitted ? 2 * outerZ : c.frameWidth;
     const bow = c.bow ? {
       x0: L / 2, x1: L / 2 + c.bowStrut, topY: railY + c.bowRiser, z: outerZ,
     } : null;
@@ -135,9 +139,9 @@
       if (Math.abs(a.z - b.z) < DRUM.dia && Math.abs(a.x - b.x) < DRUM.len) overlaps.push([i, j]);
     }
     return {
-      config: c, drums, lines, rails, beams, railY, beamY, deckBottom, deckTop, bow, outerZ,
+      config: c, fitted, frameWidth: W, drums, lines, rails, beams, railY, beamY, deckBottom, deckTop, bow, outerZ,
       mastTop, wallHeight: Math.max(0, wallTop - deckTop), overall, overlaps,
-      beamsTooShort: outerZ + PIPE_R > W / 2,
+      beamsTooShort: !fitted && outerZ + PIPE_R > W / 2,
       drumsOffFrame: drums.some(d => d.x - DRUM.len / 2 < -L / 2 - 1 || d.x + DRUM.len / 2 > L / 2 + 1),
     };
   }
@@ -162,8 +166,26 @@
   function requirements(g) {
     const c = g.config;
     const cuts = [];
-    g.rails.forEach((rl, i) => cuts.push({ label: `rail ${i + 1}`, len: c.frameLength }));
-    g.beams.forEach((_, i) => cuts.push({ label: `beam ${i + 1}`, len: c.frameWidth }));
+    const fit = { cross: 0, tee: 0, elbow: 0 };
+    if (g.fitted) {
+      // Pipe runs between fitting centers, minus the take-off at each end.
+      const k = c.fittingTakeoff || 0;
+      const zs = g.rails.map(rl => rl.z).sort((a, b) => a - b), xs = g.beams;
+      g.rails.forEach((rl, i) => { for (let j = 0; j < xs.length - 1; j++) cuts.push({ label: `rail ${i + 1}.${j + 1}`, len: +(xs[j + 1] - xs[j] - 2 * k).toFixed(2) }); });
+      xs.forEach((x, i) => { for (let j = 0; j < zs.length - 1; j++) cuts.push({ label: `beam ${i + 1}.${j + 1}`, len: +(zs[j + 1] - zs[j] - 2 * k).toFixed(2) }); });
+      xs.forEach((x, bi) => zs.forEach((z, ri) => {
+        const endB = bi === 0 || bi === xs.length - 1, endR = ri === 0 || ri === zs.length - 1;
+        const bowCorner = g.bow && bi === xs.length - 1 && endR;   // riser leaves the front corners
+        if (endB && endR) bowCorner ? fit.tee++ : fit.elbow++;
+        else if (endB || endR) fit.tee++;
+        else fit.cross++;
+      }));
+      if (g.bow) fit.elbow += 4;
+    } else {
+      g.rails.forEach((rl, i) => cuts.push({ label: `rail ${i + 1}`, len: c.frameLength }));
+      g.beams.forEach((_, i) => cuts.push({ label: `beam ${i + 1}`, len: c.frameWidth }));
+      if (g.bow) fit.elbow += 6;
+    }
     if (g.bow) {
       ['port', 'stbd'].forEach(s => {
         cuts.push({ label: `bow riser ${s}`, len: c.bowRiser });
@@ -174,7 +196,7 @@
     if (c.mastHeight > 0) cuts.push({ label: 'mast', len: c.mastHeight + 6 });
     const sticks = binPack(cuts);
     const pipeLen = cuts.reduce((s, k) => s + k.len, 0);
-    const crossings = g.rails.length * g.beams.length;
+    const crossings = g.fitted ? 0 : g.rails.length * g.beams.length;
     const bandTies = Math.ceil((2 * Math.PI * r + 8) / 13) * 2;
     const ties = crossings * 2 + g.drums.length * bandTies + g.beams.length * 4 + (g.bow ? 10 : 0) + (c.mastHeight > 0 ? 6 : 0);
     const layers = Math.max(1, Math.round(c.deck.thickness - 0.3));
@@ -185,20 +207,22 @@
       items: {
         drum: g.drums.length,
         pipe: sticks.length,
-        elbow: g.bow ? 6 : 0,
+        elbow: fit.elbow,
+        tee: fit.tee,
+        cross: fit.cross,
         coupling: g.bow ? 1 : 0,
         'zip-tie': Math.ceil(ties * 1.15 / 100),      // packs of 100, 15% spare
         xps: sheetsFor(c.deck.length, c.deck.width, layers),
         coroplast: Math.ceil(coroArea * 1.15 / (SHEET.w * SHEET.l)),
         'spray-foam': Math.ceil(pipeLen * PIPE_ID_AREA / FOAM_IN3_PER_CAN),
-        cement: g.bow ? 1 : 0,
+        cement: g.bow || g.fitted ? 1 : 0,
       },
       tieCount: ties,
     };
   }
 
   // ── Weight & mass distribution ──
-  const FRAME_ROLES = new Set(['pipe', 'pipe-large', 'elbow', 'coupling', 'spray-foam', 'zip-tie', 'cement', 'epoxy', 'sealant', 'rope', 'mast']);
+  const FRAME_ROLES = new Set(['pipe', 'pipe-large', 'elbow', 'coupling', 'tee', 'cross', 'wye', 'cleanout-tee', 'spray-foam', 'zip-tie', 'cement', 'epoxy', 'sealant', 'rope', 'mast']);
   const DECK_ROLES = new Set(['xps', 'coroplast', 'plywood']);
   const boatParts = parts => (parts || []).filter(p => p.role !== 'tool' && p.category !== 'tools');
 
@@ -383,7 +407,7 @@
     const ropes = parts.filter(p => p.role === 'rope' && !(+p.max_piece_length_in <= ropeMax));
     if (ropes.length) add('error', 'rope', `Rope/strap pieces must be ≤ ${ropeMax}"`, ropes.map(p => p.name).join('; ') + ': set the max piece length to ≤ 18".');
     else add('ok', 'rope', `Securing materials ≤ ${ropeMax}" pieces; zip ties trimmed flush`, 'Drum bands made of daisy-chained ties: confirm with the organizers.');
-    const pipes = parts.filter(p => ['pipe', 'pipe-large', 'elbow', 'coupling', 'mast'].includes(p.role) && p.material === 'pvc');
+    const pipes = parts.filter(p => ['pipe', 'pipe-large', 'elbow', 'coupling', 'tee', 'cross', 'wye', 'cleanout-tee', 'mast'].includes(p.role) && p.material === 'pvc');
     const hasFoam = parts.some(p => p.role === 'spray-foam' && p.quantity > 0);
     const unfilled = pipes.filter(p => !p.foam_filled);
     if (pipes.length && (!hasFoam || unfilled.length)) add('error', 'float', 'PVC sinks: every pipe and fitting must be foam-filled so broken pieces float', unfilled.length ? unfilled.map(p => p.name).join('; ') : 'Add expanding spray foam to the parts list.');
@@ -452,10 +476,17 @@
     // parts list vs geometry
     const have = {};
     (build.parts || []).forEach(p => { have[p.role] = (have[p.role] || 0) + (+p.quantity || 0); });
-    const names = { drum: 'drums', pipe: '10 ft pipe sticks', elbow: 'elbows', coupling: 'couplings', 'zip-tie': 'zip-tie packs (100)', xps: 'XPS sheets', coroplast: 'Coroplast sheets', 'spray-foam': 'spray-foam cans', cement: 'PVC cement kits' };
+    const names = { drum: 'drums', pipe: '10 ft pipe sticks', elbow: 'elbows', tee: 'tees', cross: 'double sani tees (4-way)', coupling: 'couplings', 'zip-tie': 'zip-tie packs (100)', xps: 'XPS sheets', coroplast: 'Coroplast sheets', 'spray-foam': 'spray-foam cans', cement: 'PVC cement kits' };
     Object.entries(req.items).forEach(([role, need]) => {
       const h = have[role] || 0;
-      if (need > h) add('warn', `Parts list is short ${need - h} ${names[role]}`, `This configuration needs ${need}; the list has ${h}.`);
+      if (need > h && role === 'pipe') {
+        const tries = [];
+        if (c.mastHeight > 0) tries.push(['without the PVC mast', Object.assign({}, c, { mastHeight: 0 })]);
+        if (g.bow) tries.push(['without the bow frame', Object.assign({}, c, { bow: false })]);
+        for (const n of [c.beamCount - 1]) if (n >= 2) tries.push([`with ${n} cross beams`, Object.assign({}, c, { beamCount: n })]);
+        const fits = tries.filter(([, cfg]) => requirements(geometry(cfg)).items.pipe <= h).map(([label]) => label);
+        add('warn', `Parts list is short ${need - h} ${names[role]}`, `This configuration needs ${need}; the list has ${h}.` + (fits.length ? ` It fits in ${h} ${fits.join(', or ')}.` : ''));
+      } else if (need > h) add('warn', `Parts list is short ${need - h} ${names[role]}`, `This configuration needs ${need}; the list has ${h}.`);
       else if (h > need + (role === 'zip-tie' ? 1 : 0) && need >= 0 && role !== 'drum') add('info', `${h - need} spare ${names[role]} on the list`, 'Keep for repairs or trim the list to save weight and cost.');
       else if (role === 'drum' && h > need) add('info', `List has ${h} drums; configuration uses ${need}`, 'Extra drums are not counted in the weight.');
     });
@@ -467,6 +498,11 @@
       let got = 0; const pick = [];
       for (const x of cuts) { if (got >= need) break; pick.push(x); got += x.w; }
       if (pick.length) add('info', `To get under ${max} lb, drop ~${need.toFixed(0)} lb`, `Candidates: ${pick.map(x => `${x.name} (${x.w.toFixed(1)} lb)`).join(', ')}${got < need ? '. That is still not enough: shorten the frame or use fewer drums.' : ''}`);
+    }
+    if (g.fitted) {
+      const short = req.cuts.filter(k => k.len < 2);
+      if (short.length) add('error', 'Some pipe runs are shorter than 2" between fittings', 'Fittings would touch. Spread the beams or pontoons further apart.');
+      add('info', `Cut lengths assume ${c.fittingTakeoff}" fitting take-off`, 'Dry-fit one tee and measure center-to-socket-bottom, then set the take-off to match before cutting.');
     }
     if (wt.measuredShare < 0.5) add('info', `Only ${(wt.measuredShare * 100).toFixed(0)}% of the weight is measured`, 'Weigh parts as they arrive and tick "measured".');
     return out;

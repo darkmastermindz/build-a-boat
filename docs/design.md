@@ -35,6 +35,39 @@ doc records the reasoning and the findings so far.
 | Rope/straps ≤ 18" | Checked from `max_piece_length_in`. Drums are held by **daisy-chained 17" zip ties**; **confirm with the organizers** |
 | Zip ties trimmed flush | Flush-cut snips on the list |
 
+## Team progress
+
+### 2026-10-01: dry-fit mockup and pipe run
+
+![Dry-fit mockup with precut pipe and DWV fittings at Home Depot](photos/2026-10-01-mockup-and-fittings.jpg)
+![Five 10 ft sticks of 1-1/2" PVC in the truck](photos/2026-10-01-pipe-haul.jpg)
+
+- The team laid out the frame on the store floor with **precut pieces and
+  1-1/2" DWV fittings** to check the shape. Then they bought **five full
+  10 ft sticks** to cut to fit the drums.
+- That makes the frame **fitted**, not lashed: rails and beams sit in one plane
+  and join at fittings. The simulator models this as **Frame joinery →
+  Fitted**:
+  - **Double sanitary tees** (4-way) where inner rails cross beams.
+  - **Sanitary tees** (3-way) on the edges.
+  - **Elbows** at the corners and the bow.
+  - The frame sits on top of the drums.
+  - Cut lengths are center-to-center minus the **fitting take-off** at each
+    end. Measure it on a dry-fit tee before cutting; the default is 1.25".
+- Shelf prices (Home Depot, aisle 11):
+
+  | Fitting | Price |
+  |---------|-------|
+  | 1-1/2" DWV double sani tee | **$7.23** |
+  | Cleanout tee with plug | **$9.85** |
+  | Wye | **$6.96** |
+
+- **Stick count:** the fitted 2-drum frame with bow and mast needs **6
+  sticks**, so the list is 1 short. It fits in 5 if the bow frame is left
+  off. Use the "Catamaran: fits 5 sticks" profile, or buy one more stick.
+  "Fit frame length to drums" shortens the rails to the drum length, which
+  also saves pipe.
+
 ## Shared frame concept (from the render)
 
 - 1-1/2" Sch 40 PVC (foam-filled). Two rails per pontoon line, 6" either
