@@ -73,7 +73,7 @@ test('pipe cut list packs into 10 ft sticks (both frame styles)', () => {
 });
 
 test('fitted frame: fittings and cut lengths follow the grid', () => {
-  const cfg = Object.assign({}, build.config, { preset: 'cat2', frameStyle: 'fitted', beamCount: 4, frameLength: 84, pontoonSpacing: 47, fittingTakeoff: 1.25, bow: true });
+  const cfg = Object.assign({}, build.config, { preset: 'cat2', frameStyle: 'fitted', railsPerPontoon: 2, centerSpine: false, beamCount: 4, frameLength: 84, pontoonSpacing: 47, fittingTakeoff: 1.25, bow: true });
   const g = M.geometry(cfg), req = M.requirements(g);
   // 4 rails x 4 beams = 16 nodes: 4 corners (2 front corners become tees for the bow riser), 8 edges, 4 interior
   assert.strictEqual(req.items.cross, 4);
@@ -83,4 +83,28 @@ test('fitted frame: fittings and cut lengths follow the grid', () => {
   near(railSeg, 84 / 3 - 2.5, 1e-6, 'rail segment');
   near(g.frameWidth, 2 * (47 / 2 + 6), 1e-9, 'fitted width = outer rail spacing');
   assert.ok(g.railY > M.DRUM.dia, 'fitted frame sits on top of the drums');
+});
+
+test('spine frame matches the receipt: 3 double sani tees, 5 sticks', () => {
+  const cfg = Object.assign({}, build.config, { preset: 'cat2', frameStyle: 'fitted', railsPerPontoon: 1, centerSpine: true, beamCount: 5, frameLength: 84, pontoonSpacing: 47, fittingTakeoff: 1.25, bow: true, mastHeight: 30 });
+  const req = M.requirements(M.geometry(cfg));
+  assert.strictEqual(req.items.cross, 3);
+  assert.strictEqual(req.items.tee, 10);
+  assert.strictEqual(req.items.pipe, 5);
+});
+
+test('inventory: side-outlet tees count as tees, zip ties count by pack', () => {
+  const have = M.inventory([
+    { role: 'tee', quantity: 4 }, { role: 'side-tee', quantity: 24 }, { role: 'cleanout-tee', quantity: 1 },
+    { role: 'zip-tie', quantity: 4, pack_count: 10 }, { role: 'zip-tie', quantity: 1 },
+  ]);
+  assert.strictEqual(have.tee, 29);
+  assert.strictEqual(have['zip-tie'], 140);
+});
+
+test('long zip ties are flagged against the 18" rule', () => {
+  const b = clone(build);
+  b.parts.push({ name: '36 in tie', role: 'zip-tie', category: 'rigging', material: 'nylon', length_in: 36, quantity: 1, weight_lb_each: 0.5 });
+  const r = M.analyze(b, rules, { skipLeak: true }).rules.find(x => x.id === 'ties');
+  assert.ok(r && r.level === 'warn');
 });

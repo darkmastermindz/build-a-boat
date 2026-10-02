@@ -143,6 +143,11 @@
         <option value="fitted">Fitted: tees, double sani tees, elbows</option>
         <option value="stacked">Stacked: beams zip-tied on rails (render)</option>
       </select></div>
+      <div class="row"><label for="railsPerPontoon">Rails per drum line</label><select id="railsPerPontoon" style="grid-column:span 2">
+        <option value="1">1: centered on the drums</option>
+        <option value="2">2: straddling the drums (render)</option>
+      </select></div>
+      <div class="toggles"><label><input type="checkbox" id="centerSpine"> Center spine rail</label></div>
       <div id="sliders"></div>
       <div class="btns"><button class="btn ghost sm" id="fitDrums">Fit frame length to drums</button></div>
       <div class="toggles">
@@ -285,6 +290,8 @@ function initControls(){
   sel.onchange = () => { if (sel.value === 'custom') return; build.config.preset = sel.value; delete build.config.drums; build.config.failedDrum = null; ensureWidth(); syncControls(); changed(); };
   SL.forEach(d => $('sliders').append(sliderRow(d)));
   CREW.forEach(d => $('crewSliders').append(sliderRow(d)));
+  $('railsPerPontoon').onchange = e => { build.config.railsPerPontoon = +e.target.value; changed(); };
+  $('centerSpine').onchange = e => { build.config.centerSpine = e.target.checked; changed(); };
   $('frameStyle').onchange = e => { build.config.frameStyle = e.target.value; syncControls(); changed(); };
   $('fitDrums').onclick = () => {
     const g = M.geometry(build.config), D = M.DRUM.len;
@@ -323,6 +330,8 @@ function syncControls(){
     if (show) $(id).closest('.row').style.display = show(c) ? '' : 'none';
   });
   $('frameStyle').value = c.frameStyle || 'stacked';
+  $('railsPerPontoon').value = String(c.railsPerPontoon || 2);
+  $('centerSpine').checked = !!c.centerSpine;
   $('bow').checked = !!c.bow; $('noodleRail').checked = !!c.noodleRail;
 }
 
@@ -379,7 +388,7 @@ function renderParts(){
       el('div', { class:'ph' },
         el('input', { type:'text', value: p.name, 'aria-label':'Part name', onchange: e => { p.name = e.target.value; changed(); } }),
         el('button', { class:'x', title:'Remove', 'aria-label':'Remove ' + p.name, onclick: () => { build.parts.splice(i,1); renderParts(); changed(); } }, '×')),
-      el('div', { class:'meta small muted' }, `${p.role} · ${p.material || '?'}`, p.foam_filled ? el('span', { class:'tag' }, 'foam-filled') : '', p.max_piece_length_in ? el('span', { class:'tag' }, `≤${p.max_piece_length_in}" pieces`) : '', p.thickness_in ? el('span', { class:'tag' }, `${p.thickness_in}" thick`) : ''),
+      el('div', { class:'meta small muted' }, `${p.role} · ${p.material || '?'}`, p.foam_filled ? el('span', { class:'tag' }, 'foam-filled') : '', p.max_piece_length_in ? el('span', { class:'tag' }, `≤${p.max_piece_length_in}" pieces`) : '', p.thickness_in ? el('span', { class:'tag' }, `${p.thickness_in}" thick`) : '', p.length_in ? el('span', { class:'tag' }, `${p.length_in}" long`) : '', p.pack_count ? el('span', { class:'tag' }, `${p.pack_count}/pack`) : '', p.status === 'bought' ? el('span', { class:'tag' }, 'bought') : ''),
       el('div', { class:'pc' },
         num('quantity', 1, 'Qty'), num('weight_lb_each', 0.1, 'lb ea'),
         el('label', { title:'Weighed?' }, '⚖', el('input', { type:'checkbox', checked: !!p.weight_measured, 'aria-label':'Weight measured', onchange: e => { p.weight_measured = e.target.checked; changed(); } })),
@@ -421,8 +430,8 @@ function msgList(target, items){
 function renderCheck(){
   msgList($('rulesList'), A.rules);
   msgList($('recList'), A.recommendations.filter(r => !A.rules.some(x => x.title === r.title)));
-  const have = {}; build.parts.forEach(p => have[p.role] = (have[p.role]||0) + (+p.quantity||0));
-  const names = { drum:'Drums', pipe:'1-1/2" pipe (10 ft)', elbow:'90° elbows', tee:'Tees (3-way)', cross:'Double sani tees (4-way)', coupling:'Couplings', 'zip-tie':'Zip ties (100-pk)', xps:'XPS 4×8', coroplast:'Coroplast 4×8', 'spray-foam':'Spray foam cans', cement:'PVC cement kit' };
+  const have = M.inventory(build.parts);
+  const names = { drum:'Drums', pipe:'1-1/2" pipe (10 ft)', elbow:'90° elbows', tee:'Tees (3-way + side-outlet)', cross:'Double sani tees (4-way)', coupling:'Couplings', 'zip-tie':'Zip ties (each)', xps:'XPS 4×8', coroplast:'Coroplast 4×8', 'spray-foam':'Spray foam cans', cement:'PVC cement kit' };
   $('reqTable').replaceChildren(el('tr', {}, el('th', {}, 'Item'), el('th', { class:'num' }, 'Need'), el('th', { class:'num' }, 'Listed'), el('th', {}, '')),
     ...Object.entries(A.requirements.items).map(([k, need]) => { const h = have[k]||0; return el('tr', {}, el('td', {}, names[k]||k), el('td', { class:'num' }, need), el('td', { class:'num' }, h), el('td', {}, el('span', { class: 'dot ' + (h < need ? 'warn' : 'ok') }))); }));
   $('cutTable').replaceChildren(el('tr', {}, el('th', {}, '#'), el('th', {}, 'Cuts'), el('th', { class:'num' }, 'Offcut')),
@@ -508,7 +517,7 @@ function buildBoat(){
     const bung = new THREE.Mesh(new THREE.CylinderGeometry(1.2, 1.2, .6, 14), MAT.fit); bung.rotation.z = Math.PI/2; bung.position.set(d.x + DL/2 + .3, r + 6, d.z); G.drums.add(bung);
     // zip-tie bands
     [-10, 10].forEach(o => { const band = new THREE.Mesh(new THREE.TorusGeometry(r+.4, .3, 6, 44), MAT.tie); band.rotation.y = Math.PI/2; band.position.set(d.x+o, r, d.z); G.lash.add(band);
-      const span = new THREE.Mesh(new THREE.CylinderGeometry(.3,.3, 2*M.RAIL_OFFSET, 6), MAT.tie); span.rotation.x = Math.PI/2; span.position.set(d.x+o, g.railY + R + .3, d.z); G.lash.add(span); });
+      const span = new THREE.Mesh(new THREE.CylinderGeometry(.3,.3, Math.max(4, 2*g.railOffset), 6), MAT.tie); span.rotation.x = Math.PI/2; span.position.set(d.x+o, g.railY + R + .3, d.z); G.lash.add(span); });
   });
   // rails + beams + ties
   g.rails.forEach(rl => pipe([rl.x0, g.railY, rl.z], [rl.x1, g.railY, rl.z], G.frame));

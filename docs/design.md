@@ -68,6 +68,40 @@ doc records the reasoning and the findings so far.
   "Fit frame length to drums" shortens the rails to the drum length, which
   also saves pipe.
 
+### 2026-10-01: Home Depot receipt and Amazon order
+
+| Item | Qty | Each | Total |
+|------|-----|------|-------|
+| 1-1/2" × 10 ft PVC Sch 40 DWV pipe (plain end) | 5 | $11.96 | $59.80 |
+| 1-1/2" DWV double sani tee (4-way) | 3 | $7.23 | $21.69 |
+| 1-1/2" DWV sani tee (3-way) | 4 | $3.76 | $15.04 |
+| 1-1/2" DWV 90° elbow | 16 | $1.09 | $17.44 |
+| 1-1/2" DWV 45° elbow | 5 | $2.56 | $12.80 |
+| 1-1/2" DWV coupling | 4 | $1.36 | $5.44 |
+| 1-1/2" PVC DWV hub cap | 4 | $2.09 | $8.36 |
+| 36 in. heavy-duty cable tie, black (packs) | 4 | $16.36 | $65.44 |
+| **Home Depot total (incl. $17.00 tax)** | | | **$223.01** |
+| Zernmiarder 1-1/2" furniture-grade 4-way side-outlet tee, 12-pack (Amazon) | 2 | ? | ? |
+
+What this tells the model:
+- **Pipe was $11.96 a stick, not the sheet's ~$35–39.** The frame costs far
+  less than planned.
+- **3 double sani tees + 5 sticks** fit a frame with **one rail centered on
+  each drum plus a center spine, and 5 cross beams**. That's now the build in
+  `data/build.json` (Frame joinery: Fitted · Rails per drum line: 1 · Center
+  spine on). It also matches the spine in the mockup photo. **Confirm the
+  real layout.**
+  - The cut list fits in the 5 sticks with **~21" to spare** in total, so
+    measure twice. The "Spine frame, 4 beams" profile leaves more margin.
+- **Side-outlet tees** count as 3-way tees. Their extra outlet is a ready
+  socket for the mast, a bow riser or deck posts; cap the unused ones.
+  Fittings on hand cover the layout with spares.
+- **36" cable ties** are over the 18" securing-material limit as bought.
+  **Ask the organizers** whether a long tie trimmed flush is judged by its
+  installed length. The pack count is assumed to be 10; check the bag.
+- Weight counts only the pipe and fittings the layout uses. Spares stay on the
+  list but off the boat: **~106 lb** for the current plan.
+
 ## Shared frame concept (from the render)
 
 - 1-1/2" Sch 40 PVC (foam-filled). Two rails per pontoon line, 6" either

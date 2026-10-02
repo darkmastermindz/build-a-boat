@@ -64,7 +64,7 @@
   };
 
   const DEFAULT_CONFIG = {
-    preset: 'cat2', frameStyle: 'stacked', fittingTakeoff: 1.25, frameLength: 84, frameWidth: 72, beamCount: 4, pontoonSpacing: 47,
+    preset: 'cat2', frameStyle: 'stacked', fittingTakeoff: 1.25, railsPerPontoon: 2, centerSpine: false, frameLength: 84, frameWidth: 72, beamCount: 4, pontoonSpacing: 47,
     drumOffset: 0, drumSpread: 20, bow: true, bowRiser: 12, bowStrut: 18,
     deck: { length: 72, width: 24, thickness: 2.3 }, mastHeight: 30, noodleRail: true,
     crew: { count: 2, weightEach: 175, xOffset: 0, zOffset: 0 }, failedDrum: null,
@@ -107,13 +107,16 @@
     // stacked: rails rest on the drums, beams lashed on top (the render).
     // fitted: rails and beams in one plane joined by tees/crosses, sitting on the drum tops.
     const fitted = c.frameStyle === 'fitted';
-    const railY = fitted ? 2 * r + PIPE_R : r + Math.sqrt(r * r - RAIL_OFFSET * RAIL_OFFSET) + PIPE_R;
+    const off = c.railsPerPontoon === 1 ? 0 : RAIL_OFFSET;
+    const railY = fitted ? 2 * r + PIPE_R : r + Math.sqrt(r * r - off * off) + PIPE_R;
     const beamY = fitted ? railY : railY + 2 * PIPE_R;
     const deckBottom = beamY + PIPE_R;
     const deckTop = deckBottom + c.deck.thickness;
     const L = c.frameLength;
     const rails = [];
-    lines.forEach(z => [-1, 1].forEach(s => rails.push({ z: z + s * RAIL_OFFSET, x0: -L / 2, x1: L / 2 })));
+    lines.forEach(z => (off ? [-1, 1] : [0]).forEach(s => rails.push({ z: z + s * off, x0: -L / 2, x1: L / 2 })));
+    if (c.centerSpine && !rails.some(rl => Math.abs(rl.z) < PIPE_R * 2)) rails.push({ z: 0, x0: -L / 2, x1: L / 2, spine: true });
+    rails.sort((a, b) => a.z - b.z);
     const n = Math.max(2, Math.round(c.beamCount));
     const inset = fitted ? 0 : Math.min(6, L / 4);
     const beams = Array.from({ length: n }, (_, i) => -L / 2 + inset + i * (L - 2 * inset) / (n - 1));
@@ -139,7 +142,7 @@
       if (Math.abs(a.z - b.z) < DRUM.dia && Math.abs(a.x - b.x) < DRUM.len) overlaps.push([i, j]);
     }
     return {
-      config: c, fitted, frameWidth: W, drums, lines, rails, beams, railY, beamY, deckBottom, deckTop, bow, outerZ,
+      config: c, fitted, frameWidth: W, railOffset: off, drums, lines, rails, beams, railY, beamY, deckBottom, deckTop, bow, outerZ,
       mastTop, wallHeight: Math.max(0, wallTop - deckTop), overall, overlaps,
       beamsTooShort: !fitted && outerZ + PIPE_R > W / 2,
       drumsOffFrame: drums.some(d => d.x - DRUM.len / 2 < -L / 2 - 1 || d.x + DRUM.len / 2 > L / 2 + 1),
@@ -147,14 +150,30 @@
   }
 
   // ── Material requirements derived from geometry ──
+  const KERF = 0.125;
   function binPack(cuts) {
-    const sticks = [];
-    [...cuts].sort((a, b) => b.len - a.len).forEach(cut => {
-      const s = sticks.find(st => st.left >= cut.len + 0.125);
-      if (s) { s.cuts.push(cut); s.left -= cut.len + 0.125; }
-      else sticks.push({ cuts: [cut], left: STOCK - cut.len });
-    });
-    return sticks;
+    // Best-fit decreasing, then a few randomized restarts to squeeze out a stick.
+    const run = order => {
+      const sticks = [];
+      order.forEach(cut => {
+        let best = null;
+        for (const st of sticks) if (st.left >= cut.len + KERF && (!best || st.left < best.left)) best = st;
+        if (best) { best.cuts.push(cut); best.left -= cut.len + KERF; }
+        else sticks.push({ cuts: [cut], left: STOCK - cut.len });
+      });
+      return sticks;
+    };
+    const sorted = [...cuts].sort((a, b) => b.len - a.len);
+    let best = run(sorted);
+    const lower = Math.ceil(cuts.reduce((t, k) => t + k.len, 0) / STOCK);
+    let seed = 7;
+    const rand = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+    for (let i = 0; i < 400 && best.length > lower; i++) {
+      const o = sorted.map(k => [k, k.len * (0.85 + rand() * 0.3)]).sort((a, b) => b[1] - a[1]).map(x => x[0]);
+      const r = run(o);
+      if (r.length < best.length) best = r;
+    }
+    return best;
   }
   function sheetsFor(len, wid, pieces) {
     const per = Math.max(
@@ -163,8 +182,9 @@
     if (per > 0) return Math.ceil(pieces / per);
     return Math.ceil(pieces * len * wid * 1.15 / (SHEET.w * SHEET.l));
   }
-  function requirements(g) {
+  function requirements(g, parts) {
     const c = g.config;
+    const tieLen = Math.max(17, ...(parts || []).filter(p => p.role === 'zip-tie').map(p => +p.length_in || 17));
     const cuts = [];
     const fit = { cross: 0, tee: 0, elbow: 0 };
     if (g.fitted) {
@@ -197,7 +217,7 @@
     const sticks = binPack(cuts);
     const pipeLen = cuts.reduce((s, k) => s + k.len, 0);
     const crossings = g.fitted ? 0 : g.rails.length * g.beams.length;
-    const bandTies = Math.ceil((2 * Math.PI * r + 8) / 13) * 2;
+    const bandTies = Math.ceil((2 * Math.PI * r + 8) / (tieLen - 4)) * 2;   // 2 bands per drum, ~4" lost per tie to the head and overlap
     const ties = crossings * 2 + g.drums.length * bandTies + g.beams.length * 4 + (g.bow ? 10 : 0) + (c.mastHeight > 0 ? 6 : 0);
     const layers = Math.max(1, Math.round(c.deck.thickness - 0.3));
     const bowGuardArea = g.bow ? 2 * (g.outerZ + PIPE_R) * (c.bowStrut + c.bowRiser) * 1.3 : 0;
@@ -211,20 +231,38 @@
         tee: fit.tee,
         cross: fit.cross,
         coupling: g.bow ? 1 : 0,
-        'zip-tie': Math.ceil(ties * 1.15 / 100),      // packs of 100, 15% spare
+        'zip-tie': Math.ceil(ties * 1.15),            // individual ties, 15% spare
         xps: sheetsFor(c.deck.length, c.deck.width, layers),
         coroplast: Math.ceil(coroArea * 1.15 / (SHEET.w * SHEET.l)),
         'spray-foam': Math.ceil(pipeLen * PIPE_ID_AREA / FOAM_IN3_PER_CAN),
         cement: g.bow || g.fitted ? 1 : 0,
       },
-      tieCount: ties,
+      tieCount: ties, tieLength: tieLen,
     };
   }
 
   // ── Weight & mass distribution ──
-  const FRAME_ROLES = new Set(['pipe', 'pipe-large', 'elbow', 'coupling', 'tee', 'cross', 'wye', 'cleanout-tee', 'spray-foam', 'zip-tie', 'cement', 'epoxy', 'sealant', 'rope', 'mast']);
+  const FRAME_ROLES = new Set(['pipe', 'pipe-large', 'elbow', 'elbow45', 'coupling', 'tee', 'side-tee', 'cross', 'wye', 'cleanout-tee', 'cap', 'spray-foam', 'zip-tie', 'cement', 'epoxy', 'sealant', 'rope', 'mast']);
   const DECK_ROLES = new Set(['xps', 'coroplast', 'plywood']);
   const boatParts = parts => (parts || []).filter(p => p.role !== 'tool' && p.category !== 'tools');
+
+  // Pipe and fittings the layout derives are weighed by what it actually uses
+  // (spares and offcuts stay on the list but off the boat). Everything else
+  // is weighed as listed.
+  const USED_ROLES = { pipe: 'pipe', elbow: 'elbow', tee: 'tee', 'side-tee': 'tee', 'cleanout-tee': 'tee', cross: 'cross', coupling: 'coupling' };
+  function partWeights(build, g) {
+    const parts = boatParts(build.parts);
+    const req = requirements(g, build.parts);
+    const used = {};
+    Object.values(USED_ROLES).forEach(k => { used[k] = k === 'pipe' ? req.pipeLength_in / STOCK : req.items[k] || 0; });
+    const pool = {};
+    parts.forEach(p => { const k = USED_ROLES[p.role]; if (k) pool[k] = (pool[k] || 0) + (+p.quantity || 0); });
+    return parts.filter(p => p.role !== 'drum').map(p => {
+      const q = +p.quantity || 0, k = USED_ROLES[p.role];
+      const share = k && pool[k] ? Math.min(1, used[k] / pool[k]) : 1;
+      return { part: p, w: q * share * (+p.weight_lb_each || 0) };
+    });
+  }
 
   function weights(build, g) {
     const parts = boatParts(build.parts);
@@ -232,8 +270,7 @@
     const drumEach = drumPart ? +drumPart.weight_lb_each || DRUM.emptyWeight : DRUM.emptyWeight;
     let total = g.drums.length * drumEach, measured = g.drums.length * drumEach * (drumPart && drumPart.weight_measured ? 1 : 0);
     const byRole = { drum: g.drums.length * drumEach };
-    parts.filter(p => p.role !== 'drum').forEach(p => {
-      const w = (+p.quantity || 0) * (+p.weight_lb_each || 0);
+    partWeights(build, g).forEach(({ part: p, w }) => {
       total += w; if (p.weight_measured) measured += w;
       byRole[p.role] = (byRole[p.role] || 0) + w;
     });
@@ -245,8 +282,7 @@
     const wt = weights(build, g);
     const items = g.drums.map(d => ({ w: wt.drumEach, x: d.x, y: r, z: d.z, label: 'drum' }));
     let frameW = 0, deckW = 0, topW = 0;
-    boatParts(build.parts).filter(p => p.role !== 'drum').forEach(p => {
-      const w = (+p.quantity || 0) * (+p.weight_lb_each || 0);
+    partWeights(build, g).forEach(({ part: p, w }) => {
       if (FRAME_ROLES.has(p.role)) frameW += w; else if (DECK_ROLES.has(p.role)) deckW += w; else topW += w;
     });
     const fx = g.bow ? c.bowStrut * 0.15 : 0;
@@ -407,7 +443,9 @@
     const ropes = parts.filter(p => p.role === 'rope' && !(+p.max_piece_length_in <= ropeMax));
     if (ropes.length) add('error', 'rope', `Rope/strap pieces must be ≤ ${ropeMax}"`, ropes.map(p => p.name).join('; ') + ': set the max piece length to ≤ 18".');
     else add('ok', 'rope', `Securing materials ≤ ${ropeMax}" pieces; zip ties trimmed flush`, 'Drum bands made of daisy-chained ties: confirm with the organizers.');
-    const pipes = parts.filter(p => ['pipe', 'pipe-large', 'elbow', 'coupling', 'tee', 'cross', 'wye', 'cleanout-tee', 'mast'].includes(p.role) && p.material === 'pvc');
+    const longTies = parts.filter(p => p.role === 'zip-tie' && +p.length_in > ropeMax);
+    if (longTies.length) add('warn', 'ties', `Zip ties longer than ${ropeMax}"`, longTies.map(p => p.name).join('; ') + `. The rule caps securing materials at ${ropeMax}". Ask the organizers whether a long tie trimmed flush counts by its installed length. If not, use daisy-chained ties of ${ropeMax}" or less.`);
+    const pipes = parts.filter(p => ['pipe', 'pipe-large', 'elbow', 'elbow45', 'coupling', 'tee', 'side-tee', 'cross', 'wye', 'cleanout-tee', 'cap', 'mast'].includes(p.role) && p.material === 'pvc');
     const hasFoam = parts.some(p => p.role === 'spray-foam' && p.quantity > 0);
     const unfilled = pipes.filter(p => !p.foam_filled);
     if (pipes.length && (!hasFoam || unfilled.length)) add('error', 'float', 'PVC sinks: every pipe and fitting must be foam-filled so broken pieces float', unfilled.length ? unfilled.map(p => p.name).join('; ') : 'Add expanding spray foam to the parts list.');
@@ -421,7 +459,7 @@
   function analyze(build, rules, opts) {
     opts = opts || {};
     const g = geometry(build.config);
-    const req = requirements(g);
+    const req = requirements(g, build.parts);
     const wt = weights(build, g);
     const items = massItems(build, g);
     const sol = solve(g, items);
@@ -474,9 +512,8 @@
     if (leaks.length && fails.length) add('warn', `Losing one drum ${fails.length === leaks.length ? 'sinks or capsizes the boat' : 'is unsafe for some drums'}`, 'No redundancy. Seal and test the bung caps, or add a drum. Foam-filled rails and the XPS deck still float the wreck.');
     else if (leaks.length) add('ok', 'Survives losing any one drum', '');
     // parts list vs geometry
-    const have = {};
-    (build.parts || []).forEach(p => { have[p.role] = (have[p.role] || 0) + (+p.quantity || 0); });
-    const names = { drum: 'drums', pipe: '10 ft pipe sticks', elbow: 'elbows', tee: 'tees', cross: 'double sani tees (4-way)', coupling: 'couplings', 'zip-tie': 'zip-tie packs (100)', xps: 'XPS sheets', coroplast: 'Coroplast sheets', 'spray-foam': 'spray-foam cans', cement: 'PVC cement kits' };
+    const have = inventory(build.parts);
+    const names = { drum: 'drums', pipe: '10 ft pipe sticks', elbow: 'elbows', cross: 'double sani tees (4-way)', tee: 'tees (3-way, incl. side-outlet tees)', coupling: 'couplings', 'zip-tie': 'zip ties', xps: 'XPS sheets', coroplast: 'Coroplast sheets', 'spray-foam': 'spray-foam cans', cement: 'PVC cement kits' };
     Object.entries(req.items).forEach(([role, need]) => {
       const h = have[role] || 0;
       if (need > h && role === 'pipe') {
@@ -484,10 +521,13 @@
         if (c.mastHeight > 0) tries.push(['without the PVC mast', Object.assign({}, c, { mastHeight: 0 })]);
         if (g.bow) tries.push(['without the bow frame', Object.assign({}, c, { bow: false })]);
         for (const n of [c.beamCount - 1]) if (n >= 2) tries.push([`with ${n} cross beams`, Object.assign({}, c, { beamCount: n })]);
-        const fits = tries.filter(([, cfg]) => requirements(geometry(cfg)).items.pipe <= h).map(([label]) => label);
+        const fits = tries.filter(([, cfg]) => requirements(geometry(cfg), build.parts).items.pipe <= h).map(([label]) => label);
         add('warn', `Parts list is short ${need - h} ${names[role]}`, `This configuration needs ${need}; the list has ${h}.` + (fits.length ? ` It fits in ${h} ${fits.join(', or ')}.` : ''));
+      } else if (role === 'pipe' && need === h) {
+        const slack = h * STOCK - req.pipeLength_in - req.cuts.length * KERF;
+        if (slack < 24) add('warn', `Pipe fits with only ${slack.toFixed(0)}" to spare`, 'One mis-cut means another 10 ft stick. Measure twice, cut the long pieces first, or buy a spare stick.');
       } else if (need > h) add('warn', `Parts list is short ${need - h} ${names[role]}`, `This configuration needs ${need}; the list has ${h}.`);
-      else if (h > need + (role === 'zip-tie' ? 1 : 0) && need >= 0 && role !== 'drum') add('info', `${h - need} spare ${names[role]} on the list`, 'Keep for repairs or trim the list to save weight and cost.');
+      else if (h > need + (role === 'zip-tie' ? 100 : 0) && need >= 0 && role !== 'drum') add('info', `${h - need} spare ${names[role]} on the list`, 'Keep for repairs or trim the list to save weight and cost.');
       else if (role === 'drum' && h > need) add('info', `List has ${h} drums; configuration uses ${need}`, 'Extra drums are not counted in the weight.');
     });
     const max = 150;
@@ -508,6 +548,19 @@
     return out;
   }
 
+  // What the parts list covers, by the roles requirements() asks for.
+  // 4-way side-outlet tees and cleanout tees can stand in for plain tees.
+  function inventory(parts) {
+    const have = {};
+    (parts || []).forEach(p => {
+      let role = p.role, q = +p.quantity || 0;
+      if (role === 'side-tee' || role === 'cleanout-tee') role = 'tee';
+      if (role === 'zip-tie') q *= +p.pack_count || 100;   // list zip ties in packs
+      have[role] = (have[role] || 0) + q;
+    });
+    return have;
+  }
+
   function comparePresets(build, rules) {
     return Object.keys(PRESETS).map(id => {
       const cfg = Object.assign({}, build.config, { preset: id, drums: undefined, failedDrum: null });
@@ -525,7 +578,7 @@
   }
 
   return {
-    WATER, DRUM, PIPE_R, RAIL_OFFSET, PRESETS, DEFAULT_CONFIG,
+    WATER, DRUM, PIPE_R, RAIL_OFFSET, PRESETS, DEFAULT_CONFIG, inventory,
     withDefaults, geometry, requirements, weights, massItems, crewPositions, solve, checkRules, analyze, comparePresets,
     segArea, drumMaxLb,
   };
