@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>Drum raft render</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;700&family=Barlow:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --mist:#D6E2DF; --ink:#1E2A2E; --river:#2F6B78; --pvc:#F4F3EE; --foam:#E9A0B4; --drum:#1F5FBF;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%;overflow:hidden;background:linear-gradient(#E6EEEC, var(--mist));font-family:Barlow,system-ui,sans-serif;color:var(--ink)}
+  canvas{display:block;touch-action:none}
+  .head{position:fixed;top:16px;left:18px;right:18px;pointer-events:none}
+  h1{font-family:"Barlow Condensed",sans-serif;font-weight:700;font-size:28px;line-height:1;letter-spacing:.2px}
+  .stats{margin-top:6px;font-size:14px;display:flex;gap:14px;flex-wrap:wrap}
+  .stats b{font-family:"Barlow Condensed",sans-serif;font-weight:700;font-size:20px;color:var(--river);margin-right:3px}
+  .bar{position:fixed;left:0;right:0;bottom:0;padding:12px 14px calc(14px + env(safe-area-inset-bottom));display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
+  .bar button{font:500 14px Barlow,sans-serif;border:1.5px solid var(--ink);background:var(--pvc);color:var(--ink);padding:8px 14px;border-radius:999px;cursor:pointer}
+  .bar button[aria-pressed="false"]{background:transparent;opacity:.55;text-decoration:line-through}
+  .bar button:focus-visible{outline:3px solid var(--river);outline-offset:2px}
+  .hint{position:fixed;bottom:64px;left:0;right:0;text-align:center;font-size:12px;opacity:.6;pointer-events:none}
+</style>
+</head>
+<body>
+<div class="head">
+  <h1>Drum raft, lightweight build</h1>
+  <div class="stats">
+    <span><b>7 × 6 ft</b>footprint</span>
+    <span><b>~137 lb</b>dry weight</span>
+    <span><b>4</b>55-gal drums</span>
+  </div>
+</div>
+<div class="hint">Drag to rotate, pinch or scroll to zoom</div>
+<div class="bar">
+  <button data-g="drums" aria-pressed="true">Drums</button>
+  <button data-g="deck" aria-pressed="true">Deck</button>
+  <button data-g="bow" aria-pressed="true">Bow guard</button>
+  <button data-g="lash" aria-pressed="true">Lashing</button>
+  <button data-g="water" aria-pressed="true">Water</button>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+// Units: inches. +X = bow (front), Y = up, Z = port/starboard.
+const scene = new THREE.Scene();
+const renderer = new THREE.WebGLRenderer({antialias:true, alpha:true});
+renderer.setPixelRatio(Math.min(devicePixelRatio,2));
+renderer.setSize(innerWidth, innerHeight);
+document.body.prepend(renderer.domElement);
+
+const camera = new THREE.PerspectiveCamera(38, innerWidth/innerHeight, 1, 2000);
+scene.add(new THREE.HemisphereLight(0xffffff, 0x8aa3a0, 0.85));
+const sun = new THREE.DirectionalLight(0xffffff, 0.75);
+sun.position.set(80,160,120); scene.add(sun);
+
+const mat = c => new THREE.MeshStandardMaterial({color:c, roughness:.55, metalness:0});
+const M = {
+  solid: mat(0xF4F3EE), foam: mat(0xE6DFCB), fit: mat(0xFFFFFF),
+  drum: mat(0x1F5FBF), drumDark: mat(0x174a96), rope: mat(0xC9A66B),
+  tie: mat(0x1a1a1a), skin: mat(0xF7F7F5), xps: mat(0xE9A0B4)
+};
+const G = {}; ['frame','drums','deck','bow','lash','water'].forEach(k=>{G[k]=new THREE.Group();scene.add(G[k]);});
+
+const R = 0.95; // 1-1/2" pipe OD 1.9
+const up = new THREE.Vector3(0,1,0);
+function pipe(a,b,m,g=G.frame){
+  a=new THREE.Vector3(...a); b=new THREE.Vector3(...b);
+  const d=b.clone().sub(a), len=d.length();
+  const mesh=new THREE.Mesh(new THREE.CylinderGeometry(R,R,len,20), m);
+  mesh.position.copy(a).add(b).multiplyScalar(.5);
+  mesh.quaternion.setFromUnitVectors(up,d.normalize());
+  g.add(mesh); return mesh;
+}
+function joint(p){ const s=new THREE.Mesh(new THREE.SphereGeometry(1.3,18,14),M.fit); s.position.set(...p); G.frame.add(s); }
+
+// Drums: 23" dia x 34.5" long, lying along X
+const DR=11.5, DL=34.5, SIDE=23.5; // pontoon centerline z
+[-1,1].forEach(s=>{
+  [-DL/2-0.5, DL/2+0.5].forEach(x=>{
+    const d=new THREE.Mesh(new THREE.CylinderGeometry(DR,DR,DL,48),M.drum);
+    d.rotation.z=Math.PI/2; d.position.set(x,0,s*SIDE); G.drums.add(d);
+    [-DL/6, DL/6].forEach(o=>{
+      const rib=new THREE.Mesh(new THREE.TorusGeometry(DR+0.15,0.35,10,48),M.drumDark);
+      rib.rotation.y=Math.PI/2; rib.position.set(x+o,0,s*SIDE); G.drums.add(rib);
+    });
+    const bung=new THREE.Mesh(new THREE.CylinderGeometry(1.2,1.2,0.6,16),M.fit);
+    bung.rotation.z=Math.PI/2; bung.position.set(x+Math.sign(x)*(DL/2+0.3),6,s*SIDE); G.drums.add(bung);
+  });
+});
+
+// Rails: 7 ft, sitting on drums at +/-6" off pontoon centerline
+const OFF=6, RY=Math.sqrt(DR*DR-OFF*OFF)+R, L2=42;
+const inner=SIDE-OFF, outer=SIDE+OFF;
+[-1,1].forEach(s=>{
+  pipe([-L2,RY,s*inner],[L2,RY,s*inner],M.solid);   // solid inner rail
+  pipe([-L2,RY,s*outer],[L2,RY,s*outer],M.foam);    // foam-core outer rail
+});
+
+// Cross beams: 6 ft, on top of rails, 24" spacing
+const BY=RY+2*R, beamX=[-36,-12,12,36];
+beamX.forEach(x=>{
+  pipe([x,BY,-36],[x,BY,36],M.solid);
+  [-outer,-inner,inner,outer].forEach(z=>{
+    // zip-tie X at each crossing
+    [-1,1].forEach(k=>{
+      const t=new THREE.Mesh(new THREE.TorusGeometry(1.6,0.18,6,20),M.tie);
+      t.position.set(x,RY+R,z); t.rotation.set(0,k*Math.PI/4,Math.PI/2); G.lash.add(t);
+    });
+  });
+});
+
+// Deck: 24" x 72" XPS sandwich (pink core, white coroplast skins)
+const deckT=2.3;
+const deck=new THREE.Mesh(new THREE.BoxGeometry(72,deckT,24),
+  [M.xps,M.xps,M.skin,M.skin,M.xps,M.xps]);
+deck.position.set(0,BY+R+deckT/2,0); G.deck.add(deck);
+[-1,1].forEach(k=>{ // skin lines
+  const sk=new THREE.Mesh(new THREE.BoxGeometry(72.1,0.18,24.1),M.skin);
+  sk.position.set(0,BY+R+(k>0?deckT:0),0); G.deck.add(sk);
+});
+
+// Bow frame: elbow up, 12" riser, elbow forward, 18" strut, elbow inward, bow bar
+const topY=RY+12, bowX=L2+18;
+[-1,1].forEach(s=>{
+  const z=s*outer;
+  joint([L2,RY,z]); pipe([L2,RY,z],[L2,topY,z],M.solid);
+  joint([L2,topY,z]); pipe([L2,topY,z],[bowX,topY,z],M.solid);
+  joint([bowX,topY,z]);
+});
+pipe([bowX,topY,-outer],[bowX,topY,outer],M.foam);
+// coupling in bow bar
+const cp=new THREE.Mesh(new THREE.CylinderGeometry(1.25,1.25,3,20),M.fit);
+cp.rotation.x=Math.PI/2; cp.position.set(bowX,topY,0); G.frame.add(cp);
+
+// Bow guard: curved coroplast from front beam up to bow bar
+(function(){
+  const c=new THREE.QuadraticBezierCurve(
+    new THREE.Vector2(36,BY-R), new THREE.Vector2(bowX+2,BY-6), new THREE.Vector2(bowX,topY+R));
+  const pts=c.getPoints(24), W=outer+R, pos=[], idx=[];
+  pts.forEach(p=>{ pos.push(p.x,p.y,-W, p.x,p.y,W); });
+  for(let i=0;i<pts.length-1;i++){const a=i*2;idx.push(a,a+1,a+2,a+1,a+3,a+2);}
+  const g=new THREE.BufferGeometry();
+  g.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));
+  g.setIndex(idx); g.computeVertexNormals();
+  const m=new THREE.MeshStandardMaterial({color:0xF7F7F5,roughness:.7,side:THREE.DoubleSide});
+  G.bow.add(new THREE.Mesh(g,m));
+})();
+
+// Rope lashings: 2 wraps per drum, around drum + both rails
+[-1,1].forEach(s=>{
+  [-DL/2-0.5, DL/2+0.5].forEach(x=>{
+    [-10,10].forEach(o=>{
+      const r=new THREE.Mesh(new THREE.TorusGeometry(DR+0.4,0.32,8,48),M.rope);
+      r.rotation.y=Math.PI/2; r.position.set(x+o,0,s*SIDE); G.lash.add(r);
+      // over-the-top span between rails
+      const span=new THREE.Mesh(new THREE.CylinderGeometry(.32,.32,outer-inner,8),M.rope);
+      span.rotation.x=Math.PI/2; span.position.set(x+o,RY+R+.3,s*SIDE); G.lash.add(span);
+    });
+  });
+});
+
+// Water at ~5" draft with a 200 lb load
+const water=new THREE.Mesh(new THREE.PlaneGeometry(600,600),
+  new THREE.MeshStandardMaterial({color:0x2F6B78,transparent:true,opacity:.42,roughness:.25}));
+water.rotation.x=-Math.PI/2; water.position.y=-DR+5; G.water.add(water);
+
+// Toggles
+document.querySelectorAll('.bar button').forEach(b=>b.onclick=()=>{
+  const on=b.getAttribute('aria-pressed')!=='true';
+  b.setAttribute('aria-pressed',on); G[b.dataset.g].visible=on;
+});
+
+// Simple orbit
+const target=new THREE.Vector3(8,4,0);
+let th=-0.75, ph=1.05, rad=innerWidth<600?260:200;
+function place(){
+  camera.position.set(target.x+rad*Math.sin(ph)*Math.cos(th), target.y+rad*Math.cos(ph), target.z+rad*Math.sin(ph)*Math.sin(th));
+  camera.lookAt(target);
+}
+const pts=new Map(); let pinch=0;
+const el=renderer.domElement;
+el.addEventListener('pointerdown',e=>{el.setPointerCapture(e.pointerId);pts.set(e.pointerId,[e.clientX,e.clientY]);});
+el.addEventListener('pointermove',e=>{
+  if(!pts.has(e.pointerId))return;
+  const p=pts.get(e.pointerId);
+  if(pts.size===1){
+    th+= (e.clientX-p[0])*0.008;
+    ph=Math.min(1.5,Math.max(0.15,ph-(e.clientY-p[1])*0.008));
+  }
+  pts.set(e.pointerId,[e.clientX,e.clientY]);
+  if(pts.size===2){
+    const [a,b]=[...pts.values()], d=Math.hypot(a[0]-b[0],a[1]-b[1]);
+    if(pinch) rad=Math.min(500,Math.max(80,rad*pinch/d)); pinch=d;
+  }
+  place();
+});
+const end=e=>{pts.delete(e.pointerId); if(pts.size<2)pinch=0;};
+el.addEventListener('pointerup',end); el.addEventListener('pointercancel',end);
+el.addEventListener('wheel',e=>{e.preventDefault();rad=Math.min(500,Math.max(80,rad*(1+e.deltaY*0.001)));place();},{passive:false});
+addEventListener('resize',()=>{renderer.setSize(innerWidth,innerHeight);camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();});
+
+const still=matchMedia('(prefers-reduced-motion: reduce)').matches;
+let t0=performance.now();
+(function loop(t){
+  if(!still && pts.size===0 && t-t0<4000) { th+=0.0025; place(); }
+  if(pts.size) t0=t-4000;
+  renderer.render(scene,camera); requestAnimationFrame(loop);
+})(0);
+place();
+</script>
+</body>
+</html>

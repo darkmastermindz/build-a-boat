@@ -20,6 +20,7 @@ npx serve .
 ```
 bob/
 ├── index.html              # Interactive boat simulator (single-file HTML)
+├── raft-render.html        # 3D render of the v2.0 drum raft (three.js)
 ├── data/
 │   ├── bom.json            # Bill of Materials — parts, costs, sources
 │   └── suppliers.json      # Local supplier contacts (Charlotte/Concord, NC)
@@ -75,22 +76,25 @@ The action:
 
 ## 🏴‍☠️ Current Design (v2.0): Drum-Pontoon Pirate Raft
 
+3D model: open [`raft-render.html`](raft-render.html) in a browser.
+
 | Spec | Value |
 |------|-------|
-| Flotation | 4 × 55-gal plastic drums (2 per side) + 4 XPS foam boards |
-| Frame | 1-1/2" Sch 40 PVC + 2 × 10–12" large PVC sections |
-| Deck | 1/4" luan plywood, Coroplast side panels |
-| Deck size | ~8 × 4 ft (assumed; to be confirmed) |
-| Joinery | Cable ties, paracord, marine epoxy. **No metal, screws or glass.** |
+| Footprint | 7 × 6 ft frame (~8.6 ft overall with bow) |
+| Flotation | 4 × 55-gal drums, 2 per pontoon, horizontal |
+| Frame | 1-1/2" PVC: solid Sch 40 inner rails and beams, foam-core outer rails and bow bar |
+| Deck | 72" × 24" XPS foam core with Coroplast skins |
+| Joinery | Cable ties, paracord lashing, PVC cement. **No metal, screws or glass.** |
+| Dry weight | ~137 lb |
+| Draft | ~5" at 200 lb crew, ~6.6" at 350 lb |
 | Theme | Pirate ship: Jolly Roger flag, red pennants, skull hull art |
-| Est. buoyancy | ~1,835 lb max (load ≈ 35–40%) |
-| Planned BOM cost | ~$916 functional + ~$110 decor = **~$1,026** |
+| Planned BOM cost | ~$688 functional + ~$110 decor = **~$798** |
 
 Details: [`docs/design.md`](docs/design.md). Local suppliers:
 [`data/suppliers.json`](data/suppliers.json). Pending tooling updates:
 [`PLAN.md`](PLAN.md).
 
-> ⚠️ The simulator and report generator still model the v1.0 PVC-tube design
+> ⚠️ `index.html` and the report generator still model the v1.0 PVC-tube design
 > until the work in `PLAN.md` lands.
 
 ## 🤖 AI Improvement Prompts
