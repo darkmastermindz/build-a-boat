@@ -1,77 +1,51 @@
-# Change Plan: v2.1 two-drum catamaran
+# Plan: from suggested materials to the final build
 
-**Race day is Sat Oct 10, 2026, 8 days out.** The plan puts build-critical
-work first. Tooling polish only matters if it helps the team build and pass
-inspection.
+**Race day: Sat Oct 10, 2026.** The design stays open (2–4 drums) until the
+team picks a layout. The tools are now in place to compare options and to
+grow the actual parts list toward the final product.
 
-`data/bom.json` (v2.1) and `docs/design.md` are current. The simulator
-(`index.html`), the 3D render and the report generator still show older
-designs.
+## Done (v2.2)
 
-## Phase 0: build-critical (this week, no code)
+- `raft-simulation.html`: configurable 3D simulator. It has 5 layouts (2–4
+  drums), frame, deck, crew and mast controls, a drum-leak scenario, a parts
+  editor with export/import, a rules check, recommendations, layout
+  comparison and a pipe cut list.
+- `scripts/raft-model.js`: one shared model for the browser, the report and
+  the tests. It covers hydrostatics (heave, trim and heel solve), GM in both
+  axes, derived material needs, rules and recommendations.
+- Data split: `build.json` (actual) / `catalog.json` (suggested) /
+  `rules.json`.
+- `generate-report.js` rewritten on the model, with `--check` to fail on rule
+  errors.
+- CI: tests and rules gate on PRs; the report is committed on `main` only,
+  with a concurrency guard.
 
-1. **Organizers:** ask whether daisy-chained 17" zip-tie bands are OK for
-   holding the drums, given the 18" securing-material rule. Without a yes, the
-   drum attachment needs a redesign. One option is drum saddles cut from foam
-   board, X-tied to the rails.
-2. **Mockup:** add the team's 2-drum mockup (photo, sketch or HTML) to
-   `docs/`. Update `hull.frame` in `bom.json` if the rails or beams were
-   shortened.
-3. **Crew size:** 1–2 recommended (see the buoyancy table in the design doc).
-4. **Shopping:** call McManus Drum, then buy from the BOM. Check the
-   `estimate: true` prices in store.
-5. **Weigh-in:** weigh the drums and the assembled frame as you go, and log the
-   numbers in `bom.json` (`weight_lb_each`) so the estimate turns into a
-   measurement.
+## Next: team decisions (this week)
 
-## Phase 1: report generator + rules check (~half a day)
+1. **Organizers:** confirm daisy-chained zip-tie drum bands under the 18" rule.
+2. **Pick a layout** in the Compare tab. Current lean: **Triangle (3 drums)**
+   for stability under the weight limit, or **Pontoon (4)** if decor and
+   cushions are cut to get under 150 lb. The catamaran is lightest, but it
+   see-saws fore and aft.
+3. **Crew size**: 1–2 for 2 drums, up to 3 for 3–4 drums.
+4. **Actual parts list**: in the Parts tab, keep what you'll buy, delete the
+   rest, fix the quantities using "Needed vs listed", then export and commit
+   `data/build.json`.
 
-This gives the team a one-command "are we legal?" check.
+## Next: tooling (as useful)
 
-1. Add `scripts/physics.js` (UMD, no dependencies) with `maxBuoyancy`,
-   `dryWeight` (Σ quantity × `weight_lb_each`, skipping `tools`), `draft`
-   (circular-segment solve) and `loadRatio`. Add `node --test` cases matching
-   the design-doc table: 290 lb → ~7.4", 460 lb → ~10.5".
-2. Add `scripts/check-rules.js`, which reads `bom.rules` and fails on:
-   - dry weight ≥ `max_boat_weight_lb`
-   - frame or mast dimensions over `max_dimensions_ft`
-   - any part name matching metal words (nail|screw|staple|bolt|bracket|clamp|wire|sheet metal)
-   - any `wood` part thicker than 1/4"
-   - any rope or strap part not marked as ≤ 18" pieces
-   - pipe without a foam-fill step (no `A004` in the BOM)
-3. Rework `generate-report.js` to use these. Add sections for rules
-   compliance, the draft table by crew size, the cut list, estimates to
-   confirm, and price comparison. Drop the v1.0 tips (pre-drilling, fastener
-   packs).
+| # | Item | Why |
+|---|------|-----|
+| 1 | Mockup import: let the team type in custom drum positions (the `config.drums` array is already supported by the model) and add a small editor | Matches the team's own mockup exactly |
+| 2 | Per-part placement (x, y, z) for heavy items | Better trim prediction than "frame centroid" |
+| 3 | Shopping view: group parts by supplier with phone numbers from `suppliers.json` | One printable list per store |
+| 4 | Float-test logger: enter the measured draft and back out the actual weight | Checks the model against reality |
+| 5 | Retire `index.html` (v1.0) or point it at the new simulator | Avoid confusion |
+| 6 | Dynamic wave sim (pitching in a wave train) | Nice to have; static stability already ranks the layouts |
 
-## Phase 2: CI fix (~30 min)
+## Validation before race day
 
-1. Limit the `generate-report.yml` push trigger to `main`, push with
-   `git push origin HEAD:main`, and add a `concurrency` group.
-2. Gate the workflow on `node --test` and `check-rules.js`.
-3. Regenerate `reports/` as v2.1 and delete the v1.0 reports.
-
-## Phase 3: 3D render (after the mockup)
-
-1. Make `raft-render.html` data-driven: read `bom.json` for drum count,
-   placement, frame size and deck. Set the water plane from
-   `physics.draft()` with a crew slider (1–4 people).
-2. Replace the rope-wrap meshes with zip-tie bands. Shorten the mast to under
-   33" and add the Jolly Roger.
-3. Show live stats: weight vs the 150 lb limit, draft and load %.
-
-## Phase 4: simulator (after race day, optional)
-
-1. Add the render to `index.html` as a 3D tab, load `bom.json` with `fetch()`
-   and drop the inline copy.
-2. Replace the "PVC Tubes" slider with drum count and crew. Redraw the 2D views.
-3. Group the BOM tab by category with HD / Lowe's / Alt prices.
-
-## Decisions needed
-
-- Do the daisy-chained zip-tie bands pass the 18" rule? (Ask the organizers.)
-- What does the mockup's frame look like: full 84" rails, or shortened to the
-  drums?
-- Crew size?
-- Keep the pool noodles and seat cushions? They add ~6 lb, and the cushions
-  must float.
+- Float test in a pool or lake with the full crew. Compare the draft with the
+  simulator.
+- Bucket-test non-structural materials.
+- Final weigh-in under 150 lb, logged in `build.json`.

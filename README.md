@@ -1,112 +1,100 @@
 # BOB — Build-a-Boat Simulator
 
-Interactive simulation and design tool for the **Whitewater Center Build-a-Boat Competition**.
+Design tool for the **U.S. National Whitewater Center Build Your Own Boat
+Competition**: **Saturday, Oct 10, 2026**, on the Class II–IV competition
+channel.
 
-## 🚀 Quick Start
+The team is building a pirate-themed drum raft. This repo holds the
+**configurable 3D simulator**, the team's **actual parts list**, a list of
+**suggested materials**, and a rules checker that turns all of it into
+recommendations.
 
-Open `index.html` in any modern browser — no build step required.
+## 🚀 Quick start
 
-```
-open index.html
-```
-
-Or serve it locally:
 ```bash
-npx serve .
+npx serve .            # or: python3 -m http.server
+# open http://localhost:3000/raft-simulation.html
 ```
 
-## 🗂️ Project Structure
+`raft-simulation.html` loads its data with `fetch()`, so serve the folder
+rather than opening the file directly. If the data doesn't load, the page
+falls back to defaults and lets you import a `build.json`.
+
+## 🗂️ Project structure
 
 ```
 bob/
-├── index.html              # Interactive boat simulator (single-file HTML)
-├── raft-render.html        # 3D render of the v2.0 drum raft (three.js)
+├── raft-simulation.html     # ⭐ Configurable 3D simulator: layouts, parts, rules, recommendations
+├── raft-render.html         # Original static render of the 4-drum lightweight raft (reference)
+├── index.html               # Legacy v1.0 2D simulator (PVC-tube pontoon)
 ├── data/
-│   ├── bom.json            # Bill of Materials — parts, costs, sources
-│   └── suppliers.json      # Local supplier contacts (Charlotte/Concord, NC)
-├── docs/
-│   └── design.md           # Current design, rules, buoyancy & cost notes
-├── PLAN.md                 # Planned code changes
-├── reports/
-│   └── latest-report.md    # Most recent generated improvement report
+│   ├── build.json           # The team's ACTUAL build: configuration + parts (edit via the simulator)
+│   ├── catalog.json         # SUGGESTED materials (from the shopping-list sheet + rule-driven additions)
+│   ├── rules.json           # Competition rules used by the checker
+│   └── suppliers.json       # Local suppliers (Charlotte/Concord, NC)
 ├── scripts/
-│   └── generate-report.js  # Node.js report generator
-└── .github/
-    └── workflows/
-        └── generate-report.yml  # GitHub Action for automated reports
+│   ├── raft-model.js        # Shared geometry, hydrostatics, rules and recommendations (browser + Node)
+│   └── generate-report.js   # Markdown build report from build.json
+├── tests/raft-model.test.js # node --test
+├── docs/design.md           # Design notes, rules compliance, findings
+├── PLAN.md                  # Roadmap to the final build
+└── reports/latest-report.md # Latest generated report
 ```
 
-## ⛵ Simulator Features
+## ⛵ Simulator
 
-- **Side / Top / Front views** of the boat
-- **Live physics metrics** — displacement, freeboard, stability score
-- **Adjustable parameters** — length, width, hull height, PVC tubes, crew weight
-- **Wave & current simulation** — animated water with configurable intensity
-- **BOM viewer** — full parts list with category-colored badges
-- **Export report** — download a Markdown improvement report from the browser
+- **Layouts with 2–4 drums**: catamaran (2), trimaran (3 side by side),
+  triangle (bow drum + 2 stern), pontoon (4, 2 per side) and wide raft (4
+  across). Each one has adjustable frame length, beam length, beam count,
+  pontoon spacing, drum position, deck size, mast height, bow frame and
+  noodle rail.
+- **Crew**: 1–4 people, weight each, seat position and lean.
+- **Physics**: solves heave, trim and heel for horizontal drums, then reports
+  draft, frame clearance, reserve buoyancy and stability (GM) both ways.
+  Scenarios cover crew at the bow, crew leaning, and **any one drum
+  leaking**.
+- **Parts tab**: the team's actual list. Add parts from the suggested
+  materials or as custom parts, and track qty, weight (tick **measured** once
+  weighed), cost and status (planned / bought / installed). Changes are saved
+  in the browser. **Export** downloads `build.json`; commit it to `data/`.
+- **Check tab**: competition rules, recommendations, what the layout needs
+  compared with what's listed, and the pipe cut list.
+- **Compare tab**: every layout run on your parts and crew, with a suggested
+  pick.
 
-## 📦 Bill of Materials
+## 📋 Workflow toward the final build
 
-Edit `data/bom.json` to update parts, quantities, costs, and sources.
-Run the report generator to produce a formatted Markdown report:
+1. Pick a layout in the simulator and tune it until the Check tab is clean.
+2. Edit the Parts tab to match what you'll actually buy. Start from the
+   suggested materials and adjust.
+3. Export `build.json`, commit it, and push or open a PR. CI runs the tests and
+   the rules check, and writes `reports/latest-report.md`.
+4. As parts arrive, weigh them and set `weight_measured`. Mark status as
+   bought / installed.
+
+Report from the command line:
 
 ```bash
-node scripts/generate-report.js v1.1 "Added extra cross-beam"
+node scripts/generate-report.js v2.2 "notes" --check   # exits 1 on rule errors
+node --test tests/*.test.js
 ```
-
-Reports are written to `reports/`.
 
 ## ⚙️ GitHub Action
 
-The workflow `.github/workflows/generate-report.yml` triggers automatically when
-`data/bom.json` or `index.html` changes, or can be run manually via
-**Actions → Generate Boat Improvement Report → Run workflow**.
+`.github/workflows/generate-report.yml` runs on PRs and on pushes to `main`
+that touch `data/`, `scripts/` or `tests/`, and can also be run manually. It
+runs the tests, generates the report (and fails on rule errors), commits the
+report on `main`, and uploads it as an artifact.
 
-Inputs:
-| Input | Description | Default |
-|-------|-------------|---------|
-| `version` | Report version label | `latest` |
-| `notes` | Brief description of improvements | _(empty)_ |
+## 📏 Competition rules (summary)
 
-The action:
-1. Runs `scripts/generate-report.js`
-2. Commits the report to `reports/`
-3. Uploads the report as a downloadable artifact
-4. Prints the report to the workflow summary
-
-## 🏴‍☠️ Current Design (v2.1): Two-Drum Pirate Catamaran
-
-**Race day: Sat Oct 10, 2026**. [Official rules](https://whitewater.org/race/build-your-own-boat-competition/):
-< 150 lb, max 10 × 10 × 5 ft, no metal, all materials must float, wood ≤ 1/4",
-rope and straps ≤ 18", zip ties trimmed flush. The venue provides paddles,
-PFDs and helmets.
-
-| Spec | Value |
-|------|-------|
-| Flotation | **2 × 55-gal drums**, one per side (cut from 4 to meet the weight limit) |
-| Footprint | 7 × 6 ft frame (~8.6 ft overall with bow) |
-| Frame | 1-1/2" Sch 40 PVC, **foam-filled** so broken pieces float |
-| Deck | 72" × 24" XPS foam core with Coroplast skins |
-| Joinery | 17" zip ties (trimmed flush), PVC cement. **No metal.** |
-| Est. weight | **~112 lb** (limit 150) |
-| Crew | 1–2 recommended (~10.5" draft at 350 lb) |
-| Theme | Pirate ship: Jolly Roger on a short PVC mast, red pennants, skull hull art |
-| Planned cost | ~$689 functional + ~$104 decor + $8 tools = **~$801** |
-
-Rules compliance, cut list and buoyancy are in
-[`docs/design.md`](docs/design.md). 3D reference (4-drum version):
-[`raft-render.html`](raft-render.html). Suppliers:
-[`data/suppliers.json`](data/suppliers.json). Tooling work:
-[`PLAN.md`](PLAN.md).
-
-> ⚠️ `index.html`, `raft-render.html` and the report generator don't reflect
-> v2.1 yet. See `PLAN.md`.
-
-## 🤖 AI Improvement Prompts
-
-The generated report includes ready-to-use prompts for Claude or GitHub Copilot
-to suggest design improvements, weight reduction, and cost optimization.
+Under 150 lb · max 10 × 10 × 5 ft · walls under 2 ft · **no metal** · **all
+materials must float, even broken** · wood ≤ 1/4" · rope and straps ≤ 18" ·
+zip ties trimmed flush · human powered · teams of 1–4. Paddles, PFDs and
+helmets are provided. Full details:
+[official page](https://whitewater.org/race/build-your-own-boat-competition/)
+and `data/rules.json`.
 
 ---
 
-*Whitewater Center Build-a-Boat Competition*
+*Whitewater Center Build Your Own Boat Competition*
