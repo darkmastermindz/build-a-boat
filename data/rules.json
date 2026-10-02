@@ -1,0 +1,46 @@
+{
+  "source": "https://whitewater.org/race/build-your-own-boat-competition/",
+  "source_note": "whitewater.org is blocked from the dev environment; rules compiled from search-result excerpts of that page and 2026 event coverage. Check against the official page.",
+  "event": {
+    "date": "2026-10-10",
+    "time": "Competition 12-4 PM (festival 12-5:30 PM)",
+    "course": "Class II-IV competition channel, U.S. National Whitewater Center, Charlotte NC",
+    "registration_fee_usd": 60,
+    "min_age": 16
+  },
+  "max_boat_weight_lb": 150,
+  "max_dimensions_ft": {
+    "length": 10,
+    "width": 10,
+    "height": 5
+  },
+  "max_wall_height_ft": 2,
+  "max_wood_thickness_in": 0.25,
+  "max_securing_material_length_in": 18,
+  "requirements": [
+    "Human powered only",
+    "All materials must float, even if cracked or broken apart",
+    "No metal of any kind (nails, screws, staples, sheet metal, etc.)",
+    "Zip ties trimmed flush",
+    "Rope, webbing, straps and other securing materials no longer than 18 in",
+    "Wood no thicker than 1/4 in",
+    "Wall height under 2 ft (interior floor to top of side wall)"
+  ],
+  "prohibited_materials": [
+    "metal",
+    "screws",
+    "nails",
+    "staples",
+    "glass"
+  ],
+  "team_size": {
+    "min": 1,
+    "max": 4
+  },
+  "provided_by_venue": [
+    "paddles",
+    "PFDs",
+    "helmets"
+  ],
+  "scoring": "Style and performance (max 60 entries)"
+}
