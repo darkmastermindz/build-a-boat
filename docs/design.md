@@ -1,91 +1,114 @@
-# Design v2.0: Drum-Pontoon Pirate Raft (lightweight build)
+# Design v2.1: Two-Drum Pirate Catamaran
 
 Sources:
-- **[`raft-render.html`](../raft-render.html)**: the 3D render from the
-  boat-planning chat, the source of truth for geometry. Open it in a browser;
-  drag to rotate and use the buttons to show or hide drums, deck, bow guard,
-  lashing and water.
+- **[`raft-render.html`](../raft-render.html)**: 3D render of the 4-drum
+  lightweight raft. Its frame and deck geometry carry over; the drum count does
+  not (see below).
+- **Team decision (2026-10-02):** cut to **2 drums** to stay under the 150 lb
+  weight limit. The team's mockup isn't in the repo yet, so this doc keeps the
+  render's frame and puts **one drum per side, centered fore-aft**. Update it
+  when the mockup is added.
 - **Boat Building Shopping List Comparison** Google Sheet (2026-09-29): parts,
-  prices, local suppliers and the pirate decorations.
+  prices, local suppliers and decorations.
+- **Official rules:**
+  [whitewater.org/race/build-your-own-boat-competition](https://whitewater.org/race/build-your-own-boat-competition/).
+  That site is blocked from the dev environment, so the rules below come from
+  search excerpts of the page and 2026 event coverage. **Check them against the
+  official page.**
 
-Where the two disagree, this doc follows the render (the lighter build).
-Items from the sheet that the render drops are listed under
-`removed_from_sheet` in `data/bom.json`.
+## Event
 
-## Competition constraints
+- **Saturday, Oct 10, 2026**, competition 12–4 PM, U.S. National Whitewater
+  Center, Class II–IV competition channel.
+- Teams of 1–4, all 16 or older, $60 registration. Max 60 entries.
+- Scored on **style and performance**.
+- **The venue provides paddles, PFDs and helmets**, so they stay out of the
+  BOM.
 
-- **Not allowed: metal, screws or glass.** No bolts, brackets, hose clamps,
-  staples or tacks anywhere, including the decorations.
-- Join parts with **cable ties, paracord lashing, PVC solvent cement, marine
-  epoxy, silicone and fabric glue** only.
-- Wood is allowed (the dowel mast).
+## Rules compliance
 
-## Geometry (from the render)
+| Rule | Design status |
+|------|---------------|
+| Boat weight **< 150 lb** | ✅ ~112 lb estimated (2 drums). **Weigh before race day.** |
+| Max **10 × 10 × 5 ft** (L × W × H) | ✅ ~8.6 × 6 ft. Height: deck top is ~27" off the drum bottom, so the mast must stay **under ~33"** above the deck |
+| Wall height **< 2 ft** (floor to top of side wall) | ✅ Bow guard and noodle rail are well under 2 ft above the deck |
+| **No metal** (nails, screws, staples, sheet metal…) | ✅ Ties, cement, epoxy and short paracord only |
+| **All materials must float, even if broken** | ⚠️ Solid PVC sinks (SG ~1.4). **Fill every pipe and fitting with spray foam**; filled 1-1/2" pipe averages SG ~0.4. Drums (HDPE), Coroplast (PP), XPS and noodles float. Check that the canvas flag and seat cushions float |
+| Wood **≤ 1/4"** thick | ✅ The 1" dowel mast is replaced by a foam-filled PVC offcut; no plywood |
+| Rope, webbing and straps **≤ 18"** | ⚠️ The render's continuous rope wraps around the drums are **not allowed**. The plan is daisy-chained 17" zip-tie bands (2 per drum); **ask the organizers to confirm** |
+| Zip ties **trimmed flush** | ✅ Flush-cut snips added (tool, not part of the boat) |
+| Human powered | ✅ Paddles |
+
+## Geometry
 
 Units are inches. +X points to the bow.
 
 | Element | Spec |
 |---------|------|
-| Footprint | **7 × 6 ft** frame (84" rails × 72" beams); ~8.6 ft overall with the bow |
-| Flotation | 4 × 55-gal drums (23" dia × 34.5"), horizontal, 2 per pontoon end-to-end |
-| Pontoon spacing | Centerlines ±23.5" from the boat centerline (47" apart) |
-| Rails | 4 × 84" of 1-1/2" PVC. Each pontoon has a **solid Sch 40 inner rail** and a **foam-core outer rail**, 6" either side of the drum centerline, resting on the drums |
-| Cross beams | 4 × 72" solid PVC on top of the rails at x = −36, −12, 12, 36 (24" spacing) |
-| Joints | X-pattern cable ties at all 16 rail/beam crossings |
-| Drum lashing | 2 rope wraps per drum, around the drum and over both rails (8 wraps) |
-| Deck | 72" × 24" × 2.3" sandwich: 2 × 1" XPS core with Coroplast skins top and bottom, centered on the beams |
-| Bow frame | On each outer rail: 90° elbow up, 12" riser, elbow forward, 18" strut, elbow inward. A foam-core bow bar with a center coupling joins the two sides |
-| Bow guard | Curved Coroplast panel from the front beam up to the bow bar |
-| Dry weight | **~137 lb** target (render). The BOM estimate with cushions, noodles and decor is ~149 lb |
+| Footprint | 7 × 6 ft frame (84" rails × 72" beams); ~8.6 ft overall with the bow |
+| Flotation | **2 × 55-gal drums** (23" dia × 34.5"), horizontal, one per side, centered fore-aft |
+| Drum spacing | Centerlines ±23.5" from the boat centerline (47" apart) |
+| Rails | 4 × 84" of 1-1/2" Sch 40, all foam-filled: an inner and an outer rail per side, 6" either side of the drum centerline |
+| Cross beams | 4 × 72" at x = −36, −12, 12, 36, X-tied at all 16 crossings |
+| Drum attachment | 2 bands of daisy-chained 17" zip ties per drum, around the drum and both rails |
+| Deck | 72" × 24" × 2.3": 2 × 1" XPS core with Coroplast skins top and bottom |
+| Bow | Elbow up, 12" riser, 18" strut, elbow in; foam-filled bow bar; curved Coroplast guard |
+| Mast | Foam-filled 1-1/2" PVC offcut, under 33" above the deck, carrying the Jolly Roger |
 
-### Pipe cut list (1-1/2", 10 ft lengths)
+### Pipe cut list (1-1/2" Sch 40, 10 ft lengths, all foam-filled)
 
 | Stock | Cuts | Pieces |
 |-------|------|--------|
-| Solid Sch 40 #1–2 | 84" inner rail + 36" offcut → 12" riser + 18" strut | 2 |
-| Solid Sch 40 #3–6 | 72" cross beam (48" spare each) | 4 |
-| Foam-core #1–2 | 84" outer rail + 36" offcut → ~30" bow-bar half | 2 |
+| #1–2 | 84" inner rail + 36" offcut → 12" riser + 18" strut | 2 |
+| #3–6 | 72" cross beam + 48" offcut (one becomes the mast) | 4 |
+| #7–8 | 84" outer rail + 36" offcut → ~30" bow-bar half | 2 |
 
-Fittings: 6 × 90° elbows and 1 coupling, solvent-welded.
+Fittings: 6 × 90° elbows and 1 coupling, solvent-welded and foam-filled.
 
-## Buoyancy check
+## Buoyancy (2 drums)
 
-Max buoyancy for 4 drums fully submerged (4 × 7.35 ft³ × 62.4 lb/ft³) is
-**~1,835 lb**. Draft comes from a circular-segment solve on the horizontal
-drums (r = 11.5", 34.5" long):
+Max buoyancy for 2 drums fully submerged is **~918 lb**. Draft comes from a
+circular-segment solve (r = 11.5", 34.5" long), assuming ~110 lb dry. The
+rails sit ~21" above the drum bottom.
 
-| Crew load | Total (137 lb dry) | Draft | Load % of max |
-|-----------|-------------------|-------|---------------|
-| 200 lb (render's design case) | 337 lb | ~5.1" | 18% |
-| 350 lb (2 adults) | 487 lb | ~6.6" | 27% |
-| 500 lb (3 adults) | 637 lb | ~8.0" | 35% |
+| Crew | Total | Draft | Load % of max |
+|------|-------|-------|---------------|
+| 1 (~180 lb) | 290 lb | ~7.4" | 32% |
+| 2 (~350 lb) | 460 lb | ~10.5" | 50% |
+| 3 (~525 lb) | 635 lb | ~13.6" | 69% |
+| 4 (~700 lb) | 810 lb | ~16.8" | 88% ⚠️ |
 
-At every load the drums sit less than half submerged, with the rails ~10"
-above the drum centerline. That leaves lots of reserve buoyancy.
+**Recommendation: crew of 1–2.** At 3 or more, the drums sit mostly
+underwater and the frame will plow through Class II–IV waves.
 
-## Cost summary
+**Pitch stability:** each side floats on a single 34.5" drum under an 84"
+frame, so weight at either end tips the boat. Keep the crew close to the
+middle, or shorten the rails and beams to match the drums. Shorter rails also
+save weight. Settle this against the team's mockup.
 
-| Scenario | Total |
-|----------|-------|
-| Sheet: everything from Home Depot (incl. new drums at $124.88) | $1,274.06 |
-| Sheet: everything from Lowe's (where available) | $732.32 |
-| **Planned BOM: lightweight build, cheapest source, functional parts** | **$688.22** |
-| Planned decorations (paint, fabric, mast) | $109.81 |
-| **Planned total** | **$798.03** |
+## Cost and weight
 
-Savings against the sheet come from dropping the large PVC, luan and marine
-paint, using reconditioned local drums, and buying sheet goods to the
-render's cut list. Foam-core pipe and fittings aren't on the sheet; their
-prices are estimates.
+| | |
+|---|---|
+| Functional parts | **$689.10** |
+| Decorations | $103.83 |
+| Tools | $7.99 |
+| **Total** | **$800.92** |
+| Estimated boat weight | **~112 lb**, leaving ~38 lb under the limit |
+
+Prices for the foam-filled pipe, spray foam, fittings and snips are estimates.
+Items marked `estimate: true` in `data/bom.json` need a check in store or by
+phone.
 
 ## Open items
 
-1. Call McManus Drum Co. to confirm drum price and condition, and that the
-   bung caps seal.
-2. Check foam-core PVC, elbow and coupling prices in store.
-3. Check whether the Whitewater Center provides PFDs and paddles. If not, add
-   them to the BOM.
-4. Confirm crew size and the event's maximum boat dimensions.
-5. Check the pool-noodle price: the HD listing is a 12-pack.
+1. **Ask the organizers** whether daisy-chained zip-tie bands are OK under the
+   18" securing-material rule.
+2. Add the team's 2-drum mockup to the repo and update the frame dimensions.
+3. Decide crew size (1–2 recommended).
+4. Weigh the finished boat (limit 150 lb).
+5. Check that the canvas flag and seat cushions float.
+6. Call McManus Drum Co. about drum price and condition.
+7. Check the rules against the official page.
 
 Supplier contacts are in `data/suppliers.json`.
