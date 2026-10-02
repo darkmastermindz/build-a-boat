@@ -15,7 +15,7 @@ Generated from `data/build.json` by `scripts/raft-model.js`. Open
 | Parameter | Value |
 |-----------|-------|
 | Layout | Catamaran: 2 drums |
-| Drums | 2 × 55 gal (22.5" × 34.5") |
+| Drums | 2 × 55 gal plastic, tight-head (bung caps) (55 gal, 22.5" × 34.5", 20 lb) |
 | Frame | 84" rails × 72" beams, 5 beams, pontoon spacing 47" |
 | Deck | 72" × 24" × 2.3" |
 | Overall size | 8.6 ft × 5.8 ft × 4.7 ft |
@@ -36,29 +36,31 @@ Generated from `data/build.json` by `scripts/raft-model.js`. Open
 
 ## Next shopping trip
 
-| Item | Qty | Est. | Priority | Where | Why |
-|------|-----|------|----------|-------|-----|
-| Plastic 55-gallon drum (reconditioned) | 2 | $70.00 (est.) | needed | McManus Drum Co. (Charlotte, NC) | Layout needs 2; 0 bought. |
-| Heavy-duty UV cable ties 17", 120 lb (100-pack) | 1 | $24.98 | needed | Lowe's | Layout needs 56 ties; 40 bought. Suggests ties of 18" or less, since the longer ones may break the rule. |
-| XPS foam board 1" x 4 ft x 8 ft (FOAMULAR) | 1 | $24.97 | needed | Home Depot | Layout needs 1; 0 bought. |
-| Coroplast corrugated plastic 4 mm, 4 x 8 ft | 2 | $76.58 | needed | Home Depot | Layout needs 2; 0 bought. |
-| Expanding spray foam, 12 oz (Great Stuff or similar) | 2 | $13.96 (est.) | needed | Home Depot / Lowe's | Layout needs 2; 0 bought. |
-| PVC primer + cement kit | 1 | $11.98 | needed | Home Depot | Layout needs 1; 0 bought. |
-| 2-part marine epoxy | 2 | $10.00 (est.) | needed | Harbor Freight (Kannapolis, NC) | Planned on the parts list, not bought yet. |
-| 100% silicone / marine sealant, 10.1 oz | 3 | $19.50 (est.) | needed | Harbor Freight (Kannapolis, NC) | Planned on the parts list, not bought yet. |
-| Polypropylene rope 3/8" (floats) | 1 | $9.98 (est.) | needed | Home Depot / Lowe's | Swapped for Polypropylene rope 3/8" (floats): 550 paracord, 100 ft may not float. |
-| Flush-cut snips | 1 | $7.99 (est.) | needed | Harbor Freight / Home Depot | Planned on the parts list, not bought yet. |
-| 1-1/2" x 10 ft PVC Sch 40 DWV pipe (plain end) | 1 | $11.96 | spare | Home Depot | Only 21" of pipe to spare. A spare stick covers a mis-cut. |
-| Pool noodles | 8 | $28.64 | optional | Home Depot | Planned on the parts list, not bought yet. |
-| Outdoor seat cushion, 18-24 in | 2 | $45.96 | optional | Lowe's | Planned on the parts list, not bought yet. May not float: bucket-test it. |
-| Outdoor acrylic craft paint set (18 colors) | 1 | $28.98 | optional | Lowe's | Planned on the parts list, not bought yet. |
-| Black outdoor fabric spray paint, 12 oz | 1 | $13.98 | optional | Lowe's | Planned on the parts list, not bought yet. |
-| Red outdoor fabric spray paint, 12 oz | 1 | $13.98 | optional | Lowe's | Planned on the parts list, not bought yet. |
-| Canvas drop cloth, 4 x 5 ft | 2 | $27.96 | optional | Lowe's | Planned on the parts list, not bought yet. May not float: bucket-test it. |
-| Foam paint brush multi-pack | 1 | $6.98 | optional | Lowe's | Planned on the parts list, not bought yet. |
-| Painter's tape 0.94 in x 60 yd | 1 | $6.47 | optional | Lowe's | Planned on the parts list, not bought yet. |
-| Fabric glue, 4 oz | 1 | $5.48 | optional | Lowe's | Planned on the parts list, not bought yet. |
+| Item | Qty | Est. | Priority | Shop | Why |
+|------|-----|------|----------|------|-----|
+| Plastic 55-gallon drum (reconditioned) | 2 | $70.00 (est.) | needed | [Home Depot](https://www.homedepot.com/s/Plastic%2055-gallon%20drum) · [Lowe's](https://www.lowes.com/search?searchTerm=Plastic%2055-gallon%20drum) · [McManus Drum Co. Inc.](http://mcmanusdrum.com/) · [Lewis Container & Service](https://lewiscontainer.com/) | Layout needs 2; 0 bought. |
+| Heavy-duty UV cable ties 17", 120 lb (100-pack) | 1 | $24.98 | needed | [Home Depot](https://www.homedepot.com/s/Heavy-duty%20UV%20cable%20ties%2017%20in%2C%20120%20lb) · [Lowe's](https://www.lowes.com/search?searchTerm=Heavy-duty%20UV%20cable%20ties%2017%20in%2C%20120%20lb) · [Harbor Freight - Kannapolis](https://www.harborfreight.com) | Layout needs 56 ties; 40 bought. Suggests ties of 18" or less, since the longer ones may break the rule. |
+| XPS foam board 1" x 4 ft x 8 ft (FOAMULAR) | 1 | $24.97 | needed | [Home Depot](https://www.homedepot.com/p/p/315197840) · [Lowe's](https://www.lowes.com/search?searchTerm=XPS%20foam%20board%201%20in%20x%204%20ft%20x%208%20ft) | Layout needs 1; 0 bought. |
+| Coroplast corrugated plastic 4 mm, 4 x 8 ft | 2 | $76.58 | needed | [Home Depot](https://www.homedepot.com/s/Coroplast%20corrugated%20plastic%204%20mm%2C%204%20x%208%20ft) · [Lowe's](https://www.lowes.com/search?searchTerm=Coroplast%20corrugated%20plastic%204%20mm%2C%204%20x%208%20ft) | Layout needs 2; 0 bought. |
+| Expanding spray foam, 12 oz (Great Stuff or similar) | 2 | $13.96 (est.) | needed | [Home Depot](https://www.homedepot.com/s/Expanding%20spray%20foam%2C%2012%20oz) · [Lowe's](https://www.lowes.com/search?searchTerm=Expanding%20spray%20foam%2C%2012%20oz) | Layout needs 2; 0 bought. |
+| PVC primer + cement kit | 1 | $11.98 | needed | [Home Depot](https://www.homedepot.com/s/PVC%20primer%20%2B%20cement%20kit) · [Lowe's](https://www.lowes.com/search?searchTerm=PVC%20primer%20%2B%20cement%20kit) | Layout needs 1; 0 bought. |
+| 2-part marine epoxy | 2 | $10.00 (est.) | needed | [Home Depot](https://www.homedepot.com/s/2-part%20marine%20epoxy) · [Lowe's](https://www.lowes.com/search?searchTerm=2-part%20marine%20epoxy) · [Harbor Freight - Kannapolis](https://www.harborfreight.com) | Planned on the parts list, not bought yet. |
+| 100% silicone / marine sealant, 10.1 oz | 3 | $19.50 (est.) | needed | [Home Depot](https://www.homedepot.com/s/100%25%20silicone%20%2F%20marine%20sealant%2C%2010.1%20oz) · [Lowe's](https://www.lowes.com/search?searchTerm=100%25%20silicone%20%2F%20marine%20sealant%2C%2010.1%20oz) · [Harbor Freight - Kannapolis](https://www.harborfreight.com) | Planned on the parts list, not bought yet. |
+| Polypropylene rope 3/8" (floats) | 1 | $9.98 (est.) | needed | [Home Depot](https://www.homedepot.com/s/Polypropylene%20rope%203%2F8%20in) · [Lowe's](https://www.lowes.com/search?searchTerm=Polypropylene%20rope%203%2F8%20in) | Swapped for Polypropylene rope 3/8" (floats): 550 paracord, 100 ft may not float. |
+| Flush-cut snips | 1 | $7.99 (est.) | needed | [Home Depot](https://www.homedepot.com/s/Flush-cut%20snips) · [Lowe's](https://www.lowes.com/search?searchTerm=Flush-cut%20snips) | Planned on the parts list, not bought yet. |
+| 1-1/2" x 10 ft PVC Sch 40 DWV pipe (plain end) | 1 | $11.96 | spare | [Home Depot](https://www.homedepot.com/s/1-1%2F2%20in%20x%2010%20ft%20PVC%20Sch%2040%20DWV%20pipe) · [Lowe's](https://www.lowes.com/search?searchTerm=1-1%2F2%20in%20x%2010%20ft%20PVC%20Sch%2040%20DWV%20pipe) | Only 21" of pipe to spare. A spare stick covers a mis-cut. |
+| Pool noodles | 8 | $28.64 | optional | [Home Depot](https://homedepot.com/p/Pool-Mate-Blue-and-Pink-Swimming-Pool-Water-Noodles-12-Pack-TWLN36-12/304884154) · [Lowe's](https://www.lowes.com/search?searchTerm=Pool%20noodles) | Planned on the parts list, not bought yet. |
+| Outdoor seat cushion, 18-24 in | 2 | $45.96 | optional | [Home Depot](https://www.homedepot.com/s/Outdoor%20seat%20cushion%2C%2018-24%20in) · [Lowe's](https://www.lowes.com/search?searchTerm=Outdoor%20seat%20cushion%2C%2018-24%20in) | Planned on the parts list, not bought yet. May not float: bucket-test it. |
+| Outdoor acrylic craft paint set (18 colors) | 1 | $28.98 | optional | [Home Depot](https://www.homedepot.com/s/Outdoor%20acrylic%20craft%20paint%20set) · [Lowe's](https://www.lowes.com/search?searchTerm=Outdoor%20acrylic%20craft%20paint%20set) | Planned on the parts list, not bought yet. |
+| Black outdoor fabric spray paint, 12 oz | 1 | $13.98 | optional | [Home Depot](https://www.homedepot.com/s/Black%20outdoor%20fabric%20spray%20paint%2C%2012%20oz) · [Lowe's](https://www.lowes.com/search?searchTerm=Black%20outdoor%20fabric%20spray%20paint%2C%2012%20oz) | Planned on the parts list, not bought yet. |
+| Red outdoor fabric spray paint, 12 oz | 1 | $13.98 | optional | [Home Depot](https://www.homedepot.com/s/Red%20outdoor%20fabric%20spray%20paint%2C%2012%20oz) · [Lowe's](https://www.lowes.com/search?searchTerm=Red%20outdoor%20fabric%20spray%20paint%2C%2012%20oz) | Planned on the parts list, not bought yet. |
+| Canvas drop cloth, 4 x 5 ft | 2 | $27.96 | optional | [Home Depot](https://www.homedepot.com/s/Canvas%20drop%20cloth%2C%204%20x%205%20ft) · [Lowe's](https://www.lowes.com/search?searchTerm=Canvas%20drop%20cloth%2C%204%20x%205%20ft) | Planned on the parts list, not bought yet. May not float: bucket-test it. |
+| Foam paint brush multi-pack | 1 | $6.98 | optional | [Home Depot](https://www.homedepot.com/s/Foam%20paint%20brush%20multi-pack) · [Lowe's](https://www.lowes.com/search?searchTerm=Foam%20paint%20brush%20multi-pack) | Planned on the parts list, not bought yet. |
+| Painter's tape 0.94 in x 60 yd | 1 | $6.47 | optional | [Home Depot](https://www.homedepot.com/s/Painter's%20tape%200.94%20in%20x%2060%20yd) · [Lowe's](https://www.lowes.com/search?searchTerm=Painter's%20tape%200.94%20in%20x%2060%20yd) | Planned on the parts list, not bought yet. |
+| Fabric glue, 4 oz | 1 | $5.48 | optional | [Home Depot](https://www.homedepot.com/s/Fabric%20glue%2C%204%20oz) · [Lowe's](https://www.lowes.com/search?searchTerm=Fabric%20glue%2C%204%20oz) | Planned on the parts list, not bought yet. |
 | **Needed** | | **$269.94** | | | $460.33 including spare and optional |
+
+Open `raft-simulation.html` → Check → Next shopping trip and enter a ZIP code for nearby Home Depot, Lowe's and local-supplier map links. The ZIP stays on your device.
 
 ## Physics
 

@@ -148,3 +148,28 @@ test('no addresses, phone numbers or payment details in data and docs', () => {
     bad.forEach(re => assert.ok(!re.test(t), `${f} matches ${re}`));
   }
 });
+
+test('drum spec: smaller or custom drums change buoyancy and geometry', () => {
+  const run = drum => { const b = clone(build); b.config.drum = drum; return M.analyze(b, rules, { skipLeak: true }); };
+  const big = run({ size: 'hdpe-55-tight' }), small = run({ size: 'hdpe-30-tight' });
+  assert.ok(small.solution.maxLb < big.solution.maxLb, 'less lift');
+  assert.ok(small.geometry.railY < big.geometry.railY, 'frame sits lower on smaller drums');
+  const custom = run({ size: 'custom', gallons: 55, dia: 23, len: 35, weight: 19.5, weightMeasured: true });
+  near(custom.geometry.drum.dia, 23, 0, 'custom dia');
+  near(custom.weights.byRole.drum, 2 * 19.5, 1e-9, 'custom drum weight');
+  const off = run({ size: 'custom', gallons: 55, dia: 12, len: 20, weight: 10 });
+  assert.ok(off.recommendations.some(r => /don't match 55 gal/.test(r.title)), 'flags mismatched measurements');
+  assert.ok(M.DRUM_SIZES.every(d => !/steel|metal/i.test(d.label)), 'no metal drums offered');
+});
+
+test('store links: product searches always, map searches only with a valid ZIP', () => {
+  const item = { name: '1-1/2" DWV sanitary tee (HxHxH)', role: 'tee', catalog_id: 'FT04' };
+  const plain = M.storeLinks(item, {});
+  assert.ok(plain.some(l => l.url.startsWith('https://www.homedepot.com/s/1-1%2F2%20in%20DWV%20sanitary%20tee')));
+  assert.ok(plain.some(l => l.url.startsWith('https://www.lowes.com/search?searchTerm=')));
+  assert.ok(!plain.some(l => l.kind === 'store'));
+  assert.ok(!M.storeLinks(item, { zip: '123' }).some(l => l.kind === 'store'), 'invalid ZIP ignored');
+  const near = M.storeLinks(item, { zip: '28202' });
+  assert.ok(near.some(l => l.kind === 'store' && /Home%20Depot%20near%2028202/.test(l.url)));
+  assert.ok(near.some(l => l.kind === 'local'));
+});

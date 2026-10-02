@@ -46,7 +46,15 @@
           "frameStyle": "fitted",
           "fittingTakeoff": 1.25,
           "railsPerPontoon": 1,
-          "centerSpine": true
+          "centerSpine": true,
+          "drum": {
+            "size": "hdpe-55-tight",
+            "gallons": 55,
+            "dia": 22.5,
+            "len": 34.5,
+            "weight": 20,
+            "weightMeasured": false
+          }
         },
         "parts": [
           {
@@ -473,7 +481,15 @@
           "frameStyle": "fitted",
           "fittingTakeoff": 1.25,
           "railsPerPontoon": 1,
-          "centerSpine": true
+          "centerSpine": true,
+          "drum": {
+            "size": "hdpe-55-tight",
+            "gallons": 55,
+            "dia": 22.5,
+            "len": 34.5,
+            "weight": 20,
+            "weightMeasured": false
+          }
         },
         "parts": [
           {
@@ -900,7 +916,15 @@
           "frameStyle": "fitted",
           "fittingTakeoff": 1.25,
           "railsPerPontoon": 1,
-          "centerSpine": true
+          "centerSpine": true,
+          "drum": {
+            "size": "hdpe-55-tight",
+            "gallons": 55,
+            "dia": 22.5,
+            "len": 34.5,
+            "weight": 20,
+            "weightMeasured": false
+          }
         },
         "parts": [
           {
@@ -1327,7 +1351,15 @@
           "frameStyle": "fitted",
           "fittingTakeoff": 1.25,
           "railsPerPontoon": 1,
-          "centerSpine": true
+          "centerSpine": true,
+          "drum": {
+            "size": "hdpe-55-tight",
+            "gallons": 55,
+            "dia": 22.5,
+            "len": 34.5,
+            "weight": 20,
+            "weightMeasured": false
+          }
         },
         "parts": [
           {
@@ -1741,7 +1773,15 @@
           "frameStyle": "stacked",
           "fittingTakeoff": 1.25,
           "railsPerPontoon": 2,
-          "centerSpine": false
+          "centerSpine": false,
+          "drum": {
+            "size": "hdpe-55-tight",
+            "gallons": 55,
+            "dia": 22.5,
+            "len": 34.5,
+            "weight": 20,
+            "weightMeasured": false
+          }
         },
         "parts": [
           {

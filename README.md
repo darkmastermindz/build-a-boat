@@ -63,6 +63,9 @@ bob/
   across). Each one has adjustable frame length, beam length, beam count,
   pontoon spacing, drum position, deck size, mast height, bow frame and
   noodle rail.
+- **Drums**: pick a standard plastic drum size (55, 30 or 15 gal) or enter
+  your own gallons, diameter, length and empty weight. Buoyancy, frame height,
+  the cut list and the 3D view all follow the drum you enter.
 - **Crew**: 1–4 people, weight each, seat position and lean.
 - **Physics**: solves heave, trim and heel for horizontal drums, then reports
   draft, frame clearance, reserve buoyancy and stability (GM) both ways.
@@ -72,6 +75,12 @@ bob/
   materials or as custom parts, and track qty, weight (tick **measured** once
   weighed), cost and status (planned / bought / installed). Changes are saved
   in the browser. **Export** downloads `build.json`; commit it to `data/`.
+- **Next shopping trip** (Check tab):
+  - Home Depot and Lowe's product links for every item, plus local suppliers.
+  - Enter a ZIP for "near you" store and supplier map links. The ZIP stays on
+    your device and is never saved to `build.json` or profiles.
+  - Live stock isn't available here; each store's site shows in-store
+    availability once you pick your store.
 - **Check tab**: competition rules, recommendations, what the layout needs
   compared with what's listed, and the pipe cut list.
 - **Compare tab**: every layout run on your parts and crew, with a suggested
