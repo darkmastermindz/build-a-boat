@@ -1,183 +1,446 @@
 {
   "project": "Build-a-Boat Competition - Whitewater Center",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "lastUpdated": "2026-10-02",
+  "theme": "Pirate ship (Jolly Roger flag, red pennants, skull-and-crossbones hull art)",
+  "rules": {
+    "prohibited_materials": [
+      "metal",
+      "screws",
+      "glass"
+    ],
+    "notes": "No metal fasteners anywhere. Join parts with cable ties, paracord lashing, epoxy and glue only."
+  },
   "hull": {
-    "type": "flat-bottom pontoon",
-    "length_ft": 10,
+    "type": "drum-pontoon raft (4 x 55-gal drums under a PVC frame)",
+    "length_ft": 8,
     "width_ft": 4,
-    "height_ft": 1.5
+    "height_ft": 2,
+    "dimensions_are_assumptions": true,
+    "dimension_notes": "Assumed 8 x 4 ft deck from the 4x8 sheet goods; confirm when the frame layout is final.",
+    "flotation": {
+      "drum_count": 4,
+      "drum_volume_gal": 55,
+      "drum_diameter_in": 22.5,
+      "drum_height_in": 34.5,
+      "drum_empty_weight_lb": 20,
+      "layout": "2 drums per side, laid horizontally end-to-end, lashed under the frame",
+      "max_buoyancy_lb_per_drum": 459,
+      "foam_boards": 4
+    }
+  },
+  "sources": {
+    "spreadsheet": "Google Sheets: 'Boat Building Shopping List Comparison' (2026-09-29)",
+    "sheet_totals_usd": {
+      "all_home_depot": 1274.06,
+      "all_lowes": 732.32,
+      "decor_home_depot": 119.0,
+      "decor_lowes": 109.81
+    }
   },
   "parts": [
     {
-      "id": "P001",
-      "name": "PVC Pipe 4\" Diameter x 10ft",
-      "category": "hull",
+      "id": "F001",
+      "name": "Plastic 55-gallon drum (reconditioned)",
+      "category": "flotation",
       "quantity": 4,
-      "unit": "piece",
-      "unit_cost_usd": 18.99,
-      "total_cost_usd": 75.96,
-      "source": "Home Depot",
-      "sku": "PLUMB-4X10",
-      "url": "https://www.homedepot.com",
-      "notes": "Main pontoon tubes for buoyancy"
+      "unit": "drum",
+      "unit_cost_usd": 35.0,
+      "total_cost_usd": 140.0,
+      "source": "McManus Drum Co. (Charlotte, NC)",
+      "price_basis": "Midpoint of $25\u201345 local quote range; call to confirm",
+      "estimate": true,
+      "price_options": {
+        "home_depot": 124.88,
+        "alternative": "25-45"
+      },
+      "url": "http://mcmanusdrum.com/",
+      "notes": "Main flotation, 2 per side. ~459 lb buoyancy each when fully submerged. Confirm drums are food-grade or rinsed, with sealed bung caps."
     },
     {
-      "id": "P002",
-      "name": "PVC End Cap 4\"",
-      "category": "hull",
+      "id": "S001",
+      "name": "PVC pipe 1-1/2\" Sch 40 x 10 ft",
+      "category": "frame",
+      "quantity": 4,
+      "unit": "piece",
+      "unit_cost_usd": 34.98,
+      "total_cost_usd": 139.92,
+      "source": "Lowe's",
+      "price_basis": "Lowe's price (HD $38.78)",
+      "estimate": false,
+      "price_options": {
+        "home_depot": 38.78,
+        "lowes": 34.98
+      },
+      "url": "https://www.lowes.com/pl/Pvc-pipe-Pipe-fittings-Plumbing/4294612626",
+      "notes": "Main frame rails and cross-members."
+    },
+    {
+      "id": "S002",
+      "name": "Large PVC pipe ~10-12\" dia x 10 ft",
+      "category": "frame",
+      "quantity": 2,
+      "unit": "piece",
+      "unit_cost_usd": 65.0,
+      "total_cost_usd": 130.0,
+      "source": "Ferguson Plumbing Supply (Charlotte area)",
+      "price_basis": "Estimate: midpoint of $30\u2013100+ distributor range",
+      "estimate": true,
+      "price_options": {
+        "alternative": "call for quote"
+      },
+      "url": "https://www.ferguson.com",
+      "notes": "Housing/hull sections. Special order only, not stocked at HD/Lowe's. Get quotes from several local suppliers (see data/suppliers.json)."
+    },
+    {
+      "id": "S003",
+      "name": "XPS foam board 1\" x 4 ft x 8 ft (FOAMULAR)",
+      "category": "flotation",
+      "quantity": 4,
+      "unit": "sheet",
+      "unit_cost_usd": 24.97,
+      "total_cost_usd": 99.88,
+      "source": "Home Depot",
+      "price_basis": "Home Depot price (Lowe's $26.98)",
+      "estimate": false,
+      "price_options": {
+        "home_depot": 24.97,
+        "lowes": 26.98
+      },
+      "url": "https://www.homedepot.com/p/p/315197840",
+      "notes": "Backup flotation and deck stiffening. Foam also keeps the boat afloat if a drum leaks."
+    },
+    {
+      "id": "D001",
+      "name": "Coroplast corrugated plastic 4 mm, 4 x 8 ft",
+      "category": "deck",
+      "quantity": 3,
+      "unit": "sheet",
+      "unit_cost_usd": 38.29,
+      "total_cost_usd": 114.87,
+      "source": "Home Depot",
+      "price_basis": "Home Depot price (Lowe's $41.98)",
+      "estimate": false,
+      "price_options": {
+        "home_depot": 38.29,
+        "lowes": 41.98
+      },
+      "url": "https://homedepot.com/b/Building-Materials-Glass-Plastic-Sheets-Corrugated-Plastic-Sheets/Cuttable/N-5yc1vZcbtuZ1z1x9al",
+      "notes": "Waterproof skin and side panels."
+    },
+    {
+      "id": "D002",
+      "name": "Luan / sanded plywood 1/4\" x 4 x 8 ft",
+      "category": "deck",
+      "quantity": 3,
+      "unit": "sheet",
+      "unit_cost_usd": 22.97,
+      "total_cost_usd": 68.91,
+      "source": "Home Depot",
+      "price_basis": "Home Depot price (Lowe's $24.98)",
+      "estimate": false,
+      "price_options": {
+        "home_depot": 22.97,
+        "lowes": 24.98
+      },
+      "url": "https://www.homedepot.com/b/Building-Materials-Lumber-Composites-Plywood/N-5yc1vZc3jc",
+      "notes": "Deck surface and seat panels. Seal every face with marine paint."
+    },
+    {
+      "id": "A001",
+      "name": "2-part marine epoxy",
+      "category": "adhesive",
+      "quantity": 2,
+      "unit": "unit",
+      "unit_cost_usd": 5.0,
+      "total_cost_usd": 10.0,
+      "source": "Harbor Freight (Charlotte area)",
+      "price_basis": "Harbor Freight $3.88\u20136.00 (Lowe's $13.98, HD 8-pack $47.15)",
+      "estimate": true,
+      "price_options": {
+        "home_depot": 47.15,
+        "lowes": 13.98,
+        "alternative": "3.88-6.00"
+      },
+      "url": "https://www.harborfreight.com",
+      "notes": "Bonding PVC to deck and patching. Check that the total volume is enough; buy extra if not."
+    },
+    {
+      "id": "A002",
+      "name": "100% silicone / marine sealant, 10.1 oz",
+      "category": "adhesive",
+      "quantity": 3,
+      "unit": "tube",
+      "unit_cost_usd": 6.5,
+      "total_cost_usd": 19.5,
+      "source": "Harbor Freight (Charlotte area)",
+      "price_basis": "Harbor Freight $5\u20138 (Lowe's $9.98, HD $11.48)",
+      "estimate": true,
+      "price_options": {
+        "home_depot": 11.48,
+        "lowes": 9.98,
+        "alternative": "5-8"
+      },
+      "url": "https://www.harborfreight.com",
+      "notes": "Seal drum bungs, pipe ends and deck seams."
+    },
+    {
+      "id": "R001",
+      "name": "Heavy-duty UV cable ties 17\", 120 lb (100-pack)",
+      "category": "rigging",
+      "quantity": 2,
+      "unit": "pack",
+      "unit_cost_usd": 24.98,
+      "total_cost_usd": 49.96,
+      "source": "Lowe's",
+      "price_basis": "Lowe's price (HD $29.99)",
+      "estimate": false,
+      "price_options": {
+        "home_depot": 29.99,
+        "lowes": 24.98,
+        "alternative": "3.88-5.00 (11 in)"
+      },
+      "url": "https://www.lowes.com/pl/Zip-ties-Fasteners-Hardware/4294857595",
+      "notes": "Main fastener: lashes drums and deck to the PVC frame. The 17\" length is needed to wrap a drum plus a pipe; Harbor Freight 11\" ties ($3.88\u20135) only work for small joints."
+    },
+    {
+      "id": "R002",
+      "name": "550 paracord, 100 ft",
+      "category": "rigging",
+      "quantity": 2,
+      "unit": "roll",
+      "unit_cost_usd": 7.98,
+      "total_cost_usd": 15.96,
+      "source": "Lowe's",
+      "price_basis": "Lowe's price (HD $8.07, Tractor Supply $16.99)",
+      "estimate": false,
+      "price_options": {
+        "home_depot": 8.07,
+        "lowes": 7.98,
+        "alternative": 16.99
+      },
+      "url": "https://www.lowes.com/pl/Rope-Chain-rope-Hardware/4294857591",
+      "notes": "Lashing (backup for zip ties) and mast stays."
+    },
+    {
+      "id": "C001",
+      "name": "Pool noodles",
+      "category": "comfort",
       "quantity": 8,
       "unit": "piece",
-      "unit_cost_usd": 3.49,
-      "total_cost_usd": 27.92,
+      "unit_cost_usd": 3.58,
+      "total_cost_usd": 28.64,
       "source": "Home Depot",
-      "sku": "PLUMB-CAP4",
-      "url": "https://www.homedepot.com",
-      "notes": "Seal ends of pontoon tubes"
+      "price_basis": "Home Depot price (Lowe's $5.98 each)",
+      "estimate": false,
+      "price_options": {
+        "home_depot": 3.58,
+        "lowes": 5.98
+      },
+      "url": "https://homedepot.com/p/Pool-Mate-Blue-and-Pink-Swimming-Pool-Water-Noodles-12-Pack-TWLN36-12/304884154",
+      "notes": "Top rail and bow bumper. The HD listing is a 12-pack, so confirm whether $3.58 is per noodle or per pack."
     },
     {
-      "id": "P003",
-      "name": "2x6 Pressure Treated Lumber x 10ft",
-      "category": "deck",
-      "quantity": 6,
+      "id": "C002",
+      "name": "Outdoor seat cushion, 18-24 in",
+      "category": "comfort",
+      "quantity": 2,
       "unit": "piece",
-      "unit_cost_usd": 12.49,
-      "total_cost_usd": 74.94,
-      "source": "Home Depot",
-      "sku": "LUMBER-2x6-10",
-      "url": "https://www.homedepot.com",
-      "notes": "Deck framing and cross-members"
+      "unit_cost_usd": 22.98,
+      "total_cost_usd": 45.96,
+      "source": "Lowe's",
+      "price_basis": "Lowe's price (HD $24.98)",
+      "estimate": false,
+      "price_options": {
+        "home_depot": 24.98,
+        "lowes": 22.98
+      },
+      "url": "https://www.lowes.com/pl/Patio-furniture-cushions-Patio-furniture-Outdoors/4294857260",
+      "notes": "Crew seating pads."
     },
     {
-      "id": "P004",
-      "name": "3/4\" Plywood Sheet 4x8",
-      "category": "deck",
+      "id": "P001",
+      "name": "Rust-Oleum Marine Topside paint, 1 qt",
+      "category": "finish",
       "quantity": 2,
-      "unit": "sheet",
-      "unit_cost_usd": 45.97,
-      "total_cost_usd": 91.94,
+      "unit": "quart",
+      "unit_cost_usd": 26.15,
+      "total_cost_usd": 52.3,
       "source": "Home Depot",
-      "sku": "PLY-34-4x8",
-      "url": "https://www.homedepot.com",
-      "notes": "Deck surface"
+      "price_basis": "Home Depot price (Lowe's $32.99)",
+      "estimate": false,
+      "price_options": {
+        "home_depot": 26.15,
+        "lowes": 32.99
+      },
+      "url": "https://www.homedepot.com/b/Paint-Industrial-Paint-Automotive-Paint-Boat-Paint/Deep-Green/N-5yc1vZcj9eZ1z0un9c",
+      "notes": "Waterproofs the luan and other wood parts."
     },
     {
-      "id": "P005",
-      "name": "Galvanized Carriage Bolts 3/8\" x 3\" (50pk)",
-      "category": "fasteners",
-      "quantity": 2,
-      "unit": "pack",
-      "unit_cost_usd": 14.99,
-      "total_cost_usd": 29.98,
-      "source": "Home Depot",
-      "sku": "BOLT-38x3-50",
-      "url": "https://www.homedepot.com",
-      "notes": "Structural fasteners"
-    },
-    {
-      "id": "P006",
-      "name": "PVC Cement + Primer Kit",
-      "category": "adhesive",
+      "id": "X001",
+      "name": "Outdoor acrylic craft paint set (18 colors)",
+      "category": "decor",
       "quantity": 1,
-      "unit": "kit",
-      "unit_cost_usd": 11.98,
-      "total_cost_usd": 11.98,
-      "source": "Home Depot",
-      "sku": "PVC-CEMENT-KIT",
-      "url": "https://www.homedepot.com",
-      "notes": "Seal PVC joints and end caps"
+      "unit": "set",
+      "unit_cost_usd": 28.98,
+      "total_cost_usd": 28.98,
+      "source": "Lowe's",
+      "price_basis": "Lowe's price (HD $31.78)",
+      "estimate": false,
+      "price_options": {
+        "home_depot": 31.78,
+        "lowes": 28.98
+      },
+      "url": "https://www.lowes.com",
+      "notes": "Jolly Roger skull-and-crossbones on the hull"
     },
     {
-      "id": "P007",
-      "name": "Rope 3/8\" Nylon Braided 50ft",
-      "category": "rigging",
+      "id": "X002",
+      "name": "Black outdoor fabric spray paint, 12 oz",
+      "category": "decor",
+      "quantity": 1,
+      "unit": "can",
+      "unit_cost_usd": 13.98,
+      "total_cost_usd": 13.98,
+      "source": "Lowe's",
+      "price_basis": "Lowe's price (HD $14.99)",
+      "estimate": false,
+      "price_options": {
+        "home_depot": 14.99,
+        "lowes": 13.98
+      },
+      "url": "https://www.lowes.com",
+      "notes": "Pirate flag base"
+    },
+    {
+      "id": "X003",
+      "name": "Red outdoor fabric spray paint, 12 oz",
+      "category": "decor",
+      "quantity": 1,
+      "unit": "can",
+      "unit_cost_usd": 13.98,
+      "total_cost_usd": 13.98,
+      "source": "Lowe's",
+      "price_basis": "Lowe's price (HD $14.99)",
+      "estimate": false,
+      "price_options": {
+        "home_depot": 14.99,
+        "lowes": 13.98
+      },
+      "url": "https://www.lowes.com",
+      "notes": "Pennants and accents"
+    },
+    {
+      "id": "X004",
+      "name": "Canvas drop cloth, 4 x 5 ft",
+      "category": "decor",
+      "quantity": 2,
+      "unit": "piece",
+      "unit_cost_usd": 13.98,
+      "total_cost_usd": 27.96,
+      "source": "Lowe's",
+      "price_basis": "Lowe's price (HD $14.97)",
+      "estimate": false,
+      "price_options": {
+        "home_depot": 14.97,
+        "lowes": 13.98
+      },
+      "url": "https://www.lowes.com",
+      "notes": "Flag and two pennants"
+    },
+    {
+      "id": "X005",
+      "name": "Hardwood dowel 1 in x 72 in",
+      "category": "decor",
+      "quantity": 1,
+      "unit": "piece",
+      "unit_cost_usd": 5.98,
+      "total_cost_usd": 5.98,
+      "source": "Lowe's",
+      "price_basis": "Lowe's price (HD $6.37)",
+      "estimate": false,
+      "price_options": {
+        "home_depot": 6.37,
+        "lowes": 5.98
+      },
+      "url": "https://www.lowes.com",
+      "notes": "Mast/flagpole, lashed on with paracord"
+    },
+    {
+      "id": "X006",
+      "name": "Foam paint brush multi-pack",
+      "category": "decor",
+      "quantity": 1,
+      "unit": "pack",
+      "unit_cost_usd": 6.98,
+      "total_cost_usd": 6.98,
+      "source": "Lowe's",
+      "price_basis": "Lowe's price (HD $7.98)",
+      "estimate": false,
+      "price_options": {
+        "home_depot": 7.98,
+        "lowes": 6.98
+      },
+      "url": "https://www.lowes.com",
+      "notes": "Paint application"
+    },
+    {
+      "id": "X007",
+      "name": "Painter's tape 0.94 in x 60 yd",
+      "category": "decor",
       "quantity": 1,
       "unit": "roll",
-      "unit_cost_usd": 15.99,
-      "total_cost_usd": 15.99,
-      "source": "Home Depot",
-      "sku": "ROPE-38-50",
-      "url": "https://www.homedepot.com",
-      "notes": "Lashing and safety lines"
+      "unit_cost_usd": 6.47,
+      "total_cost_usd": 6.47,
+      "source": "Lowe's",
+      "price_basis": "Lowe's price (HD $6.97)",
+      "estimate": false,
+      "price_options": {
+        "home_depot": 6.97,
+        "lowes": 6.47
+      },
+      "url": "https://www.lowes.com",
+      "notes": "Clean stencil edges"
     },
     {
-      "id": "P008",
-      "name": "Paddle (canoe style)",
-      "category": "propulsion",
-      "quantity": 2,
-      "unit": "piece",
-      "unit_cost_usd": 24.99,
-      "total_cost_usd": 49.98,
-      "source": "REI / Amazon",
-      "sku": "PADDLE-CANOE",
-      "url": "https://www.amazon.com",
-      "notes": "Propulsion paddles for crew"
-    },
-    {
-      "id": "P009",
-      "name": "Life Jacket / PFD Type III",
-      "category": "safety",
-      "quantity": 2,
-      "unit": "piece",
-      "unit_cost_usd": 29.99,
-      "total_cost_usd": 59.98,
-      "source": "REI / Amazon",
-      "sku": "PFD-TYPE3",
-      "url": "https://www.amazon.com",
-      "notes": "Required safety equipment per person"
-    },
-    {
-      "id": "P010",
-      "name": "Waterproof Exterior Paint (1 gal)",
-      "category": "finish",
+      "id": "X008",
+      "name": "Fabric glue, 4 oz",
+      "category": "decor",
       "quantity": 1,
-      "unit": "gallon",
-      "unit_cost_usd": 34.97,
-      "total_cost_usd": 34.97,
-      "source": "Home Depot",
-      "sku": "PAINT-EXT-GAL",
-      "url": "https://www.homedepot.com",
-      "notes": "Weather protection for deck"
-    },
-    {
-      "id": "P011",
-      "name": "L-Bracket Galvanized 3\" (4pk)",
-      "category": "fasteners",
-      "quantity": 4,
-      "unit": "pack",
-      "unit_cost_usd": 6.49,
-      "total_cost_usd": 25.96,
-      "source": "Home Depot",
-      "sku": "LBRACKET-3-4PK",
-      "url": "https://www.homedepot.com",
-      "notes": "Attach pontoons to frame"
-    },
-    {
-      "id": "P012",
-      "name": "Hose Clamps 4\" (10pk)",
-      "category": "fasteners",
-      "quantity": 1,
-      "unit": "pack",
-      "unit_cost_usd": 9.99,
-      "total_cost_usd": 9.99,
-      "source": "Home Depot",
-      "sku": "HCLAMP-4-10PK",
-      "url": "https://www.homedepot.com",
-      "notes": "Secondary PVC retention"
+      "unit": "bottle",
+      "unit_cost_usd": 5.48,
+      "total_cost_usd": 5.48,
+      "source": "Lowe's",
+      "price_basis": "Lowe's price (HD $5.98)",
+      "estimate": false,
+      "price_options": {
+        "home_depot": 5.98,
+        "lowes": 5.48
+      },
+      "url": "https://www.lowes.com",
+      "notes": "Attaches the flag to the dowel instead of staples or tacks"
     }
   ],
   "summary": {
-    "total_parts": 12,
-    "total_cost_usd": 508.69,
+    "total_parts": 21,
+    "total_cost_usd": 1025.71,
+    "functional_cost_usd": 915.9,
     "categories": {
-      "hull": 103.88,
-      "deck": 166.88,
-      "fasteners": 65.93,
-      "adhesive": 11.98,
-      "rigging": 15.99,
-      "propulsion": 49.98,
-      "safety": 59.98,
-      "finish": 34.97
-    }
-  }
+      "flotation": 239.88,
+      "frame": 269.92,
+      "deck": 183.78,
+      "adhesive": 29.5,
+      "rigging": 65.92,
+      "comfort": 74.6,
+      "finish": 52.3,
+      "decor": 109.81
+    },
+    "pricing_strategy": "Cheapest confirmed source per item; local drum and hardware suppliers where they beat big-box stores. Items marked estimate=true need a phone call or in-store check before buying."
+  },
+  "open_items": [
+    "PFDs and paddles are not in the BOM: check whether the Whitewater Center provides them",
+    "Get large-PVC quotes (Ferguson, Hubbard, Catawba Valley)",
+    "Call McManus Drum for drum price and condition",
+    "Confirm the event's crew size and max boat dimensions"
+  ]
 }
