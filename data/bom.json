@@ -12,21 +12,51 @@
     "notes": "No metal fasteners anywhere. Join parts with cable ties, paracord lashing, epoxy and glue only."
   },
   "hull": {
-    "type": "drum-pontoon raft (4 x 55-gal drums under a PVC frame)",
-    "length_ft": 8,
-    "width_ft": 4,
-    "height_ft": 2,
-    "dimensions_are_assumptions": true,
-    "dimension_notes": "Assumed 8 x 4 ft deck from the 4x8 sheet goods; confirm when the frame layout is final.",
+    "type": "drum-pontoon raft, lightweight build (4 x 55-gal drums under a 1-1/2\" PVC frame)",
+    "length_ft": 7,
+    "width_ft": 6,
+    "height_ft": 2.3,
+    "overall_length_with_bow_ft": 8.6,
+    "dimensions_are_assumptions": false,
+    "dimension_notes": "From raft-render.html: 84\" rails, 72\" cross beams, bow extends 18\" past the rails.",
+    "dry_weight_lb_target": 137,
+    "frame": {
+      "rail_length_in": 84,
+      "rails": "2 per pontoon, 6\" either side of the drum centerline; inner rail solid Sch 40, outer rail foam-core",
+      "cross_beams": {
+        "count": 4,
+        "length_in": 72,
+        "positions_in": [
+          -36,
+          -12,
+          12,
+          36
+        ],
+        "spacing_in": 24
+      },
+      "bow": {
+        "riser_in": 12,
+        "strut_in": 18,
+        "bar": "foam-core, coupled at center",
+        "guard": "curved Coroplast from the front beam to the bow bar"
+      }
+    },
+    "deck": {
+      "length_in": 72,
+      "width_in": 24,
+      "thickness_in": 2.3,
+      "build": "2 x 1\" XPS core with Coroplast skins top and bottom"
+    },
     "flotation": {
       "drum_count": 4,
       "drum_volume_gal": 55,
-      "drum_diameter_in": 22.5,
-      "drum_height_in": 34.5,
+      "drum_diameter_in": 23,
+      "drum_length_in": 34.5,
       "drum_empty_weight_lb": 20,
-      "layout": "2 drums per side, laid horizontally end-to-end, lashed under the frame",
+      "layout": "2 pontoons, 2 drums each laid horizontally end-to-end; pontoon centerlines 23.5\" from boat centerline (47\" apart)",
       "max_buoyancy_lb_per_drum": 459,
-      "foam_boards": 4
+      "design_draft_in": 5,
+      "design_load_lb": 200
     }
   },
   "sources": {
@@ -55,16 +85,17 @@
         "alternative": "25-45"
       },
       "url": "http://mcmanusdrum.com/",
-      "notes": "Main flotation, 2 per side. ~459 lb buoyancy each when fully submerged. Confirm drums are food-grade or rinsed, with sealed bung caps."
+      "notes": "Main flotation, 2 per side. ~459 lb buoyancy each when fully submerged. Confirm drums are food-grade or rinsed, with sealed bung caps.",
+      "weight_lb_each": 20
     },
     {
       "id": "S001",
-      "name": "PVC pipe 1-1/2\" Sch 40 x 10 ft",
+      "name": "PVC pipe 1-1/2\" Sch 40 (solid) x 10 ft",
       "category": "frame",
-      "quantity": 4,
+      "quantity": 6,
       "unit": "piece",
       "unit_cost_usd": 34.98,
-      "total_cost_usd": 139.92,
+      "total_cost_usd": 209.88,
       "source": "Lowe's",
       "price_basis": "Lowe's price (HD $38.78)",
       "estimate": false,
@@ -73,51 +104,65 @@
         "lowes": 34.98
       },
       "url": "https://www.lowes.com/pl/Pvc-pipe-Pipe-fittings-Plumbing/4294612626",
-      "notes": "Main frame rails and cross-members."
+      "notes": "2 inner rails (84\"), 4 cross beams (72\"). Rail offcuts (36\") make the bow risers (12\") and struts (18\").",
+      "weight_lb_each": 5.1
     },
     {
-      "id": "S002",
-      "name": "Large PVC pipe ~10-12\" dia x 10 ft",
+      "id": "S004",
+      "name": "Foam-core (cellular) PVC pipe 1-1/2\" x 10 ft",
       "category": "frame",
       "quantity": 2,
       "unit": "piece",
-      "unit_cost_usd": 65.0,
-      "total_cost_usd": 130.0,
-      "source": "Ferguson Plumbing Supply (Charlotte area)",
-      "price_basis": "Estimate: midpoint of $30\u2013100+ distributor range",
+      "unit_cost_usd": 22.0,
+      "source": "Home Depot / Lowe's",
+      "price_basis": "Estimate; not on the sheet, so check in store",
       "estimate": true,
-      "price_options": {
-        "alternative": "call for quote"
-      },
-      "url": "https://www.ferguson.com",
-      "notes": "Housing/hull sections. Special order only, not stocked at HD/Lowe's. Get quotes from several local suppliers (see data/suppliers.json)."
+      "price_options": {},
+      "url": "",
+      "weight_lb_each": 3.5,
+      "notes": "Outer rails (84\") and the bow bar (2 x ~30\" joined with a coupling). Lighter than solid Sch 40 and fine for non-pressure use.",
+      "total_cost_usd": 44.0
     },
     {
-      "id": "S003",
-      "name": "XPS foam board 1\" x 4 ft x 8 ft (FOAMULAR)",
-      "category": "flotation",
-      "quantity": 4,
-      "unit": "sheet",
-      "unit_cost_usd": 24.97,
-      "total_cost_usd": 99.88,
-      "source": "Home Depot",
-      "price_basis": "Home Depot price (Lowe's $26.98)",
-      "estimate": false,
-      "price_options": {
-        "home_depot": 24.97,
-        "lowes": 26.98
-      },
-      "url": "https://www.homedepot.com/p/p/315197840",
-      "notes": "Backup flotation and deck stiffening. Foam also keeps the boat afloat if a drum leaks."
+      "id": "S005",
+      "name": "PVC 90\u00b0 elbow 1-1/2\" Sch 40",
+      "category": "frame",
+      "quantity": 6,
+      "unit": "piece",
+      "unit_cost_usd": 1.6,
+      "source": "Home Depot / Lowe's",
+      "price_basis": "Estimate; not on the sheet",
+      "estimate": true,
+      "price_options": {},
+      "url": "",
+      "weight_lb_each": 0.2,
+      "notes": "Bow frame: rail to riser, riser to strut, strut to bow bar (x2 sides).",
+      "total_cost_usd": 9.6
+    },
+    {
+      "id": "S006",
+      "name": "PVC coupling 1-1/2\" Sch 40",
+      "category": "frame",
+      "quantity": 1,
+      "unit": "piece",
+      "unit_cost_usd": 1.2,
+      "source": "Home Depot / Lowe's",
+      "price_basis": "Estimate; not on the sheet",
+      "estimate": true,
+      "price_options": {},
+      "url": "",
+      "weight_lb_each": 0.15,
+      "notes": "Joins the two halves of the bow bar.",
+      "total_cost_usd": 1.2
     },
     {
       "id": "D001",
       "name": "Coroplast corrugated plastic 4 mm, 4 x 8 ft",
       "category": "deck",
-      "quantity": 3,
+      "quantity": 2,
       "unit": "sheet",
       "unit_cost_usd": 38.29,
-      "total_cost_usd": 114.87,
+      "total_cost_usd": 76.58,
       "source": "Home Depot",
       "price_basis": "Home Depot price (Lowe's $41.98)",
       "estimate": false,
@@ -126,25 +171,27 @@
         "lowes": 41.98
       },
       "url": "https://homedepot.com/b/Building-Materials-Glass-Plastic-Sheets-Corrugated-Plastic-Sheets/Cuttable/N-5yc1vZcbtuZ1z1x9al",
-      "notes": "Waterproof skin and side panels."
+      "notes": "Board 1: top and bottom deck skins (72\" x 24\"). Board 2: curved bow guard. The sheet listed 3.",
+      "weight_lb_each": 6
     },
     {
-      "id": "D002",
-      "name": "Luan / sanded plywood 1/4\" x 4 x 8 ft",
+      "id": "S003",
+      "name": "XPS foam board 1\" x 4 ft x 8 ft (FOAMULAR)",
       "category": "deck",
-      "quantity": 3,
+      "quantity": 2,
       "unit": "sheet",
-      "unit_cost_usd": 22.97,
-      "total_cost_usd": 68.91,
+      "unit_cost_usd": 24.97,
+      "total_cost_usd": 49.94,
       "source": "Home Depot",
-      "price_basis": "Home Depot price (Lowe's $24.98)",
+      "price_basis": "Home Depot price (Lowe's $26.98)",
       "estimate": false,
       "price_options": {
-        "home_depot": 22.97,
-        "lowes": 24.98
+        "home_depot": 24.97,
+        "lowes": 26.98
       },
-      "url": "https://www.homedepot.com/b/Building-Materials-Lumber-Composites-Plywood/N-5yc1vZc3jc",
-      "notes": "Deck surface and seat panels. Seal every face with marine paint."
+      "url": "https://www.homedepot.com/p/p/315197840",
+      "notes": "Deck core: two 1\" layers, each a 24\" x 72\" strip, so one board covers both. Second board is spare/repair stock. The sheet listed 4.",
+      "weight_lb_each": 3
     },
     {
       "id": "A001",
@@ -163,7 +210,8 @@
         "alternative": "3.88-6.00"
       },
       "url": "https://www.harborfreight.com",
-      "notes": "Bonding PVC to deck and patching. Check that the total volume is enough; buy extra if not."
+      "notes": "Bonding PVC to deck and patching. Check that the total volume is enough; buy extra if not.",
+      "weight_lb_each": 0.1
     },
     {
       "id": "A002",
@@ -182,16 +230,35 @@
         "alternative": "5-8"
       },
       "url": "https://www.harborfreight.com",
-      "notes": "Seal drum bungs, pipe ends and deck seams."
+      "notes": "Seal drum bungs, pipe ends and deck seams.",
+      "weight_lb_each": 0.7
+    },
+    {
+      "id": "A003",
+      "name": "PVC primer + cement kit",
+      "category": "adhesive",
+      "quantity": 1,
+      "unit": "kit",
+      "unit_cost_usd": 11.98,
+      "source": "Home Depot",
+      "price_basis": "Price carried over from v1.0 BOM",
+      "estimate": false,
+      "price_options": {
+        "home_depot": 11.98
+      },
+      "url": "https://www.homedepot.com",
+      "weight_lb_each": 0,
+      "notes": "Solvent-welds the bow-frame fittings. No metal involved.",
+      "total_cost_usd": 11.98
     },
     {
       "id": "R001",
       "name": "Heavy-duty UV cable ties 17\", 120 lb (100-pack)",
       "category": "rigging",
-      "quantity": 2,
+      "quantity": 1,
       "unit": "pack",
       "unit_cost_usd": 24.98,
-      "total_cost_usd": 49.96,
+      "total_cost_usd": 24.98,
       "source": "Lowe's",
       "price_basis": "Lowe's price (HD $29.99)",
       "estimate": false,
@@ -201,7 +268,8 @@
         "alternative": "3.88-5.00 (11 in)"
       },
       "url": "https://www.lowes.com/pl/Zip-ties-Fasteners-Hardware/4294857595",
-      "notes": "Main fastener: lashes drums and deck to the PVC frame. The 17\" length is needed to wrap a drum plus a pipe; Harbor Freight 11\" ties ($3.88\u20135) only work for small joints."
+      "notes": "X-tie at each of the 16 rail/beam crossings (32 ties) plus deck and bow-guard tie-downs. One 100-pack covers it; the sheet listed 2. HF 11\" ties ($3.88-5) won't reach around stacked 1-1/2\" pipe pairs reliably.",
+      "weight_lb_each": 0
     },
     {
       "id": "R002",
@@ -220,7 +288,8 @@
         "alternative": 16.99
       },
       "url": "https://www.lowes.com/pl/Rope-Chain-rope-Hardware/4294857591",
-      "notes": "Lashing (backup for zip ties) and mast stays."
+      "notes": "Drum lashing: 2 wraps per drum around the drum and both rails (8 wraps, ~130 ft). Also mast stays.",
+      "weight_lb_each": 0.6
     },
     {
       "id": "C001",
@@ -238,7 +307,8 @@
         "lowes": 5.98
       },
       "url": "https://homedepot.com/p/Pool-Mate-Blue-and-Pink-Swimming-Pool-Water-Noodles-12-Pack-TWLN36-12/304884154",
-      "notes": "Top rail and bow bumper. The HD listing is a 12-pack, so confirm whether $3.58 is per noodle or per pack."
+      "notes": "Top rail and bow bumper. The HD listing is a 12-pack, so confirm whether $3.58 is per noodle or per pack.",
+      "weight_lb_each": 0.3
     },
     {
       "id": "C002",
@@ -256,25 +326,8 @@
         "lowes": 22.98
       },
       "url": "https://www.lowes.com/pl/Patio-furniture-cushions-Patio-furniture-Outdoors/4294857260",
-      "notes": "Crew seating pads."
-    },
-    {
-      "id": "P001",
-      "name": "Rust-Oleum Marine Topside paint, 1 qt",
-      "category": "finish",
-      "quantity": 2,
-      "unit": "quart",
-      "unit_cost_usd": 26.15,
-      "total_cost_usd": 52.3,
-      "source": "Home Depot",
-      "price_basis": "Home Depot price (Lowe's $32.99)",
-      "estimate": false,
-      "price_options": {
-        "home_depot": 26.15,
-        "lowes": 32.99
-      },
-      "url": "https://www.homedepot.com/b/Paint-Industrial-Paint-Automotive-Paint-Boat-Paint/Deep-Green/N-5yc1vZcj9eZ1z0un9c",
-      "notes": "Waterproofs the luan and other wood parts."
+      "notes": "Crew seating pads.",
+      "weight_lb_each": 2
     },
     {
       "id": "X001",
@@ -292,7 +345,8 @@
         "lowes": 28.98
       },
       "url": "https://www.lowes.com",
-      "notes": "Jolly Roger skull-and-crossbones on the hull"
+      "notes": "Jolly Roger skull-and-crossbones on the hull",
+      "weight_lb_each": 0.2
     },
     {
       "id": "X002",
@@ -310,7 +364,8 @@
         "lowes": 13.98
       },
       "url": "https://www.lowes.com",
-      "notes": "Pirate flag base"
+      "notes": "Pirate flag base",
+      "weight_lb_each": 0.2
     },
     {
       "id": "X003",
@@ -328,7 +383,8 @@
         "lowes": 13.98
       },
       "url": "https://www.lowes.com",
-      "notes": "Pennants and accents"
+      "notes": "Pennants and accents",
+      "weight_lb_each": 0.2
     },
     {
       "id": "X004",
@@ -346,7 +402,8 @@
         "lowes": 13.98
       },
       "url": "https://www.lowes.com",
-      "notes": "Flag and two pennants"
+      "notes": "Flag and two pennants",
+      "weight_lb_each": 0.2
     },
     {
       "id": "X005",
@@ -364,7 +421,8 @@
         "lowes": 5.98
       },
       "url": "https://www.lowes.com",
-      "notes": "Mast/flagpole, lashed on with paracord"
+      "notes": "Mast/flagpole, lashed on with paracord",
+      "weight_lb_each": 0.2
     },
     {
       "id": "X006",
@@ -382,7 +440,8 @@
         "lowes": 6.98
       },
       "url": "https://www.lowes.com",
-      "notes": "Paint application"
+      "notes": "Paint application",
+      "weight_lb_each": 0.2
     },
     {
       "id": "X007",
@@ -400,7 +459,8 @@
         "lowes": 6.47
       },
       "url": "https://www.lowes.com",
-      "notes": "Clean stencil edges"
+      "notes": "Clean stencil edges",
+      "weight_lb_each": 0.2
     },
     {
       "id": "X008",
@@ -418,29 +478,51 @@
         "lowes": 5.48
       },
       "url": "https://www.lowes.com",
-      "notes": "Attaches the flag to the dowel instead of staples or tacks"
+      "notes": "Attaches the flag to the dowel instead of staples or tacks",
+      "weight_lb_each": 0.2
     }
   ],
   "summary": {
-    "total_parts": 21,
-    "total_cost_usd": 1025.71,
-    "functional_cost_usd": 915.9,
+    "total_parts": 22,
+    "total_cost_usd": 798.03,
+    "functional_cost_usd": 688.22,
     "categories": {
-      "flotation": 239.88,
-      "frame": 269.92,
-      "deck": 183.78,
-      "adhesive": 29.5,
-      "rigging": 65.92,
+      "flotation": 140.0,
+      "frame": 264.68,
+      "deck": 126.52,
+      "adhesive": 41.48,
+      "rigging": 40.94,
       "comfort": 74.6,
-      "finish": 52.3,
       "decor": 109.81
     },
+    "est_dry_weight_lb": 148.6,
     "pricing_strategy": "Cheapest confirmed source per item; local drum and hardware suppliers where they beat big-box stores. Items marked estimate=true need a phone call or in-store check before buying."
   },
   "open_items": [
     "PFDs and paddles are not in the BOM: check whether the Whitewater Center provides them",
-    "Get large-PVC quotes (Ferguson, Hubbard, Catawba Valley)",
-    "Call McManus Drum for drum price and condition",
-    "Confirm the event's crew size and max boat dimensions"
+    "Call McManus Drum for drum price and condition (bung caps must seal)",
+    "Check foam-core PVC, elbow and coupling prices in store (not on the sheet)",
+    "Confirm crew size: the render's 5\" draft assumes a 200 lb load",
+    "Confirm the event's max boat dimensions (overall ~8.6 x 6 ft with bow)"
+  ],
+  "removed_from_sheet": [
+    {
+      "id": "S002",
+      "name": "Large PVC pipe ~10-12\" dia x 10 ft",
+      "sheet_quantity": 2,
+      "reason": "Lightweight render build has no large-diameter housing pipe (saves ~150 lb and ~$130)."
+    },
+    {
+      "id": "D002",
+      "name": "Luan / sanded plywood 1/4\" x 4 x 8 ft",
+      "sheet_quantity": 3,
+      "reason": "Deck is an XPS/Coroplast sandwich in the render, so no luan plywood."
+    },
+    {
+      "id": "P001",
+      "name": "Rust-Oleum Marine Topside paint, 1 qt",
+      "sheet_quantity": 2,
+      "reason": "No structural wood left to waterproof; decor acrylic covers the dowel mast."
+    }
   ]
 }
