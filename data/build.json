@@ -47,12 +47,12 @@
       "role": "drum",
       "category": "flotation",
       "material": "hdpe",
-      "quantity": 2,
+      "quantity": 4,
       "weight_lb_each": 20,
       "weight_measured": false,
       "unit_cost_usd": 35.0,
-      "status": "planned",
-      "notes": ""
+      "status": "bought",
+      "notes": "Team has 4 drums; one is slightly smaller. Enter each drum's measurements under Configure \u2192 Drums \u2192 Each drum."
     },
     {
       "catalog_id": "S007",

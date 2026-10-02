@@ -112,6 +112,12 @@
   .profiles .msg.err{color:var(--err)}
   .drumgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin:8px 0}
   .drumgrid label{display:flex;flex-direction:column;gap:3px;font-size:12px;color:var(--muted)}
+  .sub{font:600 13px Barlow,sans-serif;margin:12px 0 2px}
+  .drumrow{border-bottom:1px solid var(--line);padding:8px 0}
+  .drumrow .dh{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.2fr);gap:8px;align-items:center}
+  .drumrow .dh b{font-weight:600;font-size:13px}
+  .drumrow .drumgrid{margin:6px 0 2px}
+  .drumrow.own b::after{content:" · own size";color:var(--accent);font-weight:500}
   .zipbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:6px 0 10px}
   .zipbar input{width:110px}
   .links{display:flex;gap:4px 10px;flex-wrap:wrap;margin-top:3px;font-size:12px}
@@ -184,7 +190,7 @@
         <label><input type="checkbox" id="noodleRail"> Noodle rail</label>
       </div>
       <h2>Drums</h2>
-      <div class="row"><label for="drumSize">Drum size</label><select id="drumSize" style="grid-column:span 2"></select></div>
+      <div class="row"><label for="drumSize">Default drum</label><select id="drumSize" style="grid-column:span 2"></select></div>
       <div class="drumgrid">
         <label>Gallons<input type="number" id="drumGal" min="1" step="1"></label>
         <label>Diameter (in)<input type="number" id="drumDia" min="6" step="0.25"></label>
@@ -193,6 +199,10 @@
       </div>
       <div class="toggles"><label><input type="checkbox" id="drumMeasured"> Weighed on a scale</label></div>
       <p class="blurb" id="drumNote"></p>
+      <h3 class="sub">Each drum</h3>
+      <p class="blurb">Positions follow the layout. Leave a drum on "Same as default" or give it its own measurements, for example one that's a little smaller.</p>
+      <div id="drumList"></div>
+      <div class="btns"><button class="btn sm" id="applyPlacement" hidden>Apply suggested placement</button></div>
       <h2>Crew</h2>
       <div id="crewSliders"></div>
       <h2>What if</h2>
@@ -389,6 +399,38 @@ function initControls(){
   });
   syncControls();
 }
+function renderDrumList(){
+  const box = $('drumList'); if (!box || !A) return;
+  const c = build.config, g = A.geometry;
+  if (!Array.isArray(c.drumSpecs)) c.drumSpecs = [];
+  box.replaceChildren(...g.drums.map(d => {
+    const i = d.id, own = !!c.drumSpecs[i], sp = d.spec;
+    const sel = el('select', { 'aria-label': `Size of drum ${i + 1}`, onchange: e => {
+      const v = e.target.value, std = M.DRUM_SIZES.find(x => x.id === v);
+      c.drumSpecs[i] = v === '' ? null : std ? { size: std.id, gallons: std.gallons, dia: std.dia, len: std.len, weight: std.weight, weightMeasured: false }
+                                            : Object.assign({}, M.drumSpec(c, i), { size: 'custom', own: undefined });
+      changed();
+    } },
+      el('option', { value: '', selected: !own }, 'Same as default'),
+      ...M.DRUM_SIZES.map(x => el('option', { value: x.id, selected: own && sp.size === x.id }, `${x.label.split(',')[0]}: ${x.dia}" × ${x.len}"`)),
+      el('option', { value: 'custom', selected: own && sp.size === 'custom' }, 'Custom (my measurements)'));
+    const row = el('div', { class: 'drumrow' + (own ? ' own' : '') }, el('div', { class: 'dh' }, el('b', {}, M.drumLabel(g, d)), sel));
+    if (own) {
+      const field = (label, k, step) => el('label', {}, label, el('input', { type: 'number', min: 0, step, value: sp[k], onchange: e => {
+        const v = +e.target.value; if (!(v > 0)) return renderDrumList();
+        c.drumSpecs[i] = Object.assign({}, c.drumSpecs[i], { size: 'custom', gallons: sp.gallons, dia: sp.dia, len: sp.len, weight: sp.weight, weightMeasured: sp.weightMeasured }, { [k]: v });
+        changed();
+      } }));
+      row.append(el('div', { class: 'drumgrid' }, field('Gallons', 'gallons', 1), field('Diameter (in)', 'dia', 0.25), field('Length (in)', 'len', 0.25), field('Empty weight (lb)', 'weight', 0.5)),
+        el('div', { class: 'toggles' }, el('label', {}, el('input', { type: 'checkbox', checked: sp.weightMeasured, onchange: e => { c.drumSpecs[i] = Object.assign({}, c.drumSpecs[i], { weightMeasured: e.target.checked }); changed(); } }), 'Weighed on a scale'),
+          el('span', { class: 'small muted' }, `~${M.drumMaxLb(sp).toFixed(0)} lb lift${d.y0 > 0.05 ? ` · rides ${d.y0.toFixed(1)}" higher` : ''}`)));
+    }
+    return row;
+  }));
+  const pl = A.placement, btn = $('applyPlacement');
+  btn.hidden = !pl;
+  if (pl) btn.onclick = () => { c.drumSpecs = pl.drumSpecs.map(x => x ? Object.assign({}, x) : null); changed(); };
+}
 function syncDrumPart(){
   const d = M.drumSpec(build.config), part = build.parts.find(p => p.role === 'drum');
   if (part) { part.weight_lb_each = d.weight; part.weight_measured = d.weightMeasured; }
@@ -490,7 +532,7 @@ let pending = false;
 function changed(){ if (!loadingProfile) markDirty(); store.set(build); if (!pending) { pending = true; requestAnimationFrame(() => { pending = false; update(); }); } }
 function update(){
   A = M.analyze(build, rules, { catalog, suppliers, zip: shopZip });
-  renderStats(); renderCheck(); buildBoat(); renderHud();
+  renderStats(); renderCheck(); buildBoat(); renderHud(); renderDrumList();
   const fd = $('failedDrum'), cur = build.config.failedDrum;
   fd.replaceChildren(el('option', { value:'' }, 'None'), ...A.geometry.drums.map(d => el('option', { value: d.id, selected: cur === d.id }, `Drum ${d.id + 1} (${d.x >= 0 ? 'fwd' : 'aft'} ${d.z < 0 ? 'port' : d.z > 0 ? 'stbd' : 'center'})`)));
   const w = A.weights.total, wm = A.weights.measured;
@@ -619,13 +661,13 @@ function buildBoat(){
   const joint = p => { const s = new THREE.Mesh(new THREE.SphereGeometry(1.3, 16, 12), MAT.fit); s.position.set(...p); G.frame.add(s); };
   // drums
   g.drums.forEach(d => {
-    const m = d.failed ? MAT.failed : MAT.drum;
-    const cyl = new THREE.Mesh(new THREE.CylinderGeometry(r, r, DL, 44), m);
-    cyl.rotation.z = Math.PI/2; cyl.position.set(d.x, r, d.z); G.drums.add(cyl);
-    [-DL/6, DL/6].forEach(o => { const rib = new THREE.Mesh(new THREE.TorusGeometry(r+.15, .35, 8, 44), d.failed ? MAT.failed : MAT.drumDark); rib.rotation.y = Math.PI/2; rib.position.set(d.x+o, r, d.z); G.drums.add(rib); });
-    const bung = new THREE.Mesh(new THREE.CylinderGeometry(1.2, 1.2, .6, 14), MAT.fit); bung.rotation.z = Math.PI/2; bung.position.set(d.x + DL/2 + .3, r + 6, d.z); G.drums.add(bung);
+    const m = d.failed ? MAT.failed : MAT.drum, dr = d.r, dl = d.len, cy = d.y0 + dr;
+    const cyl = new THREE.Mesh(new THREE.CylinderGeometry(dr, dr, dl, 44), m);
+    cyl.rotation.z = Math.PI/2; cyl.position.set(d.x, cy, d.z); G.drums.add(cyl);
+    [-dl/6, dl/6].forEach(o => { const rib = new THREE.Mesh(new THREE.TorusGeometry(dr+.15, .35, 8, 44), d.failed ? MAT.failed : MAT.drumDark); rib.rotation.y = Math.PI/2; rib.position.set(d.x+o, cy, d.z); G.drums.add(rib); });
+    const bung = new THREE.Mesh(new THREE.CylinderGeometry(1.2, 1.2, .6, 14), MAT.fit); bung.rotation.z = Math.PI/2; bung.position.set(d.x + dl/2 + .3, cy + dr * 0.5, d.z); G.drums.add(bung);
     // zip-tie bands
-    [-10, 10].forEach(o => { const band = new THREE.Mesh(new THREE.TorusGeometry(r+.4, .3, 6, 44), MAT.tie); band.rotation.y = Math.PI/2; band.position.set(d.x+o, r, d.z); G.lash.add(band);
+    [-dl * 0.29, dl * 0.29].forEach(o => { const band = new THREE.Mesh(new THREE.TorusGeometry(dr+.4, .3, 6, 44), MAT.tie); band.rotation.y = Math.PI/2; band.position.set(d.x+o, cy, d.z); G.lash.add(band);
       const span = new THREE.Mesh(new THREE.CylinderGeometry(.3,.3, Math.max(4, 2*g.railOffset), 6), MAT.tie); span.rotation.x = Math.PI/2; span.position.set(d.x+o, g.railY + R + .3, d.z); G.lash.add(span); });
   });
   // rails + beams + ties

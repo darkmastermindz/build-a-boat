@@ -12,7 +12,7 @@
         "weight": 106,
         "loadPct": 46,
         "crew": 2,
-        "cost": 710.73,
+        "cost": 780.73,
         "sticks": 5
       },
       "build": {
@@ -63,12 +63,12 @@
             "role": "drum",
             "category": "flotation",
             "material": "hdpe",
-            "quantity": 2,
+            "quantity": 4,
             "weight_lb_each": 20,
             "weight_measured": false,
             "unit_cost_usd": 35,
-            "status": "planned",
-            "notes": ""
+            "status": "bought",
+            "notes": "Team has 4 drums; one is slightly smaller. Enter each drum's measurements under Configure → Drums → Each drum."
           },
           {
             "catalog_id": "S007",
@@ -447,7 +447,7 @@
         "weight": 103.4,
         "loadPct": 46,
         "crew": 2,
-        "cost": 710.73,
+        "cost": 780.73,
         "sticks": 5
       },
       "build": {
@@ -498,12 +498,12 @@
             "role": "drum",
             "category": "flotation",
             "material": "hdpe",
-            "quantity": 2,
+            "quantity": 4,
             "weight_lb_each": 20,
             "weight_measured": false,
             "unit_cost_usd": 35,
-            "status": "planned",
-            "notes": ""
+            "status": "bought",
+            "notes": "Team has 4 drums; one is slightly smaller. Enter each drum's measurements under Configure → Drums → Each drum."
           },
           {
             "catalog_id": "S007",
@@ -937,8 +937,8 @@
             "weight_lb_each": 20,
             "weight_measured": false,
             "unit_cost_usd": 35,
-            "status": "planned",
-            "notes": ""
+            "status": "bought",
+            "notes": "Team has 4 drums; one is slightly smaller. Enter each drum's measurements under Configure → Drums → Each drum."
           },
           {
             "catalog_id": "S007",
@@ -1372,8 +1372,8 @@
             "weight_lb_each": 20,
             "weight_measured": false,
             "unit_cost_usd": 35,
-            "status": "planned",
-            "notes": ""
+            "status": "bought",
+            "notes": "Team has 4 drums; one is slightly smaller. Enter each drum's measurements under Configure → Drums → Each drum."
           },
           {
             "catalog_id": "S007",
@@ -1794,8 +1794,8 @@
             "weight_lb_each": 20,
             "weight_measured": false,
             "unit_cost_usd": 35,
-            "status": "planned",
-            "notes": ""
+            "status": "bought",
+            "notes": "Team has 4 drums; one is slightly smaller. Enter each drum's measurements under Configure → Drums → Each drum."
           },
           {
             "catalog_id": "S007",
