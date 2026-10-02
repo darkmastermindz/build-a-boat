@@ -1,25 +1,63 @@
 {
   "project": "Build-a-Boat Competition - Whitewater Center",
-  "version": "2.0.0",
+  "version": "2.1.0",
   "lastUpdated": "2026-10-02",
   "theme": "Pirate ship (Jolly Roger flag, red pennants, skull-and-crossbones hull art)",
   "rules": {
+    "source": "https://whitewater.org/race/build-your-own-boat-competition/",
+    "source_note": "whitewater.org is blocked from the dev environment; rules compiled from search-result excerpts of that page and 2026 event coverage. Check against the official page.",
+    "event": {
+      "date": "2026-10-10",
+      "time": "Competition 12-4 PM (festival 12-5:30 PM)",
+      "course": "Class II-IV competition channel, U.S. National Whitewater Center, Charlotte NC",
+      "registration_fee_usd": 60,
+      "min_age": 16
+    },
+    "max_boat_weight_lb": 150,
+    "max_dimensions_ft": {
+      "length": 10,
+      "width": 10,
+      "height": 5
+    },
+    "max_wall_height_ft": 2,
+    "max_wood_thickness_in": 0.25,
+    "max_securing_material_length_in": 18,
+    "requirements": [
+      "Human powered only",
+      "All materials must float, even if cracked or broken apart",
+      "No metal of any kind (nails, screws, staples, sheet metal, etc.)",
+      "Zip ties trimmed flush",
+      "Rope, webbing, straps and other securing materials no longer than 18 in",
+      "Wood no thicker than 1/4 in",
+      "Wall height under 2 ft (interior floor to top of side wall)"
+    ],
     "prohibited_materials": [
       "metal",
       "screws",
+      "nails",
+      "staples",
       "glass"
     ],
-    "notes": "No metal fasteners anywhere. Join parts with cable ties, paracord lashing, epoxy and glue only."
+    "team_size": {
+      "min": 1,
+      "max": 4
+    },
+    "provided_by_venue": [
+      "paddles",
+      "PFDs",
+      "helmets"
+    ],
+    "scoring": "Style and performance (max 60 entries)"
   },
   "hull": {
-    "type": "drum-pontoon raft, lightweight build (4 x 55-gal drums under a 1-1/2\" PVC frame)",
+    "type": "drum catamaran, lightweight build (2 x 55-gal drums under a 1-1/2\" PVC frame)",
     "length_ft": 7,
     "width_ft": 6,
     "height_ft": 2.3,
     "overall_length_with_bow_ft": 8.6,
     "dimensions_are_assumptions": false,
-    "dimension_notes": "From raft-render.html: 84\" rails, 72\" cross beams, bow extends 18\" past the rails.",
-    "dry_weight_lb_target": 137,
+    "dimension_notes": "From raft-render.html: 84\" rails, 72\" cross beams, bow extends 18\" past the rails. v2.1: drums cut from 4 to 2, one per side. The frame is kept at 84\" x 72\" until the team's mockup is captured.",
+    "dry_weight_lb_target": null,
     "frame": {
       "rail_length_in": 84,
       "rails": "2 per pontoon, 6\" either side of the drum centerline; inner rail solid Sch 40, outer rail foam-core",
@@ -48,15 +86,23 @@
       "build": "2 x 1\" XPS core with Coroplast skins top and bottom"
     },
     "flotation": {
-      "drum_count": 4,
+      "drum_count": 2,
       "drum_volume_gal": 55,
       "drum_diameter_in": 23,
       "drum_length_in": 34.5,
       "drum_empty_weight_lb": 20,
-      "layout": "2 pontoons, 2 drums each laid horizontally end-to-end; pontoon centerlines 23.5\" from boat centerline (47\" apart)",
+      "layout": "1 drum per side, horizontal, centered fore-aft under the rails; centerlines 23.5\" from the boat centerline",
       "max_buoyancy_lb_per_drum": 459,
-      "design_draft_in": 5,
-      "design_load_lb": 200
+      "design_draft_in": null,
+      "design_load_lb": null,
+      "max_buoyancy_lb_total": 918,
+      "draft_table_in": {
+        "180_lb_crew": 7.4,
+        "350_lb_crew": 10.5,
+        "525_lb_crew": 13.6,
+        "700_lb_crew": 16.8
+      },
+      "draft_note": "Assumes ~110 lb dry. Rails sit ~21\" above the drum bottom."
     }
   },
   "sources": {
@@ -73,10 +119,10 @@
       "id": "F001",
       "name": "Plastic 55-gallon drum (reconditioned)",
       "category": "flotation",
-      "quantity": 4,
+      "quantity": 2,
       "unit": "drum",
       "unit_cost_usd": 35.0,
-      "total_cost_usd": 140.0,
+      "total_cost_usd": 70.0,
       "source": "McManus Drum Co. (Charlotte, NC)",
       "price_basis": "Midpoint of $25\u201345 local quote range; call to confirm",
       "estimate": true,
@@ -85,7 +131,7 @@
         "alternative": "25-45"
       },
       "url": "http://mcmanusdrum.com/",
-      "notes": "Main flotation, 2 per side. ~459 lb buoyancy each when fully submerged. Confirm drums are food-grade or rinsed, with sealed bung caps.",
+      "notes": "Main flotation: 1 drum per side (catamaran), centered under the rails. ~459 lb buoyancy each fully submerged. Bung caps must seal. Cut from 4 to 2 to stay under the 150 lb rule.",
       "weight_lb_each": 20
     },
     {
@@ -104,24 +150,27 @@
         "lowes": 34.98
       },
       "url": "https://www.lowes.com/pl/Pvc-pipe-Pipe-fittings-Plumbing/4294612626",
-      "notes": "2 inner rails (84\"), 4 cross beams (72\"). Rail offcuts (36\") make the bow risers (12\") and struts (18\").",
+      "notes": "2 inner rails (84\"), 4 cross beams (72\"). Rail offcuts (36\") make the bow risers (12\") and struts (18\"). Filled with spray foam so broken pieces float (rule). One 48\" beam offcut becomes the mast.",
       "weight_lb_each": 5.1
     },
     {
       "id": "S004",
-      "name": "Foam-core (cellular) PVC pipe 1-1/2\" x 10 ft",
+      "name": "PVC pipe 1-1/2\" Sch 40 (foam-filled) x 10 ft",
       "category": "frame",
       "quantity": 2,
       "unit": "piece",
-      "unit_cost_usd": 22.0,
+      "unit_cost_usd": 34.98,
       "source": "Home Depot / Lowe's",
-      "price_basis": "Estimate; not on the sheet, so check in store",
-      "estimate": true,
-      "price_options": {},
-      "url": "",
+      "price_basis": "Lowe's price, same as S001 (HD $38.78)",
+      "estimate": false,
+      "price_options": {
+        "home_depot": 38.78,
+        "lowes": 34.98
+      },
+      "url": "https://www.lowes.com/pl/Pvc-pipe-Pipe-fittings-Plumbing/4294612626",
       "weight_lb_each": 3.5,
-      "notes": "Outer rails (84\") and the bow bar (2 x ~30\" joined with a coupling). Lighter than solid Sch 40 and fine for non-pressure use.",
-      "total_cost_usd": 44.0
+      "notes": "Outer rails and bow bar. This reads the render's 'foam-core' rail as foam-filled pipe. In fact ALL pipe gets filled (see A004), because the rules require every material to float even when broken.",
+      "total_cost_usd": 69.96
     },
     {
       "id": "S005",
@@ -252,13 +301,29 @@
       "total_cost_usd": 11.98
     },
     {
+      "id": "A004",
+      "name": "Expanding spray foam, 12 oz (Great Stuff or similar)",
+      "category": "adhesive",
+      "quantity": 4,
+      "unit": "can",
+      "unit_cost_usd": 6.98,
+      "source": "Home Depot / Lowe's",
+      "price_basis": "Estimate; not on the sheet",
+      "estimate": true,
+      "price_options": {},
+      "url": "",
+      "weight_lb_each": 0.4,
+      "notes": "Fill every PVC pipe and fitting so any broken piece still floats (rule: all materials must float). A filled 1-1/2\" Sch 40 pipe averages ~0.4 specific gravity. Cans are not part of the boat.",
+      "total_cost_usd": 27.92
+    },
+    {
       "id": "R001",
       "name": "Heavy-duty UV cable ties 17\", 120 lb (100-pack)",
       "category": "rigging",
-      "quantity": 1,
+      "quantity": 2,
       "unit": "pack",
       "unit_cost_usd": 24.98,
-      "total_cost_usd": 24.98,
+      "total_cost_usd": 49.96,
       "source": "Lowe's",
       "price_basis": "Lowe's price (HD $29.99)",
       "estimate": false,
@@ -268,17 +333,17 @@
         "alternative": "3.88-5.00 (11 in)"
       },
       "url": "https://www.lowes.com/pl/Zip-ties-Fasteners-Hardware/4294857595",
-      "notes": "X-tie at each of the 16 rail/beam crossings (32 ties) plus deck and bow-guard tie-downs. One 100-pack covers it; the sheet listed 2. HF 11\" ties ($3.88-5) won't reach around stacked 1-1/2\" pipe pairs reliably.",
+      "notes": "17\" UV ties, all under the 18\" rule and trimmed flush (rule). Used for the X-tie at each of the 16 rail/beam crossings, deck and bow-guard tie-downs, and the drum bands: daisy-chained ties, 2 bands per drum (confirm with organizers, see open items).",
       "weight_lb_each": 0
     },
     {
       "id": "R002",
       "name": "550 paracord, 100 ft",
       "category": "rigging",
-      "quantity": 2,
+      "quantity": 1,
       "unit": "roll",
       "unit_cost_usd": 7.98,
-      "total_cost_usd": 15.96,
+      "total_cost_usd": 7.98,
       "source": "Lowe's",
       "price_basis": "Lowe's price (HD $8.07, Tractor Supply $16.99)",
       "estimate": false,
@@ -288,7 +353,7 @@
         "alternative": 16.99
       },
       "url": "https://www.lowes.com/pl/Rope-Chain-rope-Hardware/4294857591",
-      "notes": "Drum lashing: 2 wraps per drum around the drum and both rails (8 wraps, ~130 ft). Also mast stays.",
+      "notes": "Rules cap rope/webbing/strap pieces at 18\". Use only for short (\u226418\") wraps and knots, never continuous lashing.",
       "weight_lb_each": 0.6
     },
     {
@@ -407,22 +472,19 @@
     },
     {
       "id": "X005",
-      "name": "Hardwood dowel 1 in x 72 in",
+      "name": "Mast: foam-filled 1-1/2\" PVC offcut (\u2264 30\" above deck)",
       "category": "decor",
       "quantity": 1,
       "unit": "piece",
-      "unit_cost_usd": 5.98,
-      "total_cost_usd": 5.98,
+      "unit_cost_usd": 0.0,
+      "total_cost_usd": 0.0,
       "source": "Lowe's",
-      "price_basis": "Lowe's price (HD $6.37)",
+      "price_basis": "Free: 48\" offcut from a beam length",
       "estimate": false,
-      "price_options": {
-        "home_depot": 6.37,
-        "lowes": 5.98
-      },
-      "url": "https://www.lowes.com",
-      "notes": "Mast/flagpole, lashed on with paracord",
-      "weight_lb_each": 0.2
+      "price_options": {},
+      "url": "",
+      "notes": "Replaces the 1\" x 72\" wood dowel: rules limit wood to 1/4\" thick and boat height to 5 ft. Deck top is ~27\" above the drum bottom, so the mast must stay under ~33\".",
+      "weight_lb_each": 2.0
     },
     {
       "id": "X006",
@@ -480,30 +542,50 @@
       "url": "https://www.lowes.com",
       "notes": "Attaches the flag to the dowel instead of staples or tacks",
       "weight_lb_each": 0.2
+    },
+    {
+      "id": "T001",
+      "name": "Flush-cut snips",
+      "category": "tools",
+      "quantity": 1,
+      "unit": "piece",
+      "unit_cost_usd": 7.99,
+      "source": "Harbor Freight / Home Depot",
+      "price_basis": "Estimate",
+      "estimate": true,
+      "price_options": {},
+      "url": "",
+      "weight_lb_each": 0,
+      "notes": "Rules require zip ties trimmed flush. Tool only, not part of the boat.",
+      "total_cost_usd": 7.99
     }
   ],
   "summary": {
-    "total_parts": 22,
-    "total_cost_usd": 798.03,
-    "functional_cost_usd": 688.22,
+    "total_parts": 24,
+    "total_cost_usd": 800.92,
+    "functional_cost_usd": 689.1,
     "categories": {
-      "flotation": 140.0,
-      "frame": 264.68,
+      "flotation": 70.0,
+      "frame": 290.64,
       "deck": 126.52,
-      "adhesive": 41.48,
-      "rigging": 40.94,
+      "adhesive": 69.4,
+      "rigging": 57.94,
       "comfort": 74.6,
-      "decor": 109.81
+      "decor": 103.83,
+      "tools": 7.99
     },
-    "est_dry_weight_lb": 148.6,
-    "pricing_strategy": "Cheapest confirmed source per item; local drum and hardware suppliers where they beat big-box stores. Items marked estimate=true need a phone call or in-store check before buying."
+    "est_dry_weight_lb": 111.5,
+    "pricing_strategy": "Cheapest confirmed source per item; local drum and hardware suppliers where they beat big-box stores. Items marked estimate=true need a phone call or in-store check before buying.",
+    "weight_margin_lb": 38.5
   },
   "open_items": [
-    "PFDs and paddles are not in the BOM: check whether the Whitewater Center provides them",
+    "Ask organizers: are daisy-chained 17\" zip ties OK as drum bands under the 18\" securing-material rule?",
+    "Weigh the finished boat; the rule is under 150 lb (estimate ~111.5 lb)",
+    "Decide crew size: 2 drums carry 1-2 people comfortably (\u226450% load); 3-4 people push draft to 13-17\"",
+    "Pitch stability: one 34.5\" drum per side under 84\" rails, so keep crew weight centered or shorten the rails to match the mockup",
     "Call McManus Drum for drum price and condition (bung caps must seal)",
-    "Check foam-core PVC, elbow and coupling prices in store (not on the sheet)",
-    "Confirm crew size: the render's 5\" draft assumes a 200 lb load",
-    "Confirm the event's max boat dimensions (overall ~8.6 x 6 ft with bow)"
+    "Check that the canvas flag and seat cushions float; swap for polyester or foam if not (all materials must float)",
+    "Verify rules on the official page (couldn't be fetched from the dev environment)"
   ],
   "removed_from_sheet": [
     {
@@ -523,6 +605,18 @@
       "name": "Rust-Oleum Marine Topside paint, 1 qt",
       "sheet_quantity": 2,
       "reason": "No structural wood left to waterproof; decor acrylic covers the dowel mast."
+    },
+    {
+      "id": "F001",
+      "name": "2 of the 4 55-gal drums",
+      "sheet_quantity": 4,
+      "reason": "Weight: rules cap the boat at 150 lb."
+    },
+    {
+      "id": "X005",
+      "name": "Wood dowel 1 in x 72 in",
+      "sheet_quantity": 1,
+      "reason": "Rules: wood max 1/4\" thick, boat max 5 ft tall."
     }
   ]
 }

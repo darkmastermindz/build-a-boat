@@ -74,28 +74,33 @@ The action:
 3. Uploads the report as a downloadable artifact
 4. Prints the report to the workflow summary
 
-## 🏴‍☠️ Current Design (v2.0): Drum-Pontoon Pirate Raft
+## 🏴‍☠️ Current Design (v2.1): Two-Drum Pirate Catamaran
 
-3D model: open [`raft-render.html`](raft-render.html) in a browser.
+**Race day: Sat Oct 10, 2026**. [Official rules](https://whitewater.org/race/build-your-own-boat-competition/):
+< 150 lb, max 10 × 10 × 5 ft, no metal, all materials must float, wood ≤ 1/4",
+rope and straps ≤ 18", zip ties trimmed flush. The venue provides paddles,
+PFDs and helmets.
 
 | Spec | Value |
 |------|-------|
+| Flotation | **2 × 55-gal drums**, one per side (cut from 4 to meet the weight limit) |
 | Footprint | 7 × 6 ft frame (~8.6 ft overall with bow) |
-| Flotation | 4 × 55-gal drums, 2 per pontoon, horizontal |
-| Frame | 1-1/2" PVC: solid Sch 40 inner rails and beams, foam-core outer rails and bow bar |
+| Frame | 1-1/2" Sch 40 PVC, **foam-filled** so broken pieces float |
 | Deck | 72" × 24" XPS foam core with Coroplast skins |
-| Joinery | Cable ties, paracord lashing, PVC cement. **No metal, screws or glass.** |
-| Dry weight | ~137 lb |
-| Draft | ~5" at 200 lb crew, ~6.6" at 350 lb |
-| Theme | Pirate ship: Jolly Roger flag, red pennants, skull hull art |
-| Planned BOM cost | ~$688 functional + ~$110 decor = **~$798** |
+| Joinery | 17" zip ties (trimmed flush), PVC cement. **No metal.** |
+| Est. weight | **~112 lb** (limit 150) |
+| Crew | 1–2 recommended (~10.5" draft at 350 lb) |
+| Theme | Pirate ship: Jolly Roger on a short PVC mast, red pennants, skull hull art |
+| Planned cost | ~$689 functional + ~$104 decor + $8 tools = **~$801** |
 
-Details: [`docs/design.md`](docs/design.md). Local suppliers:
-[`data/suppliers.json`](data/suppliers.json). Pending tooling updates:
+Rules compliance, cut list and buoyancy are in
+[`docs/design.md`](docs/design.md). 3D reference (4-drum version):
+[`raft-render.html`](raft-render.html). Suppliers:
+[`data/suppliers.json`](data/suppliers.json). Tooling work:
 [`PLAN.md`](PLAN.md).
 
-> ⚠️ `index.html` and the report generator still model the v1.0 PVC-tube design
-> until the work in `PLAN.md` lands.
+> ⚠️ `index.html`, `raft-render.html` and the report generator don't reflect
+> v2.1 yet. See `PLAN.md`.
 
 ## 🤖 AI Improvement Prompts
 

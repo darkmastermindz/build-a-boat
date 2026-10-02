@@ -1,94 +1,77 @@
-# Change Plan: move the tooling to the v2.0 drum raft
+# Change Plan: v2.1 two-drum catamaran
 
-`data/bom.json` and `docs/design.md` now describe the lightweight drum raft
-shown in `raft-render.html`. The simulator (`index.html`) and the report
-generator still assume v1.0 (4" PVC tubes as flotation). This plan brings them
-in line. The render already has the right geometry, so it becomes the base of
-the 3D view instead of something to rebuild from scratch.
+**Race day is Sat Oct 10, 2026, 8 days out.** The plan puts build-critical
+work first. Tooling polish only matters if it helps the team build and pass
+inspection.
 
-## Current gaps
+`data/bom.json` (v2.1) and `docs/design.md` are current. The simulator
+(`index.html`), the 3D render and the report generator still show older
+designs.
 
-| File | Problem |
-|------|---------|
-| `index.html` | `BOM_DATA` is a hard-coded copy of the v1.0 BOM. The physics uses 4" tube volume. The "PVC Tubes" slider and the 2D side/top/front views draw tubes. |
-| `raft-render.html` | Geometry is hard-coded constants (drum size, 84"/72" frame, water fixed at 5" draft) and the header stats are static text. Nothing ties it to `bom.json`. |
-| `scripts/generate-report.js` | Counts flotation as `hull` parts named "Pipe", which finds 0 now, so it reports 0 lb displacement and "Sinks". Boat weight is guessed from cost. Its tips ("pre-drill holes", "bulk fastener packs") break the no-metal rule. |
-| `.github/workflows/generate-report.yml` | Fires on every branch push and commits a report back to that branch. Uses `git push` with no ref and no concurrency guard. |
-| `reports/` | Old v1.0 reports. |
+## Phase 0: build-critical (this week, no code)
 
-## Phase 1: shared physics module
+1. **Organizers:** ask whether daisy-chained 17" zip-tie bands are OK for
+   holding the drums, given the 18" securing-material rule. Without a yes, the
+   drum attachment needs a redesign. One option is drum saddles cut from foam
+   board, X-tied to the rails.
+2. **Mockup:** add the team's 2-drum mockup (photo, sketch or HTML) to
+   `docs/`. Update `hull.frame` in `bom.json` if the rails or beams were
+   shortened.
+3. **Crew size:** 1–2 recommended (see the buoyancy table in the design doc).
+4. **Shopping:** call McManus Drum, then buy from the BOM. Check the
+   `estimate: true` prices in store.
+5. **Weigh-in:** weigh the drums and the assembled frame as you go, and log the
+   numbers in `bom.json` (`weight_lb_each`) so the estimate turns into a
+   measurement.
 
-1. Add `scripts/physics.js`, dependency-free and usable from Node and the
-   browser (UMD). It covers:
-   - `maxBuoyancy(flotation)`: drum count × volume × 62.4.
-   - `dryWeight(bom)`: Σ quantity × `weight_lb_each`. That field is now on
-     every part.
-   - `draft(flotation, totalLoad)`: circular-segment solve for horizontal
-     drums. Its results must match `docs/design.md`: 337 lb → ~5.1", 487 lb →
-     ~6.6".
-   - `freeboard()`: rail height above the waterline. `loadRatio()`.
-   - `stability()`: based on pontoon spacing ÷ beam width, load ratio and
-     freeboard. It replaces the v1.0 heuristic.
-2. Add `node --test` cases for the three draft values above and a 1-drum-lost
-   case.
+## Phase 1: report generator + rules check (~half a day)
 
-## Phase 2: report generator
+This gives the team a one-command "are we legal?" check.
 
-1. Switch to `physics.js` and `hull.flotation` / `hull.frame`.
-2. Add these sections:
-   - **Rules compliance**: fail if any part matches
-     bolt|screw|bracket|clamp|nail|staple|glass.
-   - **Pipe cut list**, from `hull.frame`.
-   - **Estimates to confirm**: parts with `estimate: true`.
-   - **Price comparison**: HD / Lowe's / local, from `price_options`.
-   - **Removed from sheet** and **open items**.
-3. Show subtotals with and without decor. Replace the metal-related build tips
-   with lashing and sealing tips.
-4. Optional: list supplier contacts by part ID from `data/suppliers.json`.
+1. Add `scripts/physics.js` (UMD, no dependencies) with `maxBuoyancy`,
+   `dryWeight` (Σ quantity × `weight_lb_each`, skipping `tools`), `draft`
+   (circular-segment solve) and `loadRatio`. Add `node --test` cases matching
+   the design-doc table: 290 lb → ~7.4", 460 lb → ~10.5".
+2. Add `scripts/check-rules.js`, which reads `bom.rules` and fails on:
+   - dry weight ≥ `max_boat_weight_lb`
+   - frame or mast dimensions over `max_dimensions_ft`
+   - any part name matching metal words (nail|screw|staple|bolt|bracket|clamp|wire|sheet metal)
+   - any `wood` part thicker than 1/4"
+   - any rope or strap part not marked as ≤ 18" pieces
+   - pipe without a foam-fill step (no `A004` in the BOM)
+3. Rework `generate-report.js` to use these. Add sections for rules
+   compliance, the draft table by crew size, the cut list, estimates to
+   confirm, and price comparison. Drop the v1.0 tips (pre-drilling, fastener
+   packs).
 
-## Phase 3: simulator
+## Phase 2: CI fix (~30 min)
 
-1. **Make the render data-driven**: read drum size, frame dimensions and deck
-   size from `bom.json`, and set the water plane from `physics.draft()`
-   instead of the fixed 5". Fill the header stats (footprint, dry weight,
-   drum count) from data.
-2. **Merge it into `index.html`**: add a **3D** view tab built from the
-   render's three.js code, next to the existing Side / Top / Front views.
-   Keep `raft-render.html` as a standalone share link that uses the same
-   module.
-3. Load `data/bom.json` with `fetch()` and drop the duplicate inline copy.
-   Keep a fallback for `file://` use.
-4. Controls:
-   - Replace the "PVC Tubes" slider with a **crew load** slider (100–600 lb)
-     and a **drum leak** toggle that drops one drum to show heel and draft.
-   - Keep the length and beam sliders, but scale the frame model from them.
-   - Add a **Load %** metric.
-5. Redraw the 2D views to show drums, inner/outer rails, beams, the bow frame
-   and the pirate mast and flag.
-6. BOM tab: group by category, add HD / Lowe's / Alt price columns, show an
-   estimate badge and the decor subtotal.
+1. Limit the `generate-report.yml` push trigger to `main`, push with
+   `git push origin HEAD:main`, and add a `concurrency` group.
+2. Gate the workflow on `node --test` and `check-rules.js`.
+3. Regenerate `reports/` as v2.1 and delete the v1.0 reports.
 
-## Phase 4: CI and docs
+## Phase 3: 3D render (after the mockup)
 
-1. Workflow:
-   - Limit the `push` trigger to `main`.
-   - Push with `git push origin HEAD:main`.
-   - Add a `concurrency` group.
-   - Run `node --test` plus the rules-compliance check as a gate.
-2. Regenerate `reports/` as v2.0 and delete the old v1.0 reports.
-3. Add a README screenshot of the 3D view.
+1. Make `raft-render.html` data-driven: read `bom.json` for drum count,
+   placement, frame size and deck. Set the water plane from
+   `physics.draft()` with a crew slider (1–4 people).
+2. Replace the rope-wrap meshes with zip-tie bands. Shorten the mast to under
+   33" and add the Jolly Roger.
+3. Show live stats: weight vs the 150 lb limit, draft and load %.
+
+## Phase 4: simulator (after race day, optional)
+
+1. Add the render to `index.html` as a 3D tab, load `bom.json` with `fetch()`
+   and drop the inline copy.
+2. Replace the "PVC Tubes" slider with drum count and crew. Redraw the 2D views.
+3. Group the BOM tab by category with HD / Lowe's / Alt prices.
 
 ## Decisions needed
 
-- **Crew size / load:** the render's design case is 200 lb. Is the crew one
-  person or two?
-- **PFDs and paddles:** does the venue provide them, or do they go in the BOM?
-- **Event size limits:** the boat is ~8.6 × 6 ft overall. Is that within
-  the rules?
-- **Pool noodles and cushions:** they're on the sheet but not in the render.
-  Keep them?
-
-## Suggested order
-
-Phase 1 → 2 → 4.1 (correct reports, stops wrong CI commits) → 3.1–3.3 (3D
-view on real data) → 3.4–3.6 → rest of 4.
+- Do the daisy-chained zip-tie bands pass the 18" rule? (Ask the organizers.)
+- What does the mockup's frame look like: full 84" rails, or shortened to the
+  drums?
+- Crew size?
+- Keep the pool noodles and seat cushions? They add ~6 lb, and the cushions
+  must float.
