@@ -139,7 +139,12 @@
       <h2>Layout</h2>
       <select id="preset" aria-label="Drum layout preset"></select>
       <p class="blurb" id="presetBlurb"></p>
+      <div class="row"><label for="frameStyle">Frame joinery</label><select id="frameStyle" style="grid-column:span 2">
+        <option value="fitted">Fitted: tees, double sani tees, elbows</option>
+        <option value="stacked">Stacked: beams zip-tied on rails (render)</option>
+      </select></div>
       <div id="sliders"></div>
+      <div class="btns"><button class="btn ghost sm" id="fitDrums">Fit frame length to drums</button></div>
       <div class="toggles">
         <label><input type="checkbox" id="bow"> Bow frame + guard</label>
         <label><input type="checkbox" id="noodleRail"> Noodle rail</label>
@@ -247,8 +252,9 @@ async function boot(){
 
 // ── Controls ─────────────────────────────────
 const SL = [
-  ['frameLength','Frame length',48,120,6,'"'],
-  ['frameWidth','Beam length',48,110,2,'"'],
+  ['frameLength','Frame length',36,120,2,'"'],
+  ['frameWidth','Beam length',48,110,2,'"', c => c.frameStyle !== 'fitted'],
+  ['fittingTakeoff','Fitting take-off',0.5,2.5,0.05,'"', c => c.frameStyle === 'fitted'],
   ['beamCount','Cross beams',2,6,1,''],
   ['pontoonSpacing','Pontoon spacing',28,90,1,'"'],
   ['drumOffset','Drums fore/aft',-30,30,1,'"'],
@@ -279,6 +285,15 @@ function initControls(){
   sel.onchange = () => { if (sel.value === 'custom') return; build.config.preset = sel.value; delete build.config.drums; build.config.failedDrum = null; ensureWidth(); syncControls(); changed(); };
   SL.forEach(d => $('sliders').append(sliderRow(d)));
   CREW.forEach(d => $('crewSliders').append(sliderRow(d)));
+  $('frameStyle').onchange = e => { build.config.frameStyle = e.target.value; syncControls(); changed(); };
+  $('fitDrums').onclick = () => {
+    const g = M.geometry(build.config), D = M.DRUM.len;
+    const span = Math.max(...g.drums.map(d => d.x + D/2)) - Math.min(...g.drums.map(d => d.x - D/2));
+    build.config.frameLength = Math.ceil((span + 2) / 2) * 2;
+    build.config.drumOffset = 0;
+    if (build.config.deck.length > build.config.frameLength) build.config.deck.length = Math.max(36, Math.floor(build.config.frameLength / 6) * 6);
+    syncControls(); changed();
+  };
   $('bow').onchange = e => { build.config.bow = e.target.checked; changed(); };
   $('noodleRail').onchange = e => { build.config.noodleRail = e.target.checked; changed(); };
   $('failedDrum').onchange = e => { build.config.failedDrum = e.target.value === '' ? null : +e.target.value; changed(); };
@@ -307,6 +322,7 @@ function syncControls(){
     $(id).value = getp(c, path); $(id + '_o').textContent = getp(c, path) + unit;
     if (show) $(id).closest('.row').style.display = show(c) ? '' : 'none';
   });
+  $('frameStyle').value = c.frameStyle || 'stacked';
   $('bow').checked = !!c.bow; $('noodleRail').checked = !!c.noodleRail;
 }
 
@@ -406,7 +422,7 @@ function renderCheck(){
   msgList($('rulesList'), A.rules);
   msgList($('recList'), A.recommendations.filter(r => !A.rules.some(x => x.title === r.title)));
   const have = {}; build.parts.forEach(p => have[p.role] = (have[p.role]||0) + (+p.quantity||0));
-  const names = { drum:'Drums', pipe:'1-1/2" pipe (10 ft)', elbow:'90° elbows', coupling:'Couplings', 'zip-tie':'Zip ties (100-pk)', xps:'XPS 4×8', coroplast:'Coroplast 4×8', 'spray-foam':'Spray foam cans', cement:'PVC cement kit' };
+  const names = { drum:'Drums', pipe:'1-1/2" pipe (10 ft)', elbow:'90° elbows', tee:'Tees (3-way)', cross:'Double sani tees (4-way)', coupling:'Couplings', 'zip-tie':'Zip ties (100-pk)', xps:'XPS 4×8', coroplast:'Coroplast 4×8', 'spray-foam':'Spray foam cans', cement:'PVC cement kit' };
   $('reqTable').replaceChildren(el('tr', {}, el('th', {}, 'Item'), el('th', { class:'num' }, 'Need'), el('th', { class:'num' }, 'Listed'), el('th', {}, '')),
     ...Object.entries(A.requirements.items).map(([k, need]) => { const h = have[k]||0; return el('tr', {}, el('td', {}, names[k]||k), el('td', { class:'num' }, need), el('td', { class:'num' }, h), el('td', {}, el('span', { class: 'dot ' + (h < need ? 'warn' : 'ok') }))); }));
   $('cutTable').replaceChildren(el('tr', {}, el('th', {}, '#'), el('th', {}, 'Cuts'), el('th', { class:'num' }, 'Offcut')),
@@ -497,7 +513,8 @@ function buildBoat(){
   // rails + beams + ties
   g.rails.forEach(rl => pipe([rl.x0, g.railY, rl.z], [rl.x1, g.railY, rl.z], G.frame));
   g.beams.forEach(x => {
-    pipe([x, g.beamY, -c.frameWidth/2], [x, g.beamY, c.frameWidth/2], G.frame);
+    pipe([x, g.beamY, -g.frameWidth/2], [x, g.beamY, g.frameWidth/2], G.frame);
+    if (g.fitted) { g.rails.forEach(rl => joint([x, g.railY, rl.z])); return; }
     g.rails.forEach(rl => [-1,1].forEach(k => { const t = new THREE.Mesh(new THREE.TorusGeometry(1.6, .18, 6, 18), MAT.tie); t.position.set(x, g.railY + R, rl.z); t.rotation.set(0, k*Math.PI/4, Math.PI/2); G.lash.add(t); }));
   });
   // deck sandwich

@@ -20,6 +20,16 @@ grow the actual parts list toward the final product.
 - CI: tests and rules gate on PRs; the report is committed on `main` only,
   with a concurrency guard.
 
+## Done (v2.3)
+
+- Netlify-ready site with a design-profile dropdown (Save / Save as /
+  Delete). Team profiles are shared through `/api/profiles`.
+- **Fitted frame** mode matching the team's DWV mockup: fitting counts, cut
+  lengths with take-off, and a stick count checked against the 5 sticks
+  bought.
+- Real shelf prices for the DWV fittings; `build.json` records the pipe as
+  bought.
+
 ## Next: team decisions (this week)
 
 1. **Organizers:** confirm daisy-chained zip-tie drum bands under the 18" rule.
@@ -28,7 +38,9 @@ grow the actual parts list toward the final product.
    cushions are cut to get under 150 lb. The catamaran is lightest, but it
    see-saws fore and aft.
 3. **Crew size**: 1–2 for 2 drums, up to 3 for 3–4 drums.
-4. **Actual parts list**: in the Parts tab, keep what you'll buy, delete the
+4. **Measure the fitting take-off** on a dry-fit tee and set it in the
+   simulator before cutting any pipe. Then cut from the Check tab's cut list.
+5. **Actual parts list**: in the Parts tab, keep what you'll buy, delete the
    rest, fix the quantities using "Needed vs listed", then export and commit
    `data/build.json`.
 

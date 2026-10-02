@@ -53,6 +53,11 @@ bob/
 
 ## ⛵ Simulator
 
+- **Frame joinery**: *Fitted* (1-1/2" DWV tees, double sani tees and
+  elbows, cut to length: the team's current build) or *Stacked* (beams
+  zip-tied on rails, from the original render). Fitted mode computes the
+  fitting counts and exact cut lengths, and "Fit frame length to drums" sizes
+  the frame to the drums.
 - **Layouts with 2–4 drums**: catamaran (2), trimaran (3 side by side),
   triangle (bow drum + 2 stern), pontoon (4, 2 per side) and wide raft (4
   across). Each one has adjustable frame length, beam length, beam count,

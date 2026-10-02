@@ -4,8 +4,16 @@
     {
       "id": "current-plan",
       "name": "Current plan (build.json)",
-      "description": "The committed team build in data/build.json.",
+      "description": "The committed team build: fitted 1-1/2\" DWV frame on 2 drums.",
       "builtin": true,
+      "summary": {
+        "preset": "cat2",
+        "drums": 2,
+        "weight": 104.5,
+        "loadPct": 46,
+        "crew": 2,
+        "cost": 769.9
+      },
       "build": {
         "name": "Current plan (build.json)",
         "notes": "The team's actual build. Edit it in raft-simulation.html (Parts tab), export it, and commit it here. Status: planned | bought | installed.",
@@ -33,7 +41,9 @@
             "xOffset": 0,
             "zOffset": 0
           },
-          "failedDrum": null
+          "failedDrum": null,
+          "frameStyle": "fitted",
+          "fittingTakeoff": 1.25
         },
         "parts": [
           {
@@ -51,35 +61,21 @@
           },
           {
             "catalog_id": "S001",
-            "name": "PVC pipe 1-1/2\" Sch 40 (solid) x 10 ft",
+            "name": "PVC pipe 1-1/2\" x 10 ft (cut to size)",
             "role": "pipe",
             "category": "frame",
             "material": "pvc",
-            "quantity": 6,
+            "quantity": 5,
             "weight_lb_each": 5.1,
             "weight_measured": false,
             "unit_cost_usd": 34.98,
-            "status": "planned",
-            "notes": "",
-            "foam_filled": true
-          },
-          {
-            "catalog_id": "S004",
-            "name": "PVC pipe 1-1/2\" Sch 40 (foam-filled) x 10 ft",
-            "role": "pipe",
-            "category": "frame",
-            "material": "pvc",
-            "quantity": 2,
-            "weight_lb_each": 3.5,
-            "weight_measured": false,
-            "unit_cost_usd": 34.98,
-            "status": "planned",
-            "notes": "",
+            "status": "bought",
+            "notes": "5 full sticks bought 2026-10-01 after a dry-fit mockup with precut pieces. Cut to the simulator's cut list.",
             "foam_filled": true
           },
           {
             "catalog_id": "S005",
-            "name": "PVC 90° elbow 1-1/2\" Sch 40",
+            "name": "1-1/2\" PVC/DWV 90° elbow",
             "role": "elbow",
             "category": "frame",
             "material": "pvc",
@@ -89,6 +85,34 @@
             "unit_cost_usd": 1.6,
             "status": "planned",
             "notes": "",
+            "foam_filled": true
+          },
+          {
+            "catalog_id": "FT04",
+            "name": "1-1/2\" DWV sanitary tee (HxHxH)",
+            "role": "tee",
+            "category": "frame",
+            "material": "pvc",
+            "quantity": 10,
+            "weight_lb_each": 0.35,
+            "weight_measured": false,
+            "unit_cost_usd": 4.5,
+            "status": "planned",
+            "notes": "Quantity from the simulator; confirm the price.",
+            "foam_filled": true
+          },
+          {
+            "catalog_id": "FT01",
+            "name": "1-1/2\" DWV double sanitary tee (HxHxHxH)",
+            "role": "cross",
+            "category": "frame",
+            "material": "pvc",
+            "quantity": 4,
+            "weight_lb_each": 0.45,
+            "weight_measured": false,
+            "unit_cost_usd": 7.23,
+            "status": "planned",
+            "notes": "Price from shelf tag. Quantity from the simulator's fitted 2-drum frame; update to what you bought.",
             "foam_filled": true
           },
           {
@@ -358,12 +382,20 @@
       }
     },
     {
-      "id": "cat2-light",
-      "name": "Catamaran: 2 drums, 1 crew",
-      "description": "Lightest option, one paddler. Watch fore-aft balance.",
+      "id": "cat2-fit-5-sticks",
+      "name": "Catamaran: fits 5 sticks",
+      "description": "2 drums, fitted frame, bow frame and guard left off, so the cut list fits the 5 sticks already bought.",
       "builtin": true,
+      "summary": {
+        "preset": "cat2",
+        "drums": 2,
+        "weight": 104.5,
+        "loadPct": 46,
+        "crew": 2,
+        "cost": 769.9
+      },
       "build": {
-        "name": "Catamaran: 2 drums, 1 crew",
+        "name": "Catamaran: fits 5 sticks",
         "notes": "The team's actual build. Edit it in raft-simulation.html (Parts tab), export it, and commit it here. Status: planned | bought | installed.",
         "config": {
           "preset": "cat2",
@@ -373,7 +405,7 @@
           "pontoonSpacing": 47,
           "drumOffset": 0,
           "drumSpread": 20,
-          "bow": true,
+          "bow": false,
           "bowRiser": 12,
           "bowStrut": 18,
           "deck": {
@@ -384,12 +416,14 @@
           "mastHeight": 30,
           "noodleRail": true,
           "crew": {
-            "count": 1,
+            "count": 2,
             "weightEach": 175,
             "xOffset": 0,
             "zOffset": 0
           },
-          "failedDrum": null
+          "failedDrum": null,
+          "frameStyle": "fitted",
+          "fittingTakeoff": 1.25
         },
         "parts": [
           {
@@ -407,35 +441,21 @@
           },
           {
             "catalog_id": "S001",
-            "name": "PVC pipe 1-1/2\" Sch 40 (solid) x 10 ft",
+            "name": "PVC pipe 1-1/2\" x 10 ft (cut to size)",
             "role": "pipe",
             "category": "frame",
             "material": "pvc",
-            "quantity": 6,
+            "quantity": 5,
             "weight_lb_each": 5.1,
             "weight_measured": false,
             "unit_cost_usd": 34.98,
-            "status": "planned",
-            "notes": "",
-            "foam_filled": true
-          },
-          {
-            "catalog_id": "S004",
-            "name": "PVC pipe 1-1/2\" Sch 40 (foam-filled) x 10 ft",
-            "role": "pipe",
-            "category": "frame",
-            "material": "pvc",
-            "quantity": 2,
-            "weight_lb_each": 3.5,
-            "weight_measured": false,
-            "unit_cost_usd": 34.98,
-            "status": "planned",
-            "notes": "",
+            "status": "bought",
+            "notes": "5 full sticks bought 2026-10-01 after a dry-fit mockup with precut pieces. Cut to the simulator's cut list.",
             "foam_filled": true
           },
           {
             "catalog_id": "S005",
-            "name": "PVC 90° elbow 1-1/2\" Sch 40",
+            "name": "1-1/2\" PVC/DWV 90° elbow",
             "role": "elbow",
             "category": "frame",
             "material": "pvc",
@@ -445,6 +465,34 @@
             "unit_cost_usd": 1.6,
             "status": "planned",
             "notes": "",
+            "foam_filled": true
+          },
+          {
+            "catalog_id": "FT04",
+            "name": "1-1/2\" DWV sanitary tee (HxHxH)",
+            "role": "tee",
+            "category": "frame",
+            "material": "pvc",
+            "quantity": 10,
+            "weight_lb_each": 0.35,
+            "weight_measured": false,
+            "unit_cost_usd": 4.5,
+            "status": "planned",
+            "notes": "Quantity from the simulator; confirm the price.",
+            "foam_filled": true
+          },
+          {
+            "catalog_id": "FT01",
+            "name": "1-1/2\" DWV double sanitary tee (HxHxHxH)",
+            "role": "cross",
+            "category": "frame",
+            "material": "pvc",
+            "quantity": 4,
+            "weight_lb_each": 0.45,
+            "weight_measured": false,
+            "unit_cost_usd": 7.23,
+            "status": "planned",
+            "notes": "Price from shelf tag. Quantity from the simulator's fitted 2-drum frame; update to what you bought.",
             "foam_filled": true
           },
           {
@@ -718,6 +766,14 @@
       "name": "Triangle: 3 drums, levelled",
       "description": "Bow drum + 2 stern drums, shifted 7\" forward so it floats level with 2 crew.",
       "builtin": true,
+      "summary": {
+        "preset": "tri3bow",
+        "drums": 3,
+        "weight": 124.5,
+        "loadPct": 32,
+        "crew": 2,
+        "cost": 804.9
+      },
       "build": {
         "name": "Triangle: 3 drums, levelled",
         "notes": "The team's actual build. Edit it in raft-simulation.html (Parts tab), export it, and commit it here. Status: planned | bought | installed.",
@@ -745,7 +801,9 @@
             "xOffset": 0,
             "zOffset": 0
           },
-          "failedDrum": null
+          "failedDrum": null,
+          "frameStyle": "fitted",
+          "fittingTakeoff": 1.25
         },
         "parts": [
           {
@@ -763,35 +821,21 @@
           },
           {
             "catalog_id": "S001",
-            "name": "PVC pipe 1-1/2\" Sch 40 (solid) x 10 ft",
+            "name": "PVC pipe 1-1/2\" x 10 ft (cut to size)",
             "role": "pipe",
             "category": "frame",
             "material": "pvc",
-            "quantity": 6,
+            "quantity": 5,
             "weight_lb_each": 5.1,
             "weight_measured": false,
             "unit_cost_usd": 34.98,
-            "status": "planned",
-            "notes": "",
-            "foam_filled": true
-          },
-          {
-            "catalog_id": "S004",
-            "name": "PVC pipe 1-1/2\" Sch 40 (foam-filled) x 10 ft",
-            "role": "pipe",
-            "category": "frame",
-            "material": "pvc",
-            "quantity": 2,
-            "weight_lb_each": 3.5,
-            "weight_measured": false,
-            "unit_cost_usd": 34.98,
-            "status": "planned",
-            "notes": "",
+            "status": "bought",
+            "notes": "5 full sticks bought 2026-10-01 after a dry-fit mockup with precut pieces. Cut to the simulator's cut list.",
             "foam_filled": true
           },
           {
             "catalog_id": "S005",
-            "name": "PVC 90° elbow 1-1/2\" Sch 40",
+            "name": "1-1/2\" PVC/DWV 90° elbow",
             "role": "elbow",
             "category": "frame",
             "material": "pvc",
@@ -801,6 +845,34 @@
             "unit_cost_usd": 1.6,
             "status": "planned",
             "notes": "",
+            "foam_filled": true
+          },
+          {
+            "catalog_id": "FT04",
+            "name": "1-1/2\" DWV sanitary tee (HxHxH)",
+            "role": "tee",
+            "category": "frame",
+            "material": "pvc",
+            "quantity": 10,
+            "weight_lb_each": 0.35,
+            "weight_measured": false,
+            "unit_cost_usd": 4.5,
+            "status": "planned",
+            "notes": "Quantity from the simulator; confirm the price.",
+            "foam_filled": true
+          },
+          {
+            "catalog_id": "FT01",
+            "name": "1-1/2\" DWV double sanitary tee (HxHxHxH)",
+            "role": "cross",
+            "category": "frame",
+            "material": "pvc",
+            "quantity": 4,
+            "weight_lb_each": 0.45,
+            "weight_measured": false,
+            "unit_cost_usd": 7.23,
+            "status": "planned",
+            "notes": "Price from shelf tag. Quantity from the simulator's fitted 2-drum frame; update to what you bought.",
             "foam_filled": true
           },
           {
@@ -1072,8 +1144,16 @@
     {
       "id": "quad4-under150",
       "name": "Pontoon: 4 drums, under 150 lb",
-      "description": "Original 4-drum render with seat cushions dropped to get under the weight limit.",
+      "description": "4 drums with seat cushions dropped to stay under the weight limit.",
       "builtin": true,
+      "summary": {
+        "preset": "quad4pontoon",
+        "drums": 4,
+        "weight": 140.4,
+        "loadPct": 25,
+        "crew": 2,
+        "cost": 793.94
+      },
       "build": {
         "name": "Pontoon: 4 drums, under 150 lb",
         "notes": "The team's actual build. Edit it in raft-simulation.html (Parts tab), export it, and commit it here. Status: planned | bought | installed.",
@@ -1101,7 +1181,9 @@
             "xOffset": 0,
             "zOffset": 0
           },
-          "failedDrum": null
+          "failedDrum": null,
+          "frameStyle": "fitted",
+          "fittingTakeoff": 1.25
         },
         "parts": [
           {
@@ -1119,35 +1201,21 @@
           },
           {
             "catalog_id": "S001",
-            "name": "PVC pipe 1-1/2\" Sch 40 (solid) x 10 ft",
+            "name": "PVC pipe 1-1/2\" x 10 ft (cut to size)",
             "role": "pipe",
             "category": "frame",
             "material": "pvc",
-            "quantity": 6,
+            "quantity": 5,
             "weight_lb_each": 5.1,
             "weight_measured": false,
             "unit_cost_usd": 34.98,
-            "status": "planned",
-            "notes": "",
-            "foam_filled": true
-          },
-          {
-            "catalog_id": "S004",
-            "name": "PVC pipe 1-1/2\" Sch 40 (foam-filled) x 10 ft",
-            "role": "pipe",
-            "category": "frame",
-            "material": "pvc",
-            "quantity": 2,
-            "weight_lb_each": 3.5,
-            "weight_measured": false,
-            "unit_cost_usd": 34.98,
-            "status": "planned",
-            "notes": "",
+            "status": "bought",
+            "notes": "5 full sticks bought 2026-10-01 after a dry-fit mockup with precut pieces. Cut to the simulator's cut list.",
             "foam_filled": true
           },
           {
             "catalog_id": "S005",
-            "name": "PVC 90° elbow 1-1/2\" Sch 40",
+            "name": "1-1/2\" PVC/DWV 90° elbow",
             "role": "elbow",
             "category": "frame",
             "material": "pvc",
@@ -1157,6 +1225,401 @@
             "unit_cost_usd": 1.6,
             "status": "planned",
             "notes": "",
+            "foam_filled": true
+          },
+          {
+            "catalog_id": "FT04",
+            "name": "1-1/2\" DWV sanitary tee (HxHxH)",
+            "role": "tee",
+            "category": "frame",
+            "material": "pvc",
+            "quantity": 10,
+            "weight_lb_each": 0.35,
+            "weight_measured": false,
+            "unit_cost_usd": 4.5,
+            "status": "planned",
+            "notes": "Quantity from the simulator; confirm the price.",
+            "foam_filled": true
+          },
+          {
+            "catalog_id": "FT01",
+            "name": "1-1/2\" DWV double sanitary tee (HxHxHxH)",
+            "role": "cross",
+            "category": "frame",
+            "material": "pvc",
+            "quantity": 4,
+            "weight_lb_each": 0.45,
+            "weight_measured": false,
+            "unit_cost_usd": 7.23,
+            "status": "planned",
+            "notes": "Price from shelf tag. Quantity from the simulator's fitted 2-drum frame; update to what you bought.",
+            "foam_filled": true
+          },
+          {
+            "catalog_id": "S006",
+            "name": "PVC coupling 1-1/2\" Sch 40",
+            "role": "coupling",
+            "category": "frame",
+            "material": "pvc",
+            "quantity": 1,
+            "weight_lb_each": 0.15,
+            "weight_measured": false,
+            "unit_cost_usd": 1.2,
+            "status": "planned",
+            "notes": "",
+            "foam_filled": true
+          },
+          {
+            "catalog_id": "D001",
+            "name": "Coroplast corrugated plastic 4 mm, 4 x 8 ft",
+            "role": "coroplast",
+            "category": "deck",
+            "material": "polypropylene",
+            "quantity": 2,
+            "weight_lb_each": 6,
+            "weight_measured": false,
+            "unit_cost_usd": 38.29,
+            "status": "planned",
+            "notes": ""
+          },
+          {
+            "catalog_id": "S003",
+            "name": "XPS foam board 1\" x 4 ft x 8 ft (FOAMULAR)",
+            "role": "xps",
+            "category": "deck",
+            "material": "xps",
+            "quantity": 2,
+            "weight_lb_each": 3,
+            "weight_measured": false,
+            "unit_cost_usd": 24.97,
+            "status": "planned",
+            "notes": ""
+          },
+          {
+            "catalog_id": "A001",
+            "name": "2-part marine epoxy",
+            "role": "epoxy",
+            "category": "adhesive",
+            "material": "epoxy",
+            "quantity": 2,
+            "weight_lb_each": 0.1,
+            "weight_measured": false,
+            "unit_cost_usd": 5,
+            "status": "planned",
+            "notes": ""
+          },
+          {
+            "catalog_id": "A002",
+            "name": "100% silicone / marine sealant, 10.1 oz",
+            "role": "sealant",
+            "category": "adhesive",
+            "material": "silicone",
+            "quantity": 3,
+            "weight_lb_each": 0.7,
+            "weight_measured": false,
+            "unit_cost_usd": 6.5,
+            "status": "planned",
+            "notes": ""
+          },
+          {
+            "catalog_id": "A003",
+            "name": "PVC primer + cement kit",
+            "role": "cement",
+            "category": "adhesive",
+            "material": "solvent",
+            "quantity": 1,
+            "weight_lb_each": 0,
+            "weight_measured": false,
+            "unit_cost_usd": 11.98,
+            "status": "planned",
+            "notes": ""
+          },
+          {
+            "catalog_id": "A004",
+            "name": "Expanding spray foam, 12 oz (Great Stuff or similar)",
+            "role": "spray-foam",
+            "category": "adhesive",
+            "material": "polyurethane-foam",
+            "quantity": 4,
+            "weight_lb_each": 0.4,
+            "weight_measured": false,
+            "unit_cost_usd": 6.98,
+            "status": "planned",
+            "notes": ""
+          },
+          {
+            "catalog_id": "R001",
+            "name": "Heavy-duty UV cable ties 17\", 120 lb (100-pack)",
+            "role": "zip-tie",
+            "category": "rigging",
+            "material": "nylon",
+            "quantity": 2,
+            "weight_lb_each": 0,
+            "weight_measured": false,
+            "unit_cost_usd": 24.98,
+            "status": "planned",
+            "notes": ""
+          },
+          {
+            "catalog_id": "R002",
+            "name": "550 paracord, 100 ft",
+            "role": "rope",
+            "category": "rigging",
+            "material": "nylon",
+            "quantity": 1,
+            "weight_lb_each": 0.6,
+            "weight_measured": false,
+            "unit_cost_usd": 7.98,
+            "status": "planned",
+            "notes": "",
+            "max_piece_length_in": 18
+          },
+          {
+            "catalog_id": "C001",
+            "name": "Pool noodles",
+            "role": "noodle",
+            "category": "comfort",
+            "material": "pe-foam",
+            "quantity": 8,
+            "weight_lb_each": 0.3,
+            "weight_measured": false,
+            "unit_cost_usd": 3.58,
+            "status": "planned",
+            "notes": ""
+          },
+          {
+            "catalog_id": "X001",
+            "name": "Outdoor acrylic craft paint set (18 colors)",
+            "role": "paint",
+            "category": "decor",
+            "material": "acrylic",
+            "quantity": 1,
+            "weight_lb_each": 0.2,
+            "weight_measured": false,
+            "unit_cost_usd": 28.98,
+            "status": "planned",
+            "notes": ""
+          },
+          {
+            "catalog_id": "X002",
+            "name": "Black outdoor fabric spray paint, 12 oz",
+            "role": "paint",
+            "category": "decor",
+            "material": "acrylic",
+            "quantity": 1,
+            "weight_lb_each": 0.2,
+            "weight_measured": false,
+            "unit_cost_usd": 13.98,
+            "status": "planned",
+            "notes": ""
+          },
+          {
+            "catalog_id": "X003",
+            "name": "Red outdoor fabric spray paint, 12 oz",
+            "role": "paint",
+            "category": "decor",
+            "material": "acrylic",
+            "quantity": 1,
+            "weight_lb_each": 0.2,
+            "weight_measured": false,
+            "unit_cost_usd": 13.98,
+            "status": "planned",
+            "notes": ""
+          },
+          {
+            "catalog_id": "X004",
+            "name": "Canvas drop cloth, 4 x 5 ft",
+            "role": "fabric",
+            "category": "decor",
+            "material": "cotton-canvas",
+            "quantity": 2,
+            "weight_lb_each": 0.2,
+            "weight_measured": false,
+            "unit_cost_usd": 13.98,
+            "status": "planned",
+            "notes": ""
+          },
+          {
+            "catalog_id": "X005",
+            "name": "Mast: foam-filled 1-1/2\" PVC offcut (≤ 30\" above deck)",
+            "role": "mast",
+            "category": "decor",
+            "material": "pvc",
+            "quantity": 1,
+            "weight_lb_each": 2,
+            "weight_measured": false,
+            "unit_cost_usd": 0,
+            "status": "planned",
+            "notes": "",
+            "foam_filled": true
+          },
+          {
+            "catalog_id": "X006",
+            "name": "Foam paint brush multi-pack",
+            "role": "tool",
+            "category": "decor",
+            "material": "n/a",
+            "quantity": 1,
+            "weight_lb_each": 0.2,
+            "weight_measured": false,
+            "unit_cost_usd": 6.98,
+            "status": "planned",
+            "notes": ""
+          },
+          {
+            "catalog_id": "X007",
+            "name": "Painter's tape 0.94 in x 60 yd",
+            "role": "tape",
+            "category": "decor",
+            "material": "paper",
+            "quantity": 1,
+            "weight_lb_each": 0.2,
+            "weight_measured": false,
+            "unit_cost_usd": 6.47,
+            "status": "planned",
+            "notes": ""
+          },
+          {
+            "catalog_id": "X008",
+            "name": "Fabric glue, 4 oz",
+            "role": "glue",
+            "category": "decor",
+            "material": "glue",
+            "quantity": 1,
+            "weight_lb_each": 0.2,
+            "weight_measured": false,
+            "unit_cost_usd": 5.48,
+            "status": "planned",
+            "notes": ""
+          },
+          {
+            "catalog_id": "T001",
+            "name": "Flush-cut snips",
+            "role": "tool",
+            "category": "tools",
+            "material": "n/a",
+            "quantity": 1,
+            "weight_lb_each": 0,
+            "weight_measured": false,
+            "unit_cost_usd": 7.99,
+            "status": "planned",
+            "notes": ""
+          }
+        ]
+      }
+    },
+    {
+      "id": "render-stacked",
+      "name": "Original render (stacked frame)",
+      "description": "The 4-drum render with beams zip-tied on top of the rails.",
+      "builtin": true,
+      "summary": {
+        "preset": "quad4pontoon",
+        "drums": 4,
+        "weight": 140.4,
+        "loadPct": 25,
+        "crew": 2,
+        "cost": 793.94
+      },
+      "build": {
+        "name": "Original render (stacked frame)",
+        "notes": "The team's actual build. Edit it in raft-simulation.html (Parts tab), export it, and commit it here. Status: planned | bought | installed.",
+        "config": {
+          "preset": "quad4pontoon",
+          "frameLength": 84,
+          "frameWidth": 72,
+          "beamCount": 4,
+          "pontoonSpacing": 47,
+          "drumOffset": 0,
+          "drumSpread": 20,
+          "bow": true,
+          "bowRiser": 12,
+          "bowStrut": 18,
+          "deck": {
+            "length": 72,
+            "width": 24,
+            "thickness": 2.3
+          },
+          "mastHeight": 30,
+          "noodleRail": true,
+          "crew": {
+            "count": 2,
+            "weightEach": 175,
+            "xOffset": 0,
+            "zOffset": 0
+          },
+          "failedDrum": null,
+          "frameStyle": "stacked",
+          "fittingTakeoff": 1.25
+        },
+        "parts": [
+          {
+            "catalog_id": "F001",
+            "name": "Plastic 55-gallon drum (reconditioned)",
+            "role": "drum",
+            "category": "flotation",
+            "material": "hdpe",
+            "quantity": 4,
+            "weight_lb_each": 20,
+            "weight_measured": false,
+            "unit_cost_usd": 35,
+            "status": "planned",
+            "notes": ""
+          },
+          {
+            "catalog_id": "S001",
+            "name": "PVC pipe 1-1/2\" x 10 ft (cut to size)",
+            "role": "pipe",
+            "category": "frame",
+            "material": "pvc",
+            "quantity": 5,
+            "weight_lb_each": 5.1,
+            "weight_measured": false,
+            "unit_cost_usd": 34.98,
+            "status": "bought",
+            "notes": "5 full sticks bought 2026-10-01 after a dry-fit mockup with precut pieces. Cut to the simulator's cut list.",
+            "foam_filled": true
+          },
+          {
+            "catalog_id": "S005",
+            "name": "1-1/2\" PVC/DWV 90° elbow",
+            "role": "elbow",
+            "category": "frame",
+            "material": "pvc",
+            "quantity": 6,
+            "weight_lb_each": 0.2,
+            "weight_measured": false,
+            "unit_cost_usd": 1.6,
+            "status": "planned",
+            "notes": "",
+            "foam_filled": true
+          },
+          {
+            "catalog_id": "FT04",
+            "name": "1-1/2\" DWV sanitary tee (HxHxH)",
+            "role": "tee",
+            "category": "frame",
+            "material": "pvc",
+            "quantity": 10,
+            "weight_lb_each": 0.35,
+            "weight_measured": false,
+            "unit_cost_usd": 4.5,
+            "status": "planned",
+            "notes": "Quantity from the simulator; confirm the price.",
+            "foam_filled": true
+          },
+          {
+            "catalog_id": "FT01",
+            "name": "1-1/2\" DWV double sanitary tee (HxHxHxH)",
+            "role": "cross",
+            "category": "frame",
+            "material": "pvc",
+            "quantity": 4,
+            "weight_lb_each": 0.45,
+            "weight_measured": false,
+            "unit_cost_usd": 7.23,
+            "status": "planned",
+            "notes": "Price from shelf tag. Quantity from the simulator's fitted 2-drum frame; update to what you bought.",
             "foam_filled": true
           },
           {

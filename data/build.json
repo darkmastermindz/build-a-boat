@@ -26,7 +26,9 @@
       "xOffset": 0,
       "zOffset": 0
     },
-    "failedDrum": null
+    "failedDrum": null,
+    "frameStyle": "fitted",
+    "fittingTakeoff": 1.25
   },
   "parts": [
     {
@@ -44,35 +46,21 @@
     },
     {
       "catalog_id": "S001",
-      "name": "PVC pipe 1-1/2\" Sch 40 (solid) x 10 ft",
+      "name": "PVC pipe 1-1/2\" x 10 ft (cut to size)",
       "role": "pipe",
       "category": "frame",
       "material": "pvc",
-      "quantity": 6,
+      "quantity": 5,
       "weight_lb_each": 5.1,
       "weight_measured": false,
       "unit_cost_usd": 34.98,
-      "status": "planned",
-      "notes": "",
-      "foam_filled": true
-    },
-    {
-      "catalog_id": "S004",
-      "name": "PVC pipe 1-1/2\" Sch 40 (foam-filled) x 10 ft",
-      "role": "pipe",
-      "category": "frame",
-      "material": "pvc",
-      "quantity": 2,
-      "weight_lb_each": 3.5,
-      "weight_measured": false,
-      "unit_cost_usd": 34.98,
-      "status": "planned",
-      "notes": "",
+      "status": "bought",
+      "notes": "5 full sticks bought 2026-10-01 after a dry-fit mockup with precut pieces. Cut to the simulator's cut list.",
       "foam_filled": true
     },
     {
       "catalog_id": "S005",
-      "name": "PVC 90\u00b0 elbow 1-1/2\" Sch 40",
+      "name": "1-1/2\" PVC/DWV 90\u00b0 elbow",
       "role": "elbow",
       "category": "frame",
       "material": "pvc",
@@ -82,6 +70,34 @@
       "unit_cost_usd": 1.6,
       "status": "planned",
       "notes": "",
+      "foam_filled": true
+    },
+    {
+      "catalog_id": "FT04",
+      "name": "1-1/2\" DWV sanitary tee (HxHxH)",
+      "role": "tee",
+      "category": "frame",
+      "material": "pvc",
+      "quantity": 10,
+      "weight_lb_each": 0.35,
+      "weight_measured": false,
+      "unit_cost_usd": 4.5,
+      "status": "planned",
+      "notes": "Quantity from the simulator; confirm the price.",
+      "foam_filled": true
+    },
+    {
+      "catalog_id": "FT01",
+      "name": "1-1/2\" DWV double sanitary tee (HxHxHxH)",
+      "role": "cross",
+      "category": "frame",
+      "material": "pvc",
+      "quantity": 4,
+      "weight_lb_each": 0.45,
+      "weight_measured": false,
+      "unit_cost_usd": 7.23,
+      "status": "planned",
+      "notes": "Price from shelf tag. Quantity from the simulator's fitted 2-drum frame; update to what you bought.",
       "foam_filled": true
     },
     {

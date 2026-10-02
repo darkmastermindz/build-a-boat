@@ -51,7 +51,7 @@ test('more drums means shallower draft for the same load', () => {
 
 test('rules: metal, weight, thick wood and long rope are flagged', () => {
   const b = clone(build);
-  b.parts.push({ name: 'Galvanized carriage bolts', role: 'other', category: 'frame', material: 'metal', quantity: 1, weight_lb_each: 40 });
+  b.parts.push({ name: 'Galvanized carriage bolts', role: 'other', category: 'frame', material: 'metal', quantity: 1, weight_lb_each: 60 });
   b.parts.push({ name: 'Wood dowel 1 in', role: 'mast', category: 'decor', material: 'wood', thickness_in: 1, quantity: 1, weight_lb_each: 1 });
   b.parts.push({ name: 'Long rope', role: 'rope', category: 'rigging', material: 'polypropylene', max_piece_length_in: 50, quantity: 1, weight_lb_each: 1 });
   const errs = M.analyze(b, rules, { skipLeak: true }).rules.filter(r => r.level === 'error').map(r => r.id);
@@ -63,8 +63,24 @@ test('current build passes hard rules', () => {
   assert.deepStrictEqual(errs, []);
 });
 
-test('pipe cut list packs into 10 ft sticks', () => {
-  const req = M.requirements(M.geometry(build.config));
-  req.sticks.forEach(s => assert.ok(s.cuts.reduce((t, c) => t + c.len, 0) <= 120));
-  assert.ok(req.items.pipe >= 8);
+test('pipe cut list packs into 10 ft sticks (both frame styles)', () => {
+  for (const frameStyle of ['stacked', 'fitted']) {
+    const req = M.requirements(M.geometry(Object.assign({}, build.config, { frameStyle })));
+    req.sticks.forEach(s => assert.ok(s.cuts.reduce((t, c) => t + c.len, 0) <= 120, frameStyle));
+    const total = req.cuts.reduce((t, c) => t + c.len, 0);
+    assert.ok(req.items.pipe >= Math.ceil(total / 120), frameStyle);
+  }
+});
+
+test('fitted frame: fittings and cut lengths follow the grid', () => {
+  const cfg = Object.assign({}, build.config, { preset: 'cat2', frameStyle: 'fitted', beamCount: 4, frameLength: 84, pontoonSpacing: 47, fittingTakeoff: 1.25, bow: true });
+  const g = M.geometry(cfg), req = M.requirements(g);
+  // 4 rails x 4 beams = 16 nodes: 4 corners (2 front corners become tees for the bow riser), 8 edges, 4 interior
+  assert.strictEqual(req.items.cross, 4);
+  assert.strictEqual(req.items.tee, 8 + 2);
+  assert.strictEqual(req.items.elbow, 2 + 4);
+  const railSeg = req.cuts.find(c => c.label === 'rail 1.1').len;
+  near(railSeg, 84 / 3 - 2.5, 1e-6, 'rail segment');
+  near(g.frameWidth, 2 * (47 / 2 + 6), 1e-9, 'fitted width = outer rail spacing');
+  assert.ok(g.railY > M.DRUM.dia, 'fitted frame sits on top of the drums');
 });
