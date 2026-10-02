@@ -9,11 +9,17 @@ The team is building a pirate-themed drum raft. This repo holds the
 **suggested materials**, and a rules checker that turns all of it into
 recommendations.
 
+## 🌐 Live site
+
+**https://bob-raft-sim.netlify.app**: the simulator, deployed on Netlify,
+with shared design profiles.
+
 ## 🚀 Quick start
 
 ```bash
-npx serve .            # or: python3 -m http.server
-# open http://localhost:3000/raft-simulation.html
+npm install
+npx netlify dev        # full site incl. shared profiles API at http://localhost:8888
+# or static only:  npx serve .  → http://localhost:3000/raft-simulation.html
 ```
 
 `raft-simulation.html` loads its data with `fetch()`, so serve the folder
@@ -32,7 +38,11 @@ bob/
 │   ├── catalog.json         # SUGGESTED materials (from the shopping-list sheet + rule-driven additions)
 │   ├── rules.json           # Competition rules used by the checker
 │   └── suppliers.json       # Local suppliers (Charlotte area, NC)
+├── netlify/functions/profiles.mts  # Shared design profiles API (Netlify Blobs)
+├── netlify.toml / package.json     # Netlify build: tests → dist/
+├── data/profiles.json       # Built-in suggested design profiles
 ├── scripts/
+│   ├── build-site.js        # Assembles dist/ for Netlify
 │   ├── raft-model.js        # Shared geometry, hydrostatics, rules and recommendations (browser + Node)
 │   └── generate-report.js   # Markdown build report from build.json
 ├── tests/raft-model.test.js # node --test
@@ -61,6 +71,12 @@ bob/
   compared with what's listed, and the pipe cut list.
 - **Compare tab**: every layout run on your parts and crew, with a suggested
   pick.
+- **Design profiles** (the dropdown in the header): load a suggested design
+  or a team design, then **Save** (overwrite) or **Save as…** (new profile).
+  - On the Netlify site, profiles are shared with everyone through
+    `/api/profiles` (a Netlify Function backed by Netlify Blobs).
+  - On a plain static server they're saved on your device instead.
+  - Suggested designs come from `data/profiles.json`.
 
 ## 📋 Workflow toward the final build
 
@@ -78,6 +94,19 @@ Report from the command line:
 node scripts/generate-report.js v2.2 "notes" --check   # exits 1 on rule errors
 node --test tests/*.test.js
 ```
+
+## ☁️ Netlify
+
+Project: `bob-raft-sim`. The build runs `npm test && npm run build`, publishes
+`dist/`, and deploys `netlify/functions/profiles.mts`.
+
+- `/`: the simulator. `/raft-render.html`: the original render.
+  `/legacy.html`: the v1.0 simulator.
+- `GET /api/profiles`, `GET|PUT|DELETE /api/profiles/:id`: team profiles.
+- Production deploys write to the global `profiles` blob store; previews use a
+  deploy-scoped store, so test saves never reach production.
+- Anyone with the URL can save or delete profiles. To restrict that, turn on
+  site password protection in Netlify.
 
 ## ⚙️ GitHub Action
 
