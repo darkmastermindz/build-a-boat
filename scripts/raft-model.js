@@ -22,16 +22,25 @@
     { id: 'hdpe-30-tight', label: '30 gal plastic, tight-head', gallons: 30, dia: 18.25, len: 29.75, weight: 12 },
     { id: 'hdpe-15-tight', label: '15 gal plastic, tight-head', gallons: 15, dia: 14.25, len: 23.5, weight: 7 },
   ];
-  function drumSpec(c) {
-    const d = (c && c.drum) || {};
-    const base = DRUM_SIZES.find(x => x.id === d.size) || DRUM_SIZES[0];
+  function specFrom(d, fallback) {
+    d = d || {};
+    const base = DRUM_SIZES.find(x => x.id === d.size) || fallback || DRUM_SIZES[0];
     const num = (v, def) => (isFinite(+v) && +v > 0 ? +v : def);
     return {
-      size: d.size || base.id, label: d.size === 'custom' ? 'Custom drum' : base.label,
+      size: d.size || base.size || base.id, label: d.size === 'custom' ? 'Custom drum' : (base.label || 'Drum'),
       gallons: num(d.gallons, base.gallons), dia: num(d.dia, base.dia), len: num(d.len, base.len), weight: num(d.weight, base.weight),
       weightMeasured: !!d.weightMeasured,
     };
   }
+  // drumSpec(c) is the default drum; drumSpec(c, i) is drum i, using
+  // config.drumSpecs[i] when set (per-drum measurements) or the default.
+  function drumSpec(c, i) {
+    const def = specFrom(c && c.drum);
+    if (i == null) return def;
+    const o = c && Array.isArray(c.drumSpecs) ? c.drumSpecs[i] : null;
+    return o ? Object.assign(specFrom(o, def), { own: true }) : Object.assign({}, def, { own: false });
+  }
+  const sameSpec = (a, b) => a.dia === b.dia && a.len === b.len && a.weight === b.weight;
   const PIPE_R = 0.95;                // 1-1/2" Sch 40 OD 1.9"
   const PIPE_ID_AREA = Math.PI * (1.61 / 2) ** 2;
   const RAIL_OFFSET = 6;              // rails sit 6" either side of a pontoon line
@@ -119,8 +128,13 @@
   function geometry(cfgIn) {
     const c = withDefaults(cfgIn);
     const raw = Array.isArray(c.drums) ? c.drums : PRESETS[c.preset].layout(c);
-    const drum = drumSpec(c), r = drum.dia / 2;
-    const drums = raw.map((d, i) => ({ id: i, x: d.x, z: d.z, failed: c.failedDrum === i }));
+    const drum = drumSpec(c);
+    const drums = raw.map((d, i) => { const sp = drumSpec(c, i); return { id: i, x: d.x, z: d.z, failed: c.failedDrum === i, spec: sp, r: sp.dia / 2, len: sp.len }; });
+    // Drums are lashed up snug to the frame, so their tops line up; a smaller
+    // drum's bottom sits higher (y0) than the largest drum's (y = 0).
+    const r = Math.max(...drums.map(d => d.r));
+    drums.forEach(d => { d.y0 = 2 * (r - d.r); });
+    const mixed = drums.some(d => !sameSpec(d.spec, drums[0].spec));
     const lines = [...new Set(drums.map(d => +d.z.toFixed(2)))].sort((a, b) => a - b);
     // stacked: rails rest on the drums, beams lashed on top (the render).
     // fitted: rails and beams in one plane joined by tees/crosses, sitting on the drum tops.
@@ -144,9 +158,9 @@
       x0: L / 2, x1: L / 2 + c.bowStrut, topY: railY + c.bowRiser, z: outerZ,
     } : null;
     const xs = [-L / 2, L / 2 + (bow ? c.bowStrut + PIPE_R : 0)];
-    drums.forEach(d => { xs.push(d.x - drum.len / 2, d.x + drum.len / 2); });
+    drums.forEach(d => { xs.push(d.x - d.len / 2, d.x + d.len / 2); });
     const zs = [-W / 2, W / 2];
-    drums.forEach(d => zs.push(d.z - r, d.z + r));
+    drums.forEach(d => zs.push(d.z - d.r, d.z + d.r));
     const mastTop = c.mastHeight > 0 ? deckTop + c.mastHeight : deckTop;
     const wallTop = Math.max(bow ? bow.topY + PIPE_R : 0, c.noodleRail ? deckTop + 2.5 : 0);
     const overall = {
@@ -157,13 +171,13 @@
     const overlaps = [];
     for (let i = 0; i < drums.length; i++) for (let j = i + 1; j < drums.length; j++) {
       const a = drums[i], b = drums[j];
-      if (Math.abs(a.z - b.z) < drum.dia && Math.abs(a.x - b.x) < drum.len) overlaps.push([i, j]);
+      if (Math.abs(a.z - b.z) < a.r + b.r && Math.abs(a.x - b.x) < (a.len + b.len) / 2) overlaps.push([i, j]);
     }
     return {
-      config: c, drum, r, fitted, frameWidth: W, railOffset: off, drums, lines, rails, beams, railY, beamY, deckBottom, deckTop, bow, outerZ,
+      config: c, drum, r, mixed, fitted, frameWidth: W, railOffset: off, drums, lines, rails, beams, railY, beamY, deckBottom, deckTop, bow, outerZ,
       mastTop, wallHeight: Math.max(0, wallTop - deckTop), overall, overlaps,
       beamsTooShort: !fitted && outerZ + PIPE_R > W / 2,
-      drumsOffFrame: drums.some(d => d.x - drum.len / 2 < -L / 2 - 1 || d.x + drum.len / 2 > L / 2 + 1),
+      drumsOffFrame: drums.some(d => d.x - d.len / 2 < -L / 2 - 1 || d.x + d.len / 2 > L / 2 + 1),
     };
   }
 
@@ -236,8 +250,8 @@
     const sticks = binPack(cuts);
     const pipeLen = cuts.reduce((s, k) => s + k.len, 0);
     const crossings = g.fitted ? 0 : g.rails.length * g.beams.length;
-    const bandTies = Math.ceil((2 * Math.PI * r + 8) / (tieLen - 4)) * 2;   // 2 bands per drum, ~4" lost per tie to the head and overlap
-    const ties = crossings * 2 + g.drums.length * bandTies + g.beams.length * 4 + (g.bow ? 10 : 0) + (c.mastHeight > 0 ? 6 : 0);
+    const bandTiesFor = rr => Math.ceil((2 * Math.PI * rr + 8) / (tieLen - 4)) * 2;   // 2 bands per drum, ~4" lost per tie to the head and overlap
+    const ties = crossings * 2 + g.drums.reduce((t, d) => t + bandTiesFor(d.r), 0) + g.beams.length * 4 + (g.bow ? 10 : 0) + (c.mastHeight > 0 ? 6 : 0);
     const layers = Math.max(1, Math.round(c.deck.thickness - 0.3));
     const bowGuardArea = g.bow ? 2 * (g.outerZ + PIPE_R) * (c.bowStrut + c.bowRiser) * 1.3 : 0;
     const coroArea = 2 * c.deck.length * c.deck.width + bowGuardArea;
@@ -292,10 +306,12 @@
   function weights(build, g) {
     const parts = boatParts(build.parts);
     const drumPart = parts.find(p => p.role === 'drum');
-    const drumEach = g.drum.weight;
-    const drumW = g.drums.length * drumEach;
-    let total = drumW, measured = g.drum.weightMeasured || (drumPart && drumPart.weight_measured) ? drumW : 0;
-    let onHand = drumPart && isBought(drumPart) ? Math.min(drumW, (+drumPart.quantity || 0) * drumEach) : 0;
+    const drumW = g.drums.reduce((t, d) => t + d.spec.weight, 0);
+    const drumEach = drumW / Math.max(1, g.drums.length);
+    const allMeasured = drumPart && drumPart.weight_measured;
+    let total = drumW, measured = g.drums.reduce((t, d) => t + (allMeasured || d.spec.weightMeasured ? d.spec.weight : 0), 0);
+    const drumsBoughtW = drumPart && isBought(drumPart) ? g.drums.slice(0, +drumPart.quantity || 0).reduce((t, d) => t + d.spec.weight, 0) : 0;
+    let onHand = drumsBoughtW;
     let boughtListed = 0;
     const byRole = { drum: drumW };
     partWeights(build, g).forEach(({ part: p, w }) => {
@@ -303,7 +319,7 @@
       byRole[p.role] = (byRole[p.role] || 0) + w;
       if (isBought(p)) { onHand += w; boughtListed += (+p.quantity || 0) * (+p.weight_lb_each || 0); }
     });
-    const usedBought = onHand - (drumPart && isBought(drumPart) ? Math.min(drumW, (+drumPart.quantity || 0) * drumEach) : 0);
+    const usedBought = onHand - drumsBoughtW;
     return {
       total, predicted: total, measured, drumEach, byRole, onHand,
       spareOnHand: Math.max(0, boughtListed - usedBought),
@@ -315,7 +331,7 @@
   function massItems(build, g, crewOverride) {
     const c = g.config, crew = Object.assign({}, c.crew, crewOverride || {});
     const wt = weights(build, g);
-    const items = g.drums.map(d => ({ w: wt.drumEach, x: d.x, y: g.r, z: d.z, label: 'drum' }));
+    const items = g.drums.map(d => ({ w: d.spec.weight, x: d.x, y: d.y0 + d.r, z: d.z, label: 'drum' }));
     let frameW = 0, deckW = 0, topW = 0;
     partWeights(build, g).forEach(({ part: p, w }) => {
       if (FRAME_ROLES.has(p.role)) frameW += w; else if (DECK_ROLES.has(p.role)) deckW += w; else topW += w;
@@ -340,16 +356,17 @@
 
   // ── Hydrostatics: solve heave, trim and heel ──
   function slicesOf(g) {
-    const out = [], L = g.drum.len, dl = L / SLICES, r = g.r;
+    const out = [];
     g.drums.filter(d => !d.failed).forEach(d => {
-      for (let k = 0; k < SLICES; k++) out.push({ x: d.x - L / 2 + (k + 0.5) * dl, z: d.z, dl, r, drum: d.id });
+      const dl = d.len / SLICES;
+      for (let k = 0; k < SLICES; k++) out.push({ x: d.x - d.len / 2 + (k + 0.5) * dl, z: d.z, dl, r: d.r, y0: d.y0, drum: d.id });
     });
     return out;
   }
   function forces(sl, d, t, p) {
     let F = 0, Mx = 0, Mz = 0;
     for (const s of sl) {
-      const b = segArea(d - s.x * t - s.z * p, s.r) * s.dl * WATER;
+      const b = segArea(d - s.x * t - s.z * p - s.y0, s.r) * s.dl * WATER;
       F += b; Mx += b * s.x; Mz += b * s.z;
     }
     return { F, Mx, Mz };
@@ -362,7 +379,7 @@
     const zg = items.reduce((s, i) => s + i.w * i.z, 0) / W;
     const KG = items.reduce((s, i) => s + i.w * i.y, 0) / W;
     const r = g.r;
-    const maxLb = sl.reduce((s, k) => s + Math.PI * r * r * k.dl * WATER, 0);
+    const maxLb = sl.reduce((s, k) => s + Math.PI * k.r * k.r * k.dl * WATER, 0);
     const base = { W, xg, zg, KG, maxLb, loadPct: maxLb ? (W / maxLb) * 100 : Infinity };
     if (!sl.length || W >= maxLb * 0.995) return Object.assign(base, { ok: false, reason: 'sinks' });
     const span = Math.max(1, ...sl.map(s => Math.abs(s.x)), ...sl.map(s => Math.abs(s.z)));
@@ -403,9 +420,9 @@
     let V = 0, KBm = 0, A = 0, Ax = 0, Az = 0, Ixx = 0, Izz = 0, Ix0 = 0, Iz0 = 0;
     const perDrum = {};
     for (const s of sl) {
-      const hh = hAt(s.x, s.z), a = segArea(hh, r), vol = a * s.dl;
-      V += vol; KBm += vol * segCentroidY(hh, r);
-      const w = segWidth(hh, r), wa = w * s.dl;
+      const hh = hAt(s.x, s.z) - s.y0, a = segArea(hh, s.r), vol = a * s.dl;
+      V += vol; KBm += vol * (segCentroidY(hh, s.r) + s.y0);
+      const w = segWidth(hh, s.r), wa = w * s.dl;
       A += wa; Ax += wa * s.x; Az += wa * s.z;
       Izz += wa * s.z * s.z + s.dl * w ** 3 / 12;   // roll (about x axis)
       Ixx += wa * s.x * s.x + w * s.dl ** 3 / 12;   // pitch (about z axis)
@@ -429,7 +446,7 @@
       maxDraft: Math.max(...drafts), meanDraft: d,
       minFreeboard: Math.min(...freeboards), bowFreeboard, sternFreeboard,
       gmRoll, gmPitch, KB, waterplaneArea: A,
-      buoyancyCenterX: g.drums.filter(x => !x.failed).reduce((s, x) => s + x.x, 0) / Math.max(1, g.drums.filter(x => !x.failed).length),
+      buoyancyCenterX: (() => { const live = g.drums.filter(x => !x.failed), v = live.map(x => x.r * x.r * x.len); const tv = v.reduce((a2, b2) => a2 + b2, 0); return tv ? live.reduce((s2, x, i) => s2 + x.x * v[i], 0) / tv : 0; })(),
     });
   }
   const clampAbs = (v, m) => Math.max(-m, Math.min(m, v));
@@ -491,6 +508,43 @@
     return out;
   }
 
+  function drumLabel(g, d) {
+    const fa = d.x > 3 ? 'bow' : d.x < -3 ? 'stern' : 'mid';
+    const side = d.z > 3 ? 'starboard' : d.z < -3 ? 'port' : 'center';
+    return `Drum ${d.id + 1} (${fa} ${side})`;
+  }
+
+  // With mixed drum sizes, try every assignment of the measured drums to the
+  // layout's positions and return the one that floats most level.
+  function permutations(arr) {
+    if (arr.length <= 1) return [arr.slice()];
+    const out = [];
+    arr.forEach((x, i) => permutations(arr.slice(0, i).concat(arr.slice(i + 1))).forEach(p => out.push([x].concat(p))));
+    return out;
+  }
+  function bestPlacement(build, g) {
+    if (!g.mixed || g.drums.length > 5) return null;
+    const c = g.config;
+    const specs = g.drums.map(d => (Array.isArray(c.drumSpecs) && c.drumSpecs[d.id]) || null);
+    const score = cfg => {
+      const gg = geometry(cfg), s = solve(gg, massItems(Object.assign({}, build, { config: cfg }), gg));
+      return s.ok ? Math.abs(s.pitchDeg) + Math.abs(s.rollDeg) * 1.5 - Math.min(0, s.minFreeboard) : 1e9;
+    };
+    const cur = score(c);
+    let best = null;
+    const tried = new Set();
+    permutations(specs.map((_, i) => i)).forEach(order => {
+      const key = order.map(i => JSON.stringify(specs[i])).join('|');
+      if (tried.has(key)) return; tried.add(key);
+      const cfg = Object.assign({}, c, { drumSpecs: order.map(i => specs[i]) });
+      const sc = score(cfg);
+      if (!best || sc < best.score) best = { order, score: sc, drumSpecs: cfg.drumSpecs };
+    });
+    if (!best || best.score >= cur - 0.3) return null;
+    const moves = best.order.map((from, to) => ({ from, to })).filter(m => m.from !== m.to && !sameSpec(drumSpec(c, m.from), drumSpec(c, m.to)));
+    return { current: cur, best: best.score, drumSpecs: best.drumSpecs, moves };
+  }
+
   // ── Analysis + recommendations ──
   function analyze(build, rules, opts) {
     opts = opts || {};
@@ -513,8 +567,18 @@
     const cost = parts.reduce((s, p) => s + (+p.quantity || 0) * (+p.unit_cost_usd || 0), 0);
     const spent = parts.filter(p => p.status === 'bought' || p.status === 'installed').reduce((s, p) => s + (+p.quantity || 0) * (+p.unit_cost_usd || 0), 0);
     const recs = recommend({ build, g, req, wt, sol, fwd, side, leaks, rulesOut, crewW });
+    const placement = opts.skipLeak ? null : bestPlacement(build, g);
+    if (placement) {
+      const pos = d => drumLabel(g, d).replace(/^Drum \d+ \((.*)\)$/, '$1');
+      const ownMoves = placement.moves.filter(m => Array.isArray(c.drumSpecs) && c.drumSpecs[m.from]);
+      const list = (ownMoves.length ? ownMoves : placement.moves).map(m => {
+        const sp = g.drums[m.from].spec;
+        return `the ${sp.dia}" × ${sp.len}" drum from ${pos(g.drums[m.from])} to ${pos(g.drums[m.to])}`;
+      }).join('; ');
+      recs.push({ level: 'warn', title: 'Moving a drum would float the boat more level', detail: `Put ${list}. Trim + heel drops from ${placement.current.toFixed(1)}° to ${placement.best.toFixed(1)}°. Use "Apply suggested placement" under Drums.` });
+    }
     const shopping = shoppingList(build, req, opts.catalog, rules, { zip: opts.zip, suppliers: opts.suppliers });
-    return { shopping, geometry: g, requirements: req, weights: wt, solution: sol, scenarios: { crewForward: fwd, crewSide: side, leaks }, rules: rulesOut, recommendations: recs, cost, spent, crewWeight: crewW };
+    return { placement, shopping, geometry: g, requirements: req, weights: wt, solution: sol, scenarios: { crewForward: fwd, crewSide: side, leaks }, rules: rulesOut, recommendations: recs, cost, spent, crewWeight: crewW };
   }
 
   function recommend(a) {
@@ -522,8 +586,19 @@
     const c = g.config, out = [];
     const add = (level, title, detail) => out.push({ level, title, detail });
     rulesOut.filter(x => x.level === 'error' || x.level === 'warn').forEach(x => add(x.level, x.title, x.detail));
-    const geoGal = Math.PI * g.r * g.r * g.drum.len / 231;
-    if (Math.abs(geoGal - g.drum.gallons) / g.drum.gallons > 0.35) add('warn', `Drum measurements don't match ${g.drum.gallons} gal`, `${g.drum.dia}" × ${g.drum.len}" holds about ${geoGal.toFixed(0)} gal. Buoyancy uses the measured outside dimensions, so re-check the diameter and length.`);
+    const seen = [];
+    g.drums.forEach(d => {
+      if (seen.some(x => sameSpec(x, d.spec) && x.gallons === d.spec.gallons)) return; seen.push(d.spec);
+      const geoGal = Math.PI * d.r * d.r * d.len / 231;
+      if (Math.abs(geoGal - d.spec.gallons) / d.spec.gallons > 0.35) add('warn', `Drum measurements don't match ${d.spec.gallons} gal`, `${d.spec.dia}" × ${d.len}"${g.mixed ? ` (${drumLabel(g, d)})` : ''} holds about ${geoGal.toFixed(0)} gal. Buoyancy uses the measured outside dimensions, so re-check the diameter and length.`);
+    });
+    if (g.mixed) {
+      const big = g.drums.reduce((a2, b2) => (b2.r * b2.r * b2.len > a2.r * a2.r * a2.len ? b2 : a2));
+      g.drums.filter(d => d.r * d.r * d.len < big.r * big.r * big.len * 0.98).forEach(d => {
+        const lostLb = (drumMaxLb(big.spec) - drumMaxLb(d.spec));
+        add('info', `${drumLabel(g, d)} is smaller: ${d.spec.dia}" × ${d.len}"`, `Lashed up to the frame, it rides ${d.y0.toFixed(1)}" higher and gives ~${lostLb.toFixed(0)} lb less lift than the largest drum.`);
+      });
+    }
     if (g.overlaps.length) add('error', 'Drums overlap', 'Increase pontoon spacing or move the drums apart.');
     if (g.beamsTooShort) add('error', 'Beams are shorter than the outer rail spacing', `Make the frame width at least ${Math.ceil(2 * (g.outerZ + PIPE_R))}" or reduce pontoon spacing.`);
     if (g.drumsOffFrame) add('warn', 'Drums extend past the frame ends', 'Lengthen the rails or center the drums, or the lashing has nothing to hold.');
@@ -542,7 +617,7 @@
       if (Math.abs(sol.rollDeg) > 2) add('warn', `Heel ${Math.abs(sol.rollDeg).toFixed(1)}°`, 'Center the load side to side.');
       if (sol.gmRoll < 0) add('error', `Side-to-side unstable (GM ${sol.gmRoll.toFixed(0)}")`, 'It will roll onto one side. Spread the drums wider.');
       else if (sol.gmRoll < 12) add('warn', `Low side-to-side stability (GM ${sol.gmRoll.toFixed(0)}")`, 'Spread the pontoons wider or lower the crew.');
-      if (sol.gmPitch < 0) add('warn', `Fore-aft unstable: see-saws on the drums (GM ${sol.gmPitch.toFixed(0)}")`, `The drums are only ${g.drum.len}" long under a ${c.frameLength}" frame and the crew sits high, so the boat rocks bow-down or stern-down until the frame hits the water. Spread drums fore-aft (Triangle or Pontoon preset), keep the crew low and centered, or shorten the frame.`);
+      if (sol.gmPitch < 0) add('warn', `Fore-aft unstable: see-saws on the drums (GM ${sol.gmPitch.toFixed(0)}")`, `The drums are only ${Math.max(...g.drums.map(d => d.len))}" long under a ${c.frameLength}" frame and the crew sits high, so the boat rocks bow-down or stern-down until the frame hits the water. Spread drums fore-aft (Triangle or Pontoon preset), keep the crew low and centered, or shorten the frame.`);
       else if (sol.gmPitch < 12) add('warn', `Low fore-aft stability (GM ${sol.gmPitch.toFixed(0)}")`, 'Spread drums further fore-aft or keep the crew low.');
     }
     if (!fwd.ok || fwd.bowFreeboard < 2) add('warn', 'Nose-dive risk with crew at the bow', !fwd.ok ? 'Moving the crew forward overwhelms the bow.' : `Bow clearance drops to ${fwd.bowFreeboard.toFixed(1)}". Consider the Triangle or Pontoon preset, a drum further forward, or crew seated aft of center.`);
@@ -709,7 +784,7 @@
   }
 
   return {
-    WATER, DRUM, DRUM_SIZES, drumSpec, PIPE_R, RAIL_OFFSET, PRESETS, DEFAULT_CONFIG, inventory,
+    WATER, DRUM, DRUM_SIZES, drumSpec, drumLabel, PIPE_R, RAIL_OFFSET, PRESETS, DEFAULT_CONFIG, inventory,
     withDefaults, geometry, requirements, shoppingList, storeLinks, weights, massItems, crewPositions, solve, checkRules, analyze, comparePresets,
     segArea, drumMaxLb,
   };
