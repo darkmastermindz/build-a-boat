@@ -16,6 +16,8 @@ with shared design profiles.
 
 ## 🚀 Quick start
 
+Requires Node 24 (see `.nvmrc`).
+
 ```bash
 npm install
 npx netlify dev        # full site incl. shared profiles API at http://localhost:8888
