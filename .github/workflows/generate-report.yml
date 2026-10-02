@@ -22,6 +22,9 @@ on:
       - "scripts/**"
       - "tests/**"
       - "raft-simulation.html"
+      - "package.json"
+      - "netlify.toml"
+      - ".github/workflows/generate-report.yml"
 
 concurrency:
   group: report-${{ github.ref }}
