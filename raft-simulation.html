@@ -3,7 +3,18 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Raft Simulator</title>
+<title>B.O.B. simulator</title>
+<meta name="description" content="B.O.B. simulator: design, check and shop for a drum raft for the Whitewater Center Build Your Own Boat competition.">
+<meta property="og:title" content="B.O.B. simulator">
+<meta property="og:description" content="B.O.B. simulator: design, check and shop for a drum raft for the Whitewater Center Build Your Own Boat competition.">
+<meta name="theme-color" content="#2F6B78">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="apple-mobile-web-app-title" content="B.O.B.">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;700&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
   :root{
@@ -25,8 +36,12 @@
   }
   *{box-sizing:border-box;margin:0;padding:0}
   html,body{height:100%}
-  body{background:var(--bg);color:var(--ink);font:14px/1.4 Barlow,system-ui,sans-serif;display:grid;grid-template-rows:auto 1fr;overflow:hidden}
-  header{display:flex;align-items:center;gap:16px;flex-wrap:wrap;padding:10px 16px;border-bottom:1px solid var(--line);background:var(--panel)}
+  body{background:var(--bg);color:var(--ink);font:14px/1.4 Barlow,system-ui,sans-serif;display:flex;flex-direction:column;overflow:hidden}
+  header{position:relative;display:flex;align-items:center;gap:16px;flex-wrap:wrap;padding:10px 56px 10px 16px;border-bottom:1px solid var(--line);background:var(--panel)}
+  .gh{position:absolute;top:10px;right:16px;display:inline-flex;width:28px;height:28px;align-items:center;justify-content:center;border-radius:6px;color:var(--ink)}
+  .gh:hover{background:var(--chip)}
+  .gh:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+  .gh svg{width:22px;height:22px;fill:currentColor}
   h1{font:700 22px/1 "Barlow Condensed",sans-serif;letter-spacing:.2px;white-space:nowrap}
   .stats{display:flex;gap:6px;flex-wrap:wrap}
   .stat{background:var(--chip);border:1px solid var(--line);border-radius:999px;padding:3px 10px;font-size:12px;color:var(--muted);white-space:nowrap}
@@ -34,7 +49,10 @@
   .stat.err{border-color:var(--err)} .stat.err b{color:var(--err)}
   .stat.warn{border-color:var(--warn)} .stat.warn b{color:var(--warn)}
   .stat.ok b{color:var(--ok)}
-  main{display:grid;grid-template-columns:minmax(320px,400px) 1fr;min-height:0}
+  main{display:grid;grid-template-columns:minmax(320px,400px) 1fr;min-height:0;flex:1;overflow:hidden}
+  .site-footer{position:relative;z-index:2;padding:6px 16px calc(6px + env(safe-area-inset-bottom, 0px));border-top:1px solid var(--line);background:var(--panel);color:var(--muted);font-size:12px;text-align:center}
+  .site-footer a{color:var(--accent)}
+  .site-footer a:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
   aside{background:var(--panel);border-right:1px solid var(--line);display:flex;flex-direction:column;min-height:0}
   .tabs{display:flex;border-bottom:1px solid var(--line)}
   .tabs button{flex:1;background:none;border:0;border-bottom:3px solid transparent;padding:10px 4px;font:600 13px Barlow,sans-serif;color:var(--muted);cursor:pointer}
@@ -105,6 +123,8 @@
   .muted{color:var(--muted)}
   .small{font-size:12px}
   @media (max-width:820px){
+    .profiles{margin-left:0;width:100%}
+    .profiles select{flex:1 1 160px;min-width:0;max-width:100%}
     body{overflow:auto;height:auto;display:block}
     main{display:flex;flex-direction:column}
     .stage{height:52vh;order:-1}
@@ -115,7 +135,7 @@
 </head>
 <body>
 <header>
-  <h1>🏴‍☠️ Raft simulator</h1>
+  <h1>🏴‍☠️ B.O.B. simulator</h1>
   <div class="stats" id="stats"></div>
   <div class="profiles">
     <label for="profileSel" class="small muted">Design</label>
@@ -130,6 +150,9 @@
     </span>
     <span class="msg" id="profMsg" role="status"></span>
   </div>
+  <a class="gh" href="https://github.com/darkmastermindz/bob" target="_blank" rel="noopener" aria-label="View the source on GitHub" title="View the source on GitHub">
+    <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
+  </a>
 </header>
 <div class="banner" id="banner"></div>
 <main>
@@ -230,6 +253,7 @@
     <div class="layers" id="layers"></div>
   </div>
 </main>
+<footer class="site-footer">© 2026 Created by <a href="https://hanselwei.dev" target="_blank" rel="noopener">Hansel Wei</a></footer>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script src="scripts/raft-model.js"></script>
