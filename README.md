@@ -21,7 +21,11 @@ npx serve .
 bob/
 ├── index.html              # Interactive boat simulator (single-file HTML)
 ├── data/
-│   └── bom.json            # Bill of Materials — parts, costs, sources
+│   ├── bom.json            # Bill of Materials — parts, costs, sources
+│   └── suppliers.json      # Local supplier contacts (Charlotte/Concord, NC)
+├── docs/
+│   └── design.md           # Current design, rules, buoyancy & cost notes
+├── PLAN.md                 # Planned code changes
 ├── reports/
 │   └── latest-report.md    # Most recent generated improvement report
 ├── scripts/
@@ -69,16 +73,25 @@ The action:
 3. Uploads the report as a downloadable artifact
 4. Prints the report to the workflow summary
 
-## 🔩 Current Design (v1.0)
+## 🏴‍☠️ Current Design (v2.0): Drum-Pontoon Pirate Raft
 
 | Spec | Value |
 |------|-------|
-| Hull type | Flat-bottom pontoon |
-| Length | 10 ft |
-| Width | 4 ft |
-| Hull height | 1.5 ft |
-| PVC tubes | 4 × 4" diameter |
-| Total BOM cost | ~$509 |
+| Flotation | 4 × 55-gal plastic drums (2 per side) + 4 XPS foam boards |
+| Frame | 1-1/2" Sch 40 PVC + 2 × 10–12" large PVC sections |
+| Deck | 1/4" luan plywood, Coroplast side panels |
+| Deck size | ~8 × 4 ft (assumed; to be confirmed) |
+| Joinery | Cable ties, paracord, marine epoxy. **No metal, screws or glass.** |
+| Theme | Pirate ship: Jolly Roger flag, red pennants, skull hull art |
+| Est. buoyancy | ~1,835 lb max (load ≈ 35–40%) |
+| Planned BOM cost | ~$916 functional + ~$110 decor = **~$1,026** |
+
+Details: [`docs/design.md`](docs/design.md). Local suppliers:
+[`data/suppliers.json`](data/suppliers.json). Pending tooling updates:
+[`PLAN.md`](PLAN.md).
+
+> ⚠️ The simulator and report generator still model the v1.0 PVC-tube design
+> until the work in `PLAN.md` lands.
 
 ## 🤖 AI Improvement Prompts
 

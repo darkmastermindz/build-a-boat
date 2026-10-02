@@ -1,0 +1,150 @@
+{
+  "source": "Google Sheets 'Boat Building Shopping List Comparison', Local Suppliers tab (2026-09-29)",
+  "suppliers": [
+    {
+      "category": "Plumbing distributor (large PVC)",
+      "name": "Ferguson Plumbing Supply",
+      "address": "1165 Biscayne Dr, Concord, NC 28027",
+      "phone": "(704) 706-6028",
+      "hours": "Call for hours",
+      "website": "https://www.ferguson.com/store/nc/concord/plumbingpvf-1114",
+      "covers_part_ids": [
+        "S002"
+      ],
+      "est_price": "Call for quote",
+      "notes": "Closest option. Large-diameter PVC is usually special order or cut to length."
+    },
+    {
+      "category": "Plumbing distributor (large PVC)",
+      "name": "Hubbard Supplyhouse",
+      "address": "491 Corban Ave SE, Concord, NC 28025",
+      "phone": "(704) 788-2180",
+      "hours": "Mon-Fri 7:30 AM-5:00 PM",
+      "website": "https://www.hubbardsupplyhouse.com/",
+      "covers_part_ids": [
+        "S002"
+      ],
+      "est_price": "Call for quote",
+      "notes": "Local independent; stocks irrigation and plumbing pipe."
+    },
+    {
+      "category": "Plumbing distributor (large PVC)",
+      "name": "Catawba Valley Supply - Concord",
+      "address": "870 Ella St NW, Concord, NC 28027",
+      "phone": "(704) 900-3833",
+      "hours": "Mon-Fri 7:30 AM-4:00 PM",
+      "website": "https://cvsplumbing.com/",
+      "covers_part_ids": [
+        "S002"
+      ],
+      "est_price": "Call for quote",
+      "notes": ""
+    },
+    {
+      "category": "Plumbing distributor (backup)",
+      "name": "Hughes Supply",
+      "address": "16235 Northcross Dr, Huntersville, NC 28078",
+      "phone": "(704) 892-3989",
+      "hours": "Mon-Fri 7:00 AM-4:30 PM",
+      "website": null,
+      "covers_part_ids": [
+        "S002"
+      ],
+      "est_price": "Call for quote",
+      "notes": "~25 min from Concord."
+    },
+    {
+      "category": "Plumbing distributor (backup)",
+      "name": "Plumbers Wholesale Supply Inc",
+      "address": "10700 Sam Black Rd, Midland, NC 28107",
+      "phone": "(704) 400-6185",
+      "hours": "Mon-Thu 7-5, Fri 7-3",
+      "website": null,
+      "covers_part_ids": [
+        "S002"
+      ],
+      "est_price": "Call for quote",
+      "notes": "Reviewers say prices run lower than competitors."
+    },
+    {
+      "category": "55-gallon drums",
+      "name": "McManus Drum Co. Inc.",
+      "address": "2910 Interstate St, Charlotte, NC 28208",
+      "phone": "(704) 598-2224",
+      "hours": "Call for hours",
+      "website": "http://mcmanusdrum.com/",
+      "covers_part_ids": [
+        "F001"
+      ],
+      "est_price": "$25-45/drum",
+      "notes": "Sells single drums to individuals. First choice."
+    },
+    {
+      "category": "55-gallon drums",
+      "name": "Lewis Container & Service",
+      "address": "3121 Amity Ct, Charlotte, NC 28215",
+      "phone": "(704) 536-8200",
+      "hours": "Mon-Fri 7:00 AM-2:00 PM",
+      "website": "https://lewiscontainer.com/",
+      "covers_part_ids": [
+        "F001"
+      ],
+      "est_price": "$25-45/drum",
+      "notes": "Had 77-gal barrels at last check; ask about 55-gal."
+    },
+    {
+      "category": "55-gallon drums",
+      "name": "Tallent Drum Company",
+      "address": "1709 Industrial Pike Rd, Gastonia, NC 28052",
+      "phone": "(704) 824-1807",
+      "hours": "Mon-Fri 8:00 AM-4:30 PM",
+      "website": "http://tallentdrumcompany.com/",
+      "covers_part_ids": [
+        "F001"
+      ],
+      "est_price": "$25-45/drum",
+      "notes": "~45 min from Concord."
+    },
+    {
+      "category": "55-gallon drums",
+      "name": "Mauser Packaging Solutions - Charlotte",
+      "address": "2810 W Trade St, Charlotte, NC 28208",
+      "phone": "(704) 392-5386",
+      "hours": "Mon-Fri 7:00 AM-5:00 PM",
+      "website": null,
+      "covers_part_ids": [
+        "F001"
+      ],
+      "est_price": "$35-85/drum",
+      "notes": "New drums cost more than reconditioned."
+    },
+    {
+      "category": "Hardware",
+      "name": "Harbor Freight - Kannapolis",
+      "address": "1034 Cloverleaf Plaza, Kannapolis, NC 28083",
+      "phone": "(704) 723-4004",
+      "hours": "Mon-Sat 8-8, Sun 9-6",
+      "website": "https://www.harborfreight.com/storelocator/1034-cloverleaf-plaza-kannapolis-28083",
+      "covers_part_ids": [
+        "A001",
+        "A002",
+        "R001"
+      ],
+      "est_price": "Epoxy $3-6; sealant $5-8; ties $3.88-5",
+      "notes": "Cheapest for epoxy and sealant."
+    },
+    {
+      "category": "Hardware / farm",
+      "name": "Tractor Supply Co. - Concord",
+      "address": "104 Commercial Park Dr SW, Concord, NC 28027",
+      "phone": "(704) 782-2462",
+      "hours": "Mon-Sat 8-9, Sun 9-7",
+      "website": "https://www.tractorsupply.com/tsc/store_Concord-NC-28027_464",
+      "covers_part_ids": [
+        "R002"
+      ],
+      "est_price": "Paracord $16.99/100ft",
+      "notes": "Paracord costs more than at Lowe's or HD."
+    }
+  ]
+}
