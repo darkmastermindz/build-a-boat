@@ -11,10 +11,10 @@
 
 | Parameter | Value |
 |-----------|-------|
-| Hull Type | drum-pontoon raft (4 x 55-gal drums under a PVC frame) |
-| Length | 8 ft |
-| Width | 4 ft |
-| Hull Height | 2 ft |
+| Hull Type | drum-pontoon raft, lightweight build (4 x 55-gal drums under a 1-1/2" PVC frame) |
+| Length | 7 ft |
+| Width | 6 ft |
+| Hull Height | 2.3 ft |
 | PVC Tubes | 0 |
 
 ---
@@ -25,16 +25,16 @@
 |--------|-------|--------|
 | Est. Displacement | 0 lbs | ❌ Sinks |
 | Freeboard | 0.0 in | ⚠️ Low |
-| Stability Score | 25/100 | ⚠️ Needs work |
-| Est. Boat Weight | 114 lbs | — |
+| Stability Score | 43/100 | ⚠️ Needs work |
+| Est. Boat Weight | 91 lbs | — |
 
 ---
 
 ## Improvement Suggestions
 
-- ⚠️ **Stability (25/100):** Consider widening beam from 4 ft to 5 ft. Estimated added cost: ~$30 lumber.
+- ⚠️ **Stability (43/100):** Consider widening beam from 6 ft to 7 ft. Estimated added cost: ~$30 lumber.
 - ⚠️ **Freeboard (0.0"):** Low clearance. Add 1–2 PVC tubes or reduce crew weight for safety.
-- 💰 **Cost ($1025.71):** Over $600. Review fastener packs for bulk pricing and check local lumber yards.
+- 💰 **Cost ($798.03):** Over $600. Review fastener packs for bulk pricing and check local lumber yards.
 - 🔧 **Build tip:** Pre-drill all holes before assembly to reduce splitting pressure on PVC joints.
 - 🛡️ **Safety:** Ensure all PFD (life jackets) are Type III or better and properly fitted before race day.
 
@@ -45,18 +45,19 @@
 | ID | Part Name | Category | Qty | Unit Cost | Total | Source |
 |----|-----------|----------|-----|-----------|-------|--------|
 | F001 | Plastic 55-gallon drum (reconditioned) | flotation | 4 drum | $35.00 | $140.00 | McManus Drum Co. (Charlotte, NC) |
-| S001 | PVC pipe 1-1/2" Sch 40 x 10 ft | frame | 4 piece | $34.98 | $139.92 | Lowe's |
-| S002 | Large PVC pipe ~10-12" dia x 10 ft | frame | 2 piece | $65.00 | $130.00 | Ferguson Plumbing Supply (Concord, NC) |
-| S003 | XPS foam board 1" x 4 ft x 8 ft (FOAMULAR) | flotation | 4 sheet | $24.97 | $99.88 | Home Depot |
-| D001 | Coroplast corrugated plastic 4 mm, 4 x 8 ft | deck | 3 sheet | $38.29 | $114.87 | Home Depot |
-| D002 | Luan / sanded plywood 1/4" x 4 x 8 ft | deck | 3 sheet | $22.97 | $68.91 | Home Depot |
+| S001 | PVC pipe 1-1/2" Sch 40 (solid) x 10 ft | frame | 6 piece | $34.98 | $209.88 | Lowe's |
+| S004 | Foam-core (cellular) PVC pipe 1-1/2" x 10 ft | frame | 2 piece | $22.00 | $44.00 | Home Depot / Lowe's |
+| S005 | PVC 90° elbow 1-1/2" Sch 40 | frame | 6 piece | $1.60 | $9.60 | Home Depot / Lowe's |
+| S006 | PVC coupling 1-1/2" Sch 40 | frame | 1 piece | $1.20 | $1.20 | Home Depot / Lowe's |
+| D001 | Coroplast corrugated plastic 4 mm, 4 x 8 ft | deck | 2 sheet | $38.29 | $76.58 | Home Depot |
+| S003 | XPS foam board 1" x 4 ft x 8 ft (FOAMULAR) | deck | 2 sheet | $24.97 | $49.94 | Home Depot |
 | A001 | 2-part marine epoxy | adhesive | 2 unit | $5.00 | $10.00 | Harbor Freight (Kannapolis, NC) |
 | A002 | 100% silicone / marine sealant, 10.1 oz | adhesive | 3 tube | $6.50 | $19.50 | Harbor Freight (Kannapolis, NC) |
-| R001 | Heavy-duty UV cable ties 17", 120 lb (100-pack) | rigging | 2 pack | $24.98 | $49.96 | Lowe's |
+| A003 | PVC primer + cement kit | adhesive | 1 kit | $11.98 | $11.98 | Home Depot |
+| R001 | Heavy-duty UV cable ties 17", 120 lb (100-pack) | rigging | 1 pack | $24.98 | $24.98 | Lowe's |
 | R002 | 550 paracord, 100 ft | rigging | 2 roll | $7.98 | $15.96 | Lowe's |
 | C001 | Pool noodles | comfort | 8 piece | $3.58 | $28.64 | Home Depot |
 | C002 | Outdoor seat cushion, 18-24 in | comfort | 2 piece | $22.98 | $45.96 | Lowe's |
-| P001 | Rust-Oleum Marine Topside paint, 1 qt | finish | 2 quart | $26.15 | $52.30 | Home Depot |
 | X001 | Outdoor acrylic craft paint set (18 colors) | decor | 1 set | $28.98 | $28.98 | Lowe's |
 | X002 | Black outdoor fabric spray paint, 12 oz | decor | 1 can | $13.98 | $13.98 | Lowe's |
 | X003 | Red outdoor fabric spray paint, 12 oz | decor | 1 can | $13.98 | $13.98 | Lowe's |
@@ -72,33 +73,30 @@
 
 | Category | Cost |
 |----------|------|
-| frame | $269.92 |
-| flotation | $239.88 |
-| deck | $183.78 |
+| frame | $264.68 |
+| flotation | $140.00 |
+| deck | $126.52 |
 | decor | $109.81 |
 | comfort | $74.60 |
-| rigging | $65.92 |
-| finish | $52.30 |
-| adhesive | $29.50 |
-| **GRAND TOTAL** | **$1025.71** |
+| adhesive | $41.48 |
+| rigging | $40.94 |
+| **GRAND TOTAL** | **$798.03** |
 
 ---
 
 ## Sourcing Links
 
 - [Plastic 55-gallon drum (reconditioned)](http://mcmanusdrum.com/) — McManus Drum Co. (Charlotte, NC) (SKU: N/A)
-- [PVC pipe 1-1/2" Sch 40 x 10 ft](https://www.lowes.com/pl/Pvc-pipe-Pipe-fittings-Plumbing/4294612626) — Lowe's (SKU: N/A)
-- [Large PVC pipe ~10-12" dia x 10 ft](https://www.ferguson.com/store/nc/concord/plumbingpvf-1114) — Ferguson Plumbing Supply (Concord, NC) (SKU: N/A)
-- [XPS foam board 1" x 4 ft x 8 ft (FOAMULAR)](https://www.homedepot.com/p/p/315197840) — Home Depot (SKU: N/A)
+- [PVC pipe 1-1/2" Sch 40 (solid) x 10 ft](https://www.lowes.com/pl/Pvc-pipe-Pipe-fittings-Plumbing/4294612626) — Lowe's (SKU: N/A)
 - [Coroplast corrugated plastic 4 mm, 4 x 8 ft](https://homedepot.com/b/Building-Materials-Glass-Plastic-Sheets-Corrugated-Plastic-Sheets/Cuttable/N-5yc1vZcbtuZ1z1x9al) — Home Depot (SKU: N/A)
-- [Luan / sanded plywood 1/4" x 4 x 8 ft](https://www.homedepot.com/b/Building-Materials-Lumber-Composites-Plywood/N-5yc1vZc3jc) — Home Depot (SKU: N/A)
+- [XPS foam board 1" x 4 ft x 8 ft (FOAMULAR)](https://www.homedepot.com/p/p/315197840) — Home Depot (SKU: N/A)
 - [2-part marine epoxy](https://www.harborfreight.com/storelocator/1034-cloverleaf-plaza-kannapolis-28083) — Harbor Freight (Kannapolis, NC) (SKU: N/A)
 - [100% silicone / marine sealant, 10.1 oz](https://www.harborfreight.com/storelocator/1034-cloverleaf-plaza-kannapolis-28083) — Harbor Freight (Kannapolis, NC) (SKU: N/A)
+- [PVC primer + cement kit](https://www.homedepot.com) — Home Depot (SKU: N/A)
 - [Heavy-duty UV cable ties 17", 120 lb (100-pack)](https://www.lowes.com/pl/Zip-ties-Fasteners-Hardware/4294857595) — Lowe's (SKU: N/A)
 - [550 paracord, 100 ft](https://www.lowes.com/pl/Rope-Chain-rope-Hardware/4294857591) — Lowe's (SKU: N/A)
 - [Pool noodles](https://homedepot.com/p/Pool-Mate-Blue-and-Pink-Swimming-Pool-Water-Noodles-12-Pack-TWLN36-12/304884154) — Home Depot (SKU: N/A)
 - [Outdoor seat cushion, 18-24 in](https://www.lowes.com/pl/Patio-furniture-cushions-Patio-furniture-Outdoors/4294857260) — Lowe's (SKU: N/A)
-- [Rust-Oleum Marine Topside paint, 1 qt](https://www.homedepot.com/b/Paint-Industrial-Paint-Automotive-Paint-Boat-Paint/Deep-Green/N-5yc1vZcj9eZ1z0un9c) — Home Depot (SKU: N/A)
 - [Outdoor acrylic craft paint set (18 colors)](https://www.lowes.com) — Lowe's (SKU: N/A)
 - [Black outdoor fabric spray paint, 12 oz](https://www.lowes.com) — Lowe's (SKU: N/A)
 - [Red outdoor fabric spray paint, 12 oz](https://www.lowes.com) — Lowe's (SKU: N/A)
@@ -116,22 +114,22 @@ Use these prompts with Claude or GitHub Copilot to get design improvement ideas:
 
 ```
 Prompt 1 — Stability:
-"Our boat is 8ft long × 4ft wide with 0 PVC pontoon tubes and 
-a stability score of 25/100. How can we improve stability without increasing overall cost 
-significantly? Current BOM total: $1025.71."
+"Our boat is 7ft long × 6ft wide with 0 PVC pontoon tubes and 
+a stability score of 43/100. How can we improve stability without increasing overall cost 
+significantly? Current BOM total: $798.03."
 
 Prompt 2 — Weight reduction:
-"We're building a competition boat weighing approximately 114 lbs for the Whitewater Center 
+"We're building a competition boat weighing approximately 91 lbs for the Whitewater Center 
 build-a-boat event. What materials can we substitute to reduce weight while maintaining structural 
-integrity? Key materials: Coroplast corrugated plastic 4 mm, 4 x 8 ft, Luan / sanded plywood 1/4" x 4 x 8 ft."
+integrity? Key materials: Coroplast corrugated plastic 4 mm, 4 x 8 ft, XPS foam board 1" x 4 ft x 8 ft (FOAMULAR)."
 
 Prompt 3 — Cost optimization:
 "Review this boat BOM and suggest where we can save money through bulk buying, alternative materials, 
-or design simplification. Total budget: $1025.71. Categories with highest spend: 
-frame ($269.92), flotation ($239.88), deck ($183.78)."
+or design simplification. Total budget: $798.03. Categories with highest spend: 
+frame ($264.68), flotation ($140.00), deck ($126.52)."
 ```
 
 ---
 
 *Generated by BOB Simulator GitHub Action — Whitewater Center Build-a-Boat Competition*  
-*Run at: 2026-10-02T04:49:55.349Z*
+*Run at: 2026-10-02T04:52:34.990Z*
