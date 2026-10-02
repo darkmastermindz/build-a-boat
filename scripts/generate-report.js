@@ -24,7 +24,8 @@ const rules = read('rules.json');
 const catalog = read('catalog.json');
 const dateStr = new Date().toISOString().split('T')[0];
 
-const a = M.analyze(build, rules, { catalog });
+const suppliers = read('suppliers.json').suppliers || [];
+const a = M.analyze(build, rules, { catalog, suppliers });
 const g = a.geometry, c = g.config, s = a.solution;
 const cmp = M.comparePresets(build, rules);
 const icon = { ok: '✅', warn: '⚠️', error: '❌', info: 'ℹ️' };
@@ -61,7 +62,7 @@ Generated from \`data/build.json\` by \`scripts/raft-model.js\`. Open
 | Parameter | Value |
 |-----------|-------|
 | Layout | ${M.PRESETS[c.preset] ? M.PRESETS[c.preset].label : 'custom'} |
-| Drums | ${g.drums.length} × 55 gal (${M.DRUM.dia}" × ${M.DRUM.len}") |
+| Drums | ${g.drums.length} × ${g.drum.label} (${g.drum.gallons} gal, ${g.drum.dia}" × ${g.drum.len}", ${g.drum.weight} lb${g.drum.weightMeasured ? ', weighed' : ''}) |
 | Frame | ${c.frameLength}" rails × ${c.frameWidth}" beams, ${g.beams.length} beams, pontoon spacing ${c.pontoonSpacing}" |
 | Deck | ${c.deck.length}" × ${c.deck.width}" × ${c.deck.thickness}" |
 | Overall size | ${ft(g.overall.length)} × ${ft(g.overall.width)} × ${ft(g.overall.height)} |
@@ -82,10 +83,12 @@ Generated from \`data/build.json\` by \`scripts/raft-model.js\`. Open
 
 ## Next shopping trip
 
-| Item | Qty | Est. | Priority | Where | Why |
-|------|-----|------|----------|-------|-----|
-${a.shopping.rows.map(r => `| ${r.name} | ${r.qty} | ${money(r.cost)}${r.estimate ? ' (est.)' : ''} | ${r.priority} | ${r.source} | ${r.why} |`).join('\n')}
+| Item | Qty | Est. | Priority | Shop | Why |
+|------|-----|------|----------|------|-----|
+${a.shopping.rows.map(r => `| ${r.name} | ${r.qty} | ${money(r.cost)}${r.estimate ? ' (est.)' : ''} | ${r.priority} | ${r.links.map(l => `[${l.label}](${l.url})`).join(' · ')} | ${r.why} |`).join('\n')}
 | **Needed** | | **${money(a.shopping.neededCost)}** | | | ${money(a.shopping.totalCost)} including spare and optional |
+
+Open \`raft-simulation.html\` → Check → Next shopping trip and enter a ZIP code for nearby Home Depot, Lowe's and local-supplier map links. The ZIP stays on your device.
 
 ## Physics
 

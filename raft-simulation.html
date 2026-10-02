@@ -92,6 +92,12 @@
   .profiles input{width:180px}
   .profiles .msg{font-size:12px;color:var(--muted)}
   .profiles .msg.err{color:var(--err)}
+  .drumgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin:8px 0}
+  .drumgrid label{display:flex;flex-direction:column;gap:3px;font-size:12px;color:var(--muted)}
+  .zipbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:6px 0 10px}
+  .zipbar input{width:110px}
+  .links{display:flex;gap:4px 10px;flex-wrap:wrap;margin-top:3px;font-size:12px}
+  .links a{color:var(--accent)}
   .banner{background:var(--warn);color:#1a1200;padding:8px 16px;font-size:13px;display:none}
   .banner.show{display:block}
   .best{outline:2px solid var(--ok);outline-offset:-2px}
@@ -154,6 +160,16 @@
         <label><input type="checkbox" id="bow"> Bow frame + guard</label>
         <label><input type="checkbox" id="noodleRail"> Noodle rail</label>
       </div>
+      <h2>Drums</h2>
+      <div class="row"><label for="drumSize">Drum size</label><select id="drumSize" style="grid-column:span 2"></select></div>
+      <div class="drumgrid">
+        <label>Gallons<input type="number" id="drumGal" min="1" step="1"></label>
+        <label>Diameter (in)<input type="number" id="drumDia" min="6" step="0.25"></label>
+        <label>Length (in)<input type="number" id="drumLen" min="6" step="0.25"></label>
+        <label>Empty weight (lb)<input type="number" id="drumWt" min="0" step="0.5"></label>
+      </div>
+      <div class="toggles"><label><input type="checkbox" id="drumMeasured"> Weighed on a scale</label></div>
+      <p class="blurb" id="drumNote"></p>
       <h2>Crew</h2>
       <div id="crewSliders"></div>
       <h2>What if</h2>
@@ -185,6 +201,12 @@
       <table id="weightTable"></table>
       <h2>Next shopping trip</h2>
       <p class="blurb">What's still needed for this layout after what's marked <b>bought</b>, plus planned extras. Change the layout or mark parts bought, and the list updates.</p>
+      <div class="zipbar">
+        <label for="shopZip" class="small">ZIP for nearby stores</label>
+        <input type="text" id="shopZip" inputmode="numeric" maxlength="5" placeholder="e.g. 28202" aria-describedby="zipNote">
+        <span class="links" id="storeLinks"></span>
+      </div>
+      <p class="small muted" id="zipNote">Saved on this device only. Never added to build.json or shared profiles. Product links open each store's search, where in-store stock shows once you pick your store.</p>
       <div style="overflow-x:auto"><table id="shopTable"></table></div>
       <h2>Competition rules</h2>
       <ul class="msgs" id="rulesList"></ul>
@@ -237,7 +259,8 @@ const f0 = v => (v == null || !isFinite(v)) ? '—' : v.toFixed(0);
 const f1 = v => (v == null || !isFinite(v)) ? '—' : v.toFixed(1);
 const money = v => '$' + v.toFixed(2);
 
-let repoBuild = null, catalog = { items: [] }, rules = {}, build = null, A = null;
+let repoBuild = null, catalog = { items: [] }, rules = {}, build = null, A = null, suppliers = [];
+let shopZip = (() => { try { return localStorage.getItem('bob-zip') || ''; } catch (e) { return ''; } })();
 
 async function loadJSON(path){
   const r = await fetch(path, { cache: 'no-cache' });
@@ -254,9 +277,16 @@ async function boot(){
     repoBuild = repoBuild || { name: 'Untitled', config: clone(M.DEFAULT_CONFIG), parts: [] };
     rules = rules && rules.max_boat_weight_lb ? rules : { max_boat_weight_lb: 150, max_dimensions_ft: { length: 10, width: 10, height: 5 }, max_wall_height_ft: 2, max_wood_thickness_in: 0.25, max_securing_material_length_in: 18 };
   }
+  try { suppliers = (await loadJSON('data/suppliers.json')).suppliers || []; } catch (e) { suppliers = []; }
   build = store.get() || clone(repoBuild);
   build.config = M.withDefaults(build.config);
-  initControls(); initParts(); initScene(); update();
+  initControls(); initParts(); initScene();
+  $('shopZip').value = shopZip;
+  $('shopZip').oninput = e => {
+    const v = e.target.value.replace(/\D/g, '').slice(0, 5); e.target.value = v;
+    if (v.length === 5 || v.length === 0) { shopZip = v; try { localStorage.setItem('bob-zip', v); } catch (err) {} update(); }
+  };
+  update();
   initProfiles();
 }
 
@@ -295,11 +325,30 @@ function initControls(){
   sel.onchange = () => { if (sel.value === 'custom') return; build.config.preset = sel.value; delete build.config.drums; build.config.failedDrum = null; ensureWidth(); syncControls(); changed(); };
   SL.forEach(d => $('sliders').append(sliderRow(d)));
   CREW.forEach(d => $('crewSliders').append(sliderRow(d)));
+  const ds = $('drumSize');
+  M.DRUM_SIZES.forEach(d => ds.append(el('option', { value: d.id }, `${d.label}: ${d.dia}" × ${d.len}", ~${d.weight} lb`)));
+  ds.append(el('option', { value: 'custom' }, 'Custom (my measurements)'));
+  ds.onchange = () => {
+    const std = M.DRUM_SIZES.find(d => d.id === ds.value);
+    const cur = M.drumSpec(build.config);
+    build.config.drum = std ? { size: std.id, gallons: std.gallons, dia: std.dia, len: std.len, weight: std.weight, weightMeasured: false }
+                            : Object.assign({}, cur, { size: 'custom' });
+    syncDrumPart(); syncControls(); changed();
+  };
+  [['drumGal','gallons'],['drumDia','dia'],['drumLen','len'],['drumWt','weight']].forEach(([id, k]) => {
+    $(id).onchange = e => {
+      const v = +e.target.value; if (!(v > 0) && k !== 'weight') return syncControls();
+      const cur = M.drumSpec(build.config);
+      build.config.drum = Object.assign({}, cur, { [k]: v, size: 'custom' });
+      syncDrumPart(); syncControls(); changed();
+    };
+  });
+  $('drumMeasured').onchange = e => { build.config.drum = Object.assign({}, M.drumSpec(build.config), { weightMeasured: e.target.checked }); syncDrumPart(); changed(); };
   $('railsPerPontoon').onchange = e => { build.config.railsPerPontoon = +e.target.value; changed(); };
   $('centerSpine').onchange = e => { build.config.centerSpine = e.target.checked; changed(); };
   $('frameStyle').onchange = e => { build.config.frameStyle = e.target.value; syncControls(); changed(); };
   $('fitDrums').onclick = () => {
-    const g = M.geometry(build.config), D = M.DRUM.len;
+    const g = M.geometry(build.config), D = g.drum.len;
     const span = Math.max(...g.drums.map(d => d.x + D/2)) - Math.min(...g.drums.map(d => d.x - D/2));
     build.config.frameLength = Math.ceil((span + 2) / 2) * 2;
     build.config.drumOffset = 0;
@@ -315,6 +364,11 @@ function initControls(){
     if (b.dataset.tab === 'compare') renderCompare();
   });
   syncControls();
+}
+function syncDrumPart(){
+  const d = M.drumSpec(build.config), part = build.parts.find(p => p.role === 'drum');
+  if (part) { part.weight_lb_each = d.weight; part.weight_measured = d.weightMeasured; }
+  renderParts();
 }
 function ensureWidth(){
   const g = M.geometry(build.config);
@@ -334,6 +388,12 @@ function syncControls(){
     $(id).value = getp(c, path); $(id + '_o').textContent = getp(c, path) + unit;
     if (show) $(id).closest('.row').style.display = show(c) ? '' : 'none';
   });
+  const dspec = M.drumSpec(c);
+  $('drumSize').value = dspec.size;
+  $('drumGal').value = dspec.gallons; $('drumDia').value = dspec.dia; $('drumLen').value = dspec.len; $('drumWt').value = dspec.weight;
+  $('drumMeasured').checked = dspec.weightMeasured;
+  const lift = M.drumMaxLb(dspec), geoGal = Math.PI * (dspec.dia / 2) ** 2 * dspec.len / 231;
+  $('drumNote').textContent = `Each drum: ~${lift.toFixed(0)} lb of lift fully submerged (${geoGal.toFixed(0)} gal of outside volume). Buoyancy uses the outside diameter and length, so measure across the ribs and end to end.${dspec.size !== 'custom' ? ' Standard sizes vary by maker: measure yours and edit.' : ''}`;
   $('frameStyle').value = c.frameStyle || 'stacked';
   $('railsPerPontoon').value = String(c.railsPerPontoon || 2);
   $('centerSpine').checked = !!c.centerSpine;
@@ -405,7 +465,7 @@ function renderParts(){
 let pending = false;
 function changed(){ if (!loadingProfile) markDirty(); store.set(build); if (!pending) { pending = true; requestAnimationFrame(() => { pending = false; update(); }); } }
 function update(){
-  A = M.analyze(build, rules, { catalog });
+  A = M.analyze(build, rules, { catalog, suppliers, zip: shopZip });
   renderStats(); renderCheck(); buildBoat(); renderHud();
   const fd = $('failedDrum'), cur = build.config.failedDrum;
   fd.replaceChildren(el('option', { value:'' }, 'None'), ...A.geometry.drums.map(d => el('option', { value: d.id, selected: cur === d.id }, `Drum ${d.id + 1} (${d.x >= 0 ? 'fwd' : 'aft'} ${d.z < 0 ? 'port' : d.z > 0 ? 'stbd' : 'center'})`)));
@@ -443,12 +503,16 @@ function renderCheck(){
         ['Measured on a scale', W.measured, 'Tick "measured" in Parts as you weigh things']]
       .map(([k, v, note]) => el('tr', {}, el('td', {}, k), el('td', { class:'num' }, f1(v) + ' lb'), el('td', { class:'small muted' }, note))));
   const sh = A.shopping;
+  const near = sh.rows.length ? sh.rows[0].links.filter(l => l.kind === 'store') : [];
+  $('storeLinks').replaceChildren(...(near.length ? near.map(l => el('a', { href: l.url, target: '_blank', rel: 'noopener' }, l.label)) : [el('span', { class:'muted' }, 'Enter a ZIP to find nearby stores')]));
   $('shopTable').replaceChildren(
-    el('tr', {}, el('th', {}, 'Item'), el('th', { class:'num' }, 'Qty'), el('th', { class:'num' }, 'Est.'), el('th', {}, 'Where')),
+    el('tr', {}, el('th', {}, 'Item'), el('th', { class:'num' }, 'Qty'), el('th', { class:'num' }, 'Est.')),
     ...sh.rows.map(r => el('tr', {},
-      el('td', {}, el('div', {}, r.name, r.priority !== 'needed' ? el('span', { class:'tag' }, r.priority) : '', r.estimate ? el('span', { class:'tag' }, 'price est.') : ''), el('div', { class:'small muted' }, r.why)),
-      el('td', { class:'num' }, `${r.qty}`), el('td', { class:'num' }, money(r.cost)), el('td', { class:'small' }, r.source))),
-    el('tr', {}, el('td', {}, el('b', {}, 'Needed')), el('td', {}), el('td', { class:'num' }, el('b', {}, money(sh.neededCost))), el('td', { class:'small muted' }, `${money(sh.totalCost)} with spare + optional`)));
+      el('td', {}, el('div', {}, r.name, r.priority !== 'needed' ? el('span', { class:'tag' }, r.priority) : '', r.estimate ? el('span', { class:'tag' }, 'price est.') : ''), el('div', { class:'small muted' }, r.why),
+        el('div', { class:'links' }, r.links.filter(l => l.kind !== 'store').map(l => el('a', { href: l.url, target: '_blank', rel: 'noopener' }, l.label)))),
+      el('td', { class:'num' }, `${r.qty}`), el('td', { class:'num' }, money(r.cost)))),
+    el('tr', {}, el('td', {}, el('b', {}, 'Needed')), el('td', {}), el('td', { class:'num' }, el('b', {}, money(sh.neededCost)))),
+    el('tr', {}, el('td', { class:'small muted' }, 'With spare + optional'), el('td', {}), el('td', { class:'num small muted' }, money(sh.totalCost))));
   msgList($('rulesList'), A.rules);
   msgList($('recList'), A.recommendations.filter(r => !A.rules.some(x => x.title === r.title)));
   const have = M.inventory(build.parts);
@@ -519,7 +583,7 @@ function initScene(){
 function disposeGroup(g){ g.traverse(o => { if (o.geometry) o.geometry.dispose(); }); }
 function buildBoat(){
   LAYERS.filter(k => k !== 'water').forEach(k => { if (G[k]) { disposeGroup(G[k]); boat.remove(G[k]); } const vis = G[k] ? G[k].visible : true; G[k] = new THREE.Group(); G[k].visible = vis; boat.add(G[k]); });
-  const g = A.geometry, c = g.config, R = M.PIPE_R, r = M.DRUM.dia/2, DL = M.DRUM.len;
+  const g = A.geometry, c = g.config, R = M.PIPE_R, r = g.r, DL = g.drum.len;
   const up = new THREE.Vector3(0,1,0);
   const pipe = (a, b, grp, rad, m) => {
     a = new THREE.Vector3(...a); b = new THREE.Vector3(...b);
