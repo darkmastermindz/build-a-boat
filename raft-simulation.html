@@ -190,6 +190,7 @@
       <div class="row"><label for="frameStyle">Frame joinery</label><select id="frameStyle" style="grid-column:span 2">
         <option value="fitted">Fitted: tees, double sani tees, elbows</option>
         <option value="stacked">Stacked: beams zip-tied on rails (render)</option>
+        <option value="boxes">Box frames: each drum in its own box</option>
       </select></div>
       <div class="row"><label for="railsPerPontoon">Rails per drum line</label><select id="railsPerPontoon" style="grid-column:span 2">
         <option value="1">1: centered on the drums</option>
@@ -347,13 +348,13 @@ async function boot(){
 
 // ── Controls ─────────────────────────────────
 const SL = [
-  ['frameLength','Frame length',36,120,2,'"'],
-  ['frameWidth','Beam length',48,110,2,'"', c => c.frameStyle !== 'fitted'],
-  ['fittingTakeoff','Fitting take-off',0.5,2.5,0.05,'"', c => c.frameStyle === 'fitted'],
-  ['beamCount','Cross beams',2,6,1,''],
+  ['frameLength','Frame length',36,120,2,'"', c => c.frameStyle !== 'boxes'],
+  ['frameWidth','Beam length',48,110,2,'"', c => c.frameStyle === 'stacked'],
+  ['fittingTakeoff','Fitting take-off',0.5,2.5,0.05,'"', c => c.frameStyle !== 'stacked'],
+  ['beamCount','Cross beams',2,6,1,'', c => c.frameStyle !== 'boxes'],
   ['pontoonSpacing','Pontoon spacing',28,90,1,'"'],
   ['drumOffset','Drums fore/aft',-30,30,1,'"'],
-  ['drumSpread','Fore-aft spread',10,45,1,'"', c => ['tri3bow','tri3stern','tandem2','diamond4'].includes(c.preset)],
+  ['drumSpread','Fore-aft spread',10,45,1,'"', c => ['tri3bow','tri3stern','tandem2','diamond4','stagger2'].includes(c.preset)],
   ['deck.length','Deck length',36,96,6,'"'],
   ['deck.width','Deck width',18,48,2,'"'],
   ['mastHeight','Mast above deck',0,40,1,'"'],
@@ -452,7 +453,8 @@ function renderDrumList(){
     return row;
   }));
   const rn = A.recommendations.find(x => /trapped between two frames|Option: trap the drums|only modeled for lengthwise/.test(x.title));
-  $('retentionNote').textContent = rn ? `${rn.title}. ${rn.detail}` : '';
+  const bn = A.recommendations.find(x => /^Box frames:/.test(x.title));
+  $('retentionNote').textContent = bn ? `${bn.title}. ${bn.detail}` : rn ? `${rn.title}. ${rn.detail}` : '';
   $('retention').value = c.retention === 'cage' ? 'cage:' + (c.cageStyle === 'single' ? 'single' : 'cradle') : 'bands';
   const pl = A.placement, btn = $('applyPlacement');
   btn.hidden = !pl;
@@ -488,6 +490,11 @@ function syncControls(){
   const lift = M.drumMaxLb(dspec), geoGal = Math.PI * (dspec.dia / 2) ** 2 * dspec.len / 231;
   $('drumNote').textContent = `Each drum: ~${lift.toFixed(0)} lb of lift fully submerged (${geoGal.toFixed(0)} gal of outside volume). Buoyancy uses the outside diameter and length, so measure across the ribs and end to end.${dspec.size !== 'custom' ? ' Standard sizes vary by maker: measure yours and edit.' : ''}`;
   $('frameStyle').value = c.frameStyle || 'stacked';
+  const boxes = c.frameStyle === 'boxes';
+  ['railsPerPontoon', 'retention'].forEach(id => { $(id).closest('.row').style.display = boxes ? 'none' : ''; });
+  $('centerSpine').closest('label').style.display = boxes ? 'none' : '';
+  $('fitDrums').style.display = boxes ? 'none' : '';
+  $('bow').closest('label').style.display = boxes ? 'none' : '';
   $('railsPerPontoon').value = String(c.railsPerPontoon || 2);
   $('retention').value = c.retention === 'cage' ? 'cage:' + (c.cageStyle === 'single' ? 'single' : 'cradle') : 'bands';
   $('centerSpine').checked = !!c.centerSpine;
@@ -654,8 +661,8 @@ function renderCompare(){
       el('ul', {}, ...r.pros.map(t => li('pro', t)), ...r.cons.map(t => li('con', t))),
       el('div', { class:'sect' }, 'Handling and build'),
       el('ul', {}, ...r.strengths.map(t => li('pro', t)), ...r.weaknesses.map(t => li('con', t))),
-      r.retentionNote ? el('div', { class:'sect' }, 'Drum retention') : '',
-      r.retentionNote ? el('ul', {}, li('note', r.retentionNote)) : '',
+      r.retentionNote || r.boxNote ? el('div', { class:'sect' }, 'Holding the drums') : '',
+      r.retentionNote || r.boxNote ? el('ul', {}, r.retentionNote ? li('note', r.retentionNote) : '', r.boxNote ? li('note', r.boxNote) : '') : '',
       el('div', { class:'small muted', style:'margin-top:6px' }, `${f1(r.size.length / 12)} × ${f1(r.size.width / 12)} ft · ${r.drums} drums · frame ${r.config.frameLength}" · ~$${f0(r.costToFinish)} still to buy`),
       el('div', { class:'btns' }, el('button', { class:'btn ' + (r.id === build.config.preset ? 'ghost ' : '') + 'sm', onclick: () => useLayout(r) }, r.id === build.config.preset ? 'Reset to this layout' : 'Use this layout')));
   }));
