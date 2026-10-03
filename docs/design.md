@@ -117,6 +117,60 @@ What this tells the model:
 
   Mark items `bought` as you shop and the list shrinks.
 
+## Structure options and tradeoffs
+
+The simulator's **Compare** tab runs every structure with your crew, drums
+and parts, and stretches each frame to fit its drums. It lists pros and cons
+in plain words and ranks the structures by what matters most: **Balanced**,
+**Stability in rapids**, **Light and easy to carry**, or **Use what we
+already bought**. The full computed list is in `reports/latest-report.md`.
+
+As of the current build (fitted spine frame, 2 crew at 175 lb, 55 gal drums):
+
+| Structure | Drums | ~lb | Stable side to side? | Stable fore and aft? | Survives a leak? | Main tradeoff |
+|-----------|-------|-----|----------------------|----------------------|------------------|---------------|
+| Catamaran | 2 | 106 | Yes | **No**: rocks | No | Lightest and turns easily, but see-saws and has no backup |
+| Tandem (crosswise) | 2 | 101 | **No**: tips | Yes | No | Rides over waves, but tips sideways (flagged unsafe) and is draggy |
+| Trimaran | 3 | 126 | Yes | **No**: rocks | No | More lift, same see-saw as the catamaran |
+| Triangle (1 bow, 2 stern) | 3 | 126 | Yes | Yes | No | Stable both ways but bow-heavy: crew sit aft or shift drums forward |
+| Reverse triangle (2 bow, 1 stern) | 3 | 126 | Yes | Yes | No | Stable both ways with the bow held up in drops; the single stern drum carries the back |
+| Pontoon (2 per side) | 4 | 146 | Very | Yes | **Yes** | Most stable and safest, but only ~4 lb under the limit and slower to turn |
+| Diamond | 4 | 147 | Yes | Very | No | Pivots well, but as heavy as the pontoon and needs a 6th stick |
+| Wide raft (4 across) | 4 | 148 | Very | **No**: rocks | Yes | Hardest to tip sideways, but rocks fore and aft, is draggy and needs 8 sticks |
+
+### Holding the drums: straps vs. a cage (two frames)
+
+| Retention | How it works | Catamaran (2) | Reverse triangle (3) | Pontoon (4) |
+|-----------|--------------|---------------|----------------------|-------------|
+| **Zip-tie bands** | Ties around each drum and the deck frame | 106 lb · 5 sticks | 126 lb · 5 sticks | 146 lb · 5 sticks |
+| **Light cage** | 1 lower rail under each drum, posts at the drum ends up to the deck frame | 114 lb · 7 sticks | 138 lb · 7 sticks | **160 lb ❌** |
+| **Cradle cage** | 2 lower rails + end ties under each drum (a cradle), posts up to the deck frame | 120 lb · 8 sticks | 147 lb · 9 sticks | **171 lb ❌** |
+
+- **Why cage:** the drums can't slip out even if a tie breaks, and you don't
+  need long straps around the drums. That sidesteps the 18" securing-material
+  question.
+  - The foam-filled lower pipes add a little lift and lower the center of
+    gravity.
+  - The cage uses the side-outlet tees you already bought.
+- **Costs:**
+  - Weight: ~4–7 lb per drum.
+  - Pipe: 2–4 more 10 ft sticks.
+  - A lower frame that can catch rocks in shallow water. The cradle sits
+    ~0.3" below the drums; a single rail sits ~1.9" below.
+  - With a single rail, a drum can still rock sideways, so snug it to the
+    posts.
+- **Bottom line:** a cage fits the 2- and 3-drum layouts, but puts every
+  4-drum layout over 150 lb. Caged 4-drum pontoon end posts are shared between
+  drums (drums spaced 4" apart).
+
+**Where it lands:**
+- **Stability or safety comes first:** the **Pontoon**. Keep weight in check
+  (weigh parts, skip the cushions) because the margin is thin.
+- **Weight or simplicity comes first:** the **Reverse triangle** is the best
+  3-drum option (with a light cage it's still legal at ~138 lb). It's stable both ways at ~126 lb, and its bow stays up when
+  the crew lean forward into a drop.
+- **The catamaran** is only sensible for 1 light paddler seated low.
+
 ## Shared frame concept (from the render)
 
 - 1-1/2" Sch 40 PVC (foam-filled). Two rails per pontoon line, 6" either
