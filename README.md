@@ -63,13 +63,16 @@ bob/
 - **Frame joinery**: also **Box frames**, where each drum sits in its own box
   of pipe (top and bottom rectangles and corner posts) and the boxes are
   linked, with no separate deck frame. Pairs with the **Staggered
-  catamaran** layout from the team's Onshape sketch.
+  catamaran** and **Packed triangle** layouts from the team's Onshape
+  sketches. Boxes that touch share walls and crossbars, and their 4-pipe
+  corners are counted as 4-way fittings.
 - **Drum retention**: zip-tie bands, or **caged** between two PVC frames
   (a lower cradle or a single rail under each drum, with posts up to the deck
   frame). Caging adds pipe, fittings and weight, and is shown for every
   layout in Compare.
-- **Layouts with 2–4 drums**: catamaran (2), trimaran (3 side by side),
-  triangle (bow drum + 2 stern), pontoon (4, 2 per side) and wide raft (4
+- **Layouts with 2–4 drums**: catamaran (2), staggered catamaran (2),
+  trimaran (3 side by side), triangle (bow drum + 2 stern), packed triangle
+  (2 side by side + 1 behind), pontoon (4, 2 per side) and wide raft (4
   across). Each one has adjustable frame length, beam length, beam count,
   pontoon spacing, drum position, deck size, mast height, bow frame and
   noodle rail.
@@ -93,8 +96,9 @@ bob/
     availability once you pick your store.
 - **Check tab**: competition rules, recommendations, what the layout needs
   compared with what's listed, and the pipe cut list.
-- **Compare tab**: 8 structures (catamaran, tandem, trimaran, triangle,
-  reverse triangle, pontoon, diamond, wide raft), each run with your crew,
+- **Compare tab**: 10 structures (catamaran, staggered catamaran, tandem,
+  trimaran, triangle, reverse triangle, packed triangle, pontoon, diamond,
+  wide raft), each run with your crew,
   drums and parts.
   - Every structure gets plain-language pros and cons: stability, leaks,
     weight, parts you own, handling and build effort.

@@ -154,6 +154,20 @@ offset fore and aft (the **Staggered catamaran** layout).
 - Staggering steadies the fore-and-aft rocking of a 2-drum boat a lot (pitch
   GM −14" → −2"), at about the catamaran's weight.
 
+The team's second sketch is the **Packed triangle** layout: 2 drums side by
+side in boxes that share a middle wall, and a third box butted against
+their end crossbar on the centerline.
+- Sharing walls saves pipe: 138 lb and 7 sticks, against 143 lb and 9 sticks
+  for three separate boxes (reverse triangle).
+- Where boxes share a corner, 4 pipes meet, so it needs about eight 4-way
+  side-outlet fittings.
+- **Tradeoff:** it is only about 4 ft wide. With 2 × 175 lb crew, roll GM is
+  −4" (it can tip sideways), and losing any one drum sinks or capsizes it.
+  - The **Front pair gap** slider (0–14") spreads the front drums apart:
+    - 4" gives roll GM +1" at 139 lb;
+    - 8" gives +7" at 148 lb;
+    - 14" gives +18" at 149 lb, right at the limit.
+
 - **Why cage:** the drums can't slip out even if a tie breaks, and you don't
   need long straps around the drums. That sidesteps the 18" securing-material
   question.
