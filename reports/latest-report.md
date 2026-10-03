@@ -117,6 +117,7 @@ Ranked for a balanced mix of stability, leak safety, weight, parts on hand and c
 | 6 | Catamaran: 2 drums **(current)** | 106 | 46% | 46" | -15" | dives | ✕ | 5 |
 | 7 | Trimaran: 3 drums side by side | 126 | 32% | 42" | -10" | dives | ✕ | 5 |
 | — | Tandem: 2 drums crosswise | 101 | 45% | -15" | 76" | 5.3" | ✕ | 4 |
+| — | Packed triangle: 2 drums side by side + 1 behind | 120 | 32% | -4" | 46" | 10.0" | ✕ | 4 |
 | — | Wide raft: 4 drums across | 161 ❌ | 26% | 120" | -7" | dives | ✓ | 8 |
 
 GM (metacentric height): positive means the boat rights itself, negative means it tips until something else touches the water.
@@ -140,7 +141,7 @@ Two drums end to end on each side (the original render).
 - 👎 Long waterline turns slowly
 - 👎 Twice the lashing
 - 🔒 Caged instead of strapped: 171 lb (+25), 9 sticks (+4), over the 150 lb limit. Drums can't slip out, and no long straps are needed.
-- 📦 As box frames (each drum in its own box, no deck frame): 176 lb (+30), 11 sticks (+6), over the 150 lb limit. Drums are trapped and the boxes carry the deck.
+- 📦 As box frames (each drum in its own box, no deck frame): 177 lb (+31), 11 sticks (+6), over the 150 lb limit. Drums are trapped and the boxes carry the deck.
 
 ### 2. Reverse triangle: 2 bow + 1 stern drum
 
@@ -159,7 +160,7 @@ Two drums up front, one at the stern on the centerline.
 - 👎 Stern-heavy crews squat the single stern drum
 - 👎 Wide, flat bow pushes more water
 - 🔒 Caged instead of strapped: 147 lb (+21), 9 sticks (+4). Drums can't slip out, and no long straps are needed.
-- 📦 As box frames (each drum in its own box, no deck frame): 146 lb (+20), 10 sticks (+5). Drums are trapped and the boxes carry the deck.
+- 📦 As box frames (each drum in its own box, no deck frame): 143 lb (+17), 9 sticks (+4). Drums are trapped and the boxes carry the deck.
 
 ### 3. Diamond: bow, stern, port, starboard
 
@@ -197,7 +198,7 @@ One drum up front on the centerline, two at the stern.
 - 👎 Bow-down unless crew sit aft or drums shift forward
 - 👎 One bow drum carries the whole front: a leak there is serious
 - 🔒 Caged instead of strapped: 147 lb (+21), 9 sticks (+4). Drums can't slip out, and no long straps are needed.
-- 📦 As box frames (each drum in its own box, no deck frame): 146 lb (+20), 10 sticks (+5). Drums are trapped and the boxes carry the deck.
+- 📦 As box frames (each drum in its own box, no deck frame): 143 lb (+17), 9 sticks (+4). Drums are trapped and the boxes carry the deck.
 
 ### 5. Staggered catamaran: 2 drums offset
 
@@ -252,7 +253,7 @@ A center drum between the two side drums.
 - 👎 Still rocks fore and aft like the catamaran
 - 👎 Center drum adds drag and ~20 lb
 - 🔒 Caged instead of strapped: 147 lb (+21), 9 sticks (+4). Drums can't slip out, and no long straps are needed.
-- 📦 As box frames (each drum in its own box, no deck frame): 133 lb (+7), 7 sticks (+2). Drums are trapped and the boxes carry the deck.
+- 📦 As box frames (each drum in its own box, no deck frame): 134 lb (+8), 7 sticks (+2). Drums are trapped and the boxes carry the deck.
 
 ### —. Tandem: 2 drums crosswise
 
@@ -273,6 +274,27 @@ Two drums laid across the boat, one at the bow and one at the stern. Same weight
 
 - 📦 As box frames (each drum in its own box, no deck frame): 116 lb (+15), 7 sticks (+3). Drums are trapped and the boxes carry the deck.
 
+### —. Packed triangle: 2 drums side by side + 1 behind
+
+Two drums side by side at the bow sharing a middle wall, and one drum butted up behind them on the centerline, like the team's second box-frame sketch.
+
+- ✅ 120 lb, 30 lb under the limit
+- ✅ Steady fore and aft (pitch GM 46")
+- ✅ Rides high: 32% of lift used, 11.0" draft
+- ✅ Bow stays 10" clear with the crew forward
+- ✅ Uses drums you already have (3)
+- ✅ Cut list fits the pipe you bought (4 sticks)
+- ✅ Cheapest to finish: ~$200 more
+- ⚠️ Tippy side to side (roll GM -4")
+- ⚠️ Losing one drum can sink or capsize it
+- 👍 Compact (about 4 ft wide); the boxes share a wall and a crossbar, so it takes less pipe than 3 separate boxes
+- 👍 Lift at the bow and the stern, so it rides over waves instead of see-sawing
+- 👎 Narrow: with 2 adults it can tip sideways. Open the "Front pair gap" to widen it, at the cost of more pipe
+- 👎 Three drums plus boxes runs close to the 150 lb limit
+- 👎 Shared corners need 4-way side-outlet fittings
+- 🔒 Caged instead of strapped: 142 lb (+21), 8 sticks (+4). Drums can't slip out, and no long straps are needed.
+- 📦 As box frames (each drum in its own box, no deck frame): 138 lb (+18), 7 sticks (+3). Drums are trapped and the boxes carry the deck.
+
 ### —. Wide raft: 4 drums across
 
 Four drums side by side across a wide frame.
@@ -290,7 +312,7 @@ Four drums side by side across a wide frame.
 - 👎 Still rocks fore and aft: every drum is short
 - 👎 Widest and draggiest; needs longer beams
 - 🔒 Caged instead of strapped: 190 lb (+28), 12 sticks (+4), over the 150 lb limit. Drums can't slip out, and no long straps are needed.
-- 📦 As box frames (each drum in its own box, no deck frame): 163 lb (+1), 9 sticks (+1), over the 150 lb limit. Drums are trapped and the boxes carry the deck.
+- 📦 As box frames (each drum in its own box, no deck frame): 164 lb (+3), 9 sticks (+1), over the 150 lb limit. Drums are trapped and the boxes carry the deck.
 
 
 ## Needed for this layout vs parts list

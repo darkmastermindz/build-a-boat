@@ -279,6 +279,29 @@ test('box frames: each drum in its own box, joined to its neighbours, no deck fr
   assert.ok(a.solution.gmPitch > straight.solution.gmPitch);
 });
 
+test('box frames: packed triangle shares walls and crossbars, with no doubled pipe', () => {
+  const b = clone(build); Object.assign(b.config, { preset: 'tri3pack', frameStyle: 'boxes' });
+  b.parts.find(p => p.role === 'drum').quantity = 3;
+  const g = M.geometry(b.config), q = M.requirements(g, b.parts);
+  const kinds = k => g.cagePieces.filter(p => p.kind === k).length;
+  assert.strictEqual(g.drums.length, 3);
+  assert.strictEqual(kinds('link'), 0, 'boxes butt together, no links');
+  assert.strictEqual(kinds('post'), 10, 'the front pair shares its middle posts');
+  // no pipe runs inside another: every joint sits at a piece end, never partway along one
+  const ends = g.cagePieces.flatMap(p => [p.a, p.b]);
+  g.cagePieces.forEach(p => ends.forEach(e => {
+    const d = p.b.map((v, k) => v - p.a[k]), L = Math.hypot(...d), t = e.reduce((s, v, k) => s + (v - p.a[k]) * d[k], 0) / (L * L);
+    const off = Math.hypot(...e.map((v, k) => v - (p.a[k] + t * d[k])));
+    assert.ok(!(off < 0.1 && t * L > 0.5 && (1 - t) * L > 0.5), 'joint partway along a pipe');
+  }));
+  assert.ok(q.items.cross >= 4, 'shared corners take 4-way fittings');
+  assert.ok(q.cuts.every(c => c.len >= 2));
+  for (let gap = 0; gap <= 14; gap++) {             // widening the front pair never leaves stubs
+    const q2 = M.requirements(M.geometry(Object.assign({}, b.config, { packGap: gap })), b.parts);
+    assert.ok(q2.cuts.every(c => c.len >= 2), `gap ${gap}`);
+  }
+});
+
 test('box frames: every layout builds without pipe stubs', () => {
   for (const preset of Object.keys(M.PRESETS)) {
     const b = clone(build); Object.assign(b.config, { preset, frameStyle: 'boxes' });

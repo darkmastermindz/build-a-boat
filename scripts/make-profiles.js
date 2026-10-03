@@ -31,6 +31,7 @@ const profiles = [
   make('quad4-pontoon', 'Pontoon: 4 drums', '4 drums (2 per side) on the spine frame, seat cushions dropped. Most stable; survives a leak.', b => { b.config.preset = 'quad4pontoon'; drums(b, 4); noCushions(b); }),
   make('stagger2-boxes', 'Box frames: staggered catamaran', 'The team\'s Onshape sketch: each drum in its own box of pipe, boxes offset fore and aft and joined by links. Drums are trapped without straps.', b => { b.config.preset = 'stagger2'; b.config.frameStyle = 'boxes'; }),
   make('tri3stern-boxes', 'Box frames: reverse triangle', 'Three boxed drums, 2 at the bow and 1 at the stern. Stable both ways; boxes meet corner to corner.', b => { b.config.preset = 'tri3stern'; b.config.frameStyle = 'boxes'; drums(b, 3); }),
+  make('tri3pack-boxes', 'Box frames: packed triangle', 'The team\'s second Onshape sketch: 2 drums side by side in boxes sharing a middle wall, and a third box butted against their crossbar. Compact but narrow; check side-to-side stability.', b => { b.config.preset = 'tri3pack'; b.config.frameStyle = 'boxes'; drums(b, 3); }),
   make('render-stacked', 'Original render (stacked frame)', 'The 4-drum render: two rails per drum, beams zip-tied on top.', b => { b.config.preset = 'quad4pontoon'; Object.assign(b.config, { frameStyle: 'stacked', railsPerPontoon: 2, centerSpine: false, beamCount: 4 }); drums(b, 4); noCushions(b); }),
 ];
 
