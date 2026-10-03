@@ -60,6 +60,10 @@ bob/
   zip-tied on rails, from the original render). Fitted mode computes the
   fitting counts and exact cut lengths, and "Fit frame length to drums" sizes
   the frame to the drums.
+- **Drum retention**: zip-tie bands, or **caged** between two PVC frames
+  (a lower cradle or a single rail under each drum, with posts up to the deck
+  frame). Caging adds pipe, fittings and weight, and is shown for every
+  layout in Compare.
 - **Layouts with 2–4 drums**: catamaran (2), trimaran (3 side by side),
   triangle (bow drum + 2 stern), pontoon (4, 2 per side) and wide raft (4
   across). Each one has adjustable frame length, beam length, beam count,

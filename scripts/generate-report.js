@@ -65,6 +65,7 @@ Generated from \`data/build.json\` by \`scripts/raft-model.js\`. Open
 | Drums | ${g.mixed ? g.drums.map(d => `${M.drumLabel(g, d)}: ${d.spec.gallons} gal, ${d.spec.dia}" × ${d.len}", ${d.spec.weight} lb${d.spec.weightMeasured ? ' (weighed)' : ''}`).join('<br>') : `${g.drums.length} × ${g.drum.label} (${g.drum.gallons} gal, ${g.drum.dia}" × ${g.drum.len}", ${g.drum.weight} lb${g.drum.weightMeasured ? ', weighed' : ''})`} |
 | Frame | ${c.frameLength}" rails × ${c.frameWidth}" beams, ${g.beams.length} beams, pontoon spacing ${c.pontoonSpacing}" |
 | Deck | ${c.deck.length}" × ${c.deck.width}" × ${c.deck.thickness}" |
+| Drum retention | ${g.cage ? `Caged between two frames (${c.cageStyle === 'single' ? 'single lower rail' : 'lower cradle'} + posts)` : 'Zip-tie bands'} |
 | Overall size | ${ft(g.overall.length)} × ${ft(g.overall.width)} × ${ft(g.overall.height)} |
 | Crew | ${c.crew.count} × ${c.crew.weightEach} lb |
 | Predicted final weight | ${f1(a.weights.predicted)} lb (limit ${rules.max_boat_weight_lb || 150}) |
@@ -122,6 +123,7 @@ ${r.pros.map(t => `- ✅ ${t}`).join('\n')}
 ${r.cons.map(t => `- ⚠️ ${t}`).join('\n')}
 ${r.strengths.map(t => `- 👍 ${t}`).join('\n')}
 ${r.weaknesses.map(t => `- 👎 ${t}`).join('\n')}
+${r.retentionNote ? `- 🔒 ${r.retentionNote}` : ''}
 `).join('\n')}
 
 ## Needed for this layout vs parts list
