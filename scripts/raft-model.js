@@ -50,29 +50,58 @@
   const SEATED_CG = 10;               // crew CG above deck top
   const SLICES = 12;
 
+  // Each preset: where the drums go, plus the qualitative tradeoffs the
+  // numbers can't show (handling, build effort). Numbers come from analyze().
   const PRESETS = {
     cat2: {
       label: 'Catamaran: 2 drums', drums: 2,
-      blurb: 'Lightest. One drum per side, so there is no redundancy and the boat is pitch-sensitive with a long frame.',
+      blurb: 'One drum per side. The lightest and simplest boat to build.',
+      strengths: ['Lightest and cheapest; the fewest lashings', 'Turns easily: short waterline, nothing in the middle'],
+      weaknesses: ['No backup: losing a drum swamps that side', 'Rocks fore and aft over a long frame, so seat the crew low and centered'],
       layout: c => [-1, 1].map(s => ({ x: c.drumOffset, z: s * c.pontoonSpacing / 2 })),
+    },
+    tandem2: {
+      label: 'Tandem: 2 drums crosswise', drums: 2,
+      blurb: 'Two drums laid across the boat, one at the bow and one at the stern. Same weight as the catamaran, turned 90°.',
+      strengths: ['Rides over waves bow-first: a drum lifts each end', 'Same weight and drum count as the catamaran'],
+      weaknesses: ['Tippy side to side: only ~3 ft of drum across the beam', 'Drums push water broadside, so it is slow to paddle', 'Crosswise lashing is harder to keep tight'],
+      layout: c => [-1, 1].map(s => ({ x: c.drumOffset + s * Math.max(c.drumSpread + 8, drumSpec(c).dia / 2 + 12), z: 0, axis: 'z' })),
+      lines: c => { const h = Math.max(4, drumSpec(c).len / 2 - 4); return [-h, h]; },   // rails rest on the drums, just inside their ends
     },
     tri3inline: {
       label: 'Trimaran: 3 drums side by side', drums: 3,
-      blurb: 'Adds a center drum. ~50% more lift and survives losing one drum. Same pitch behavior as the catamaran.',
+      blurb: 'A center drum between the two side drums.',
+      strengths: ['About 50% more lift than the catamaran', 'Survives losing one side drum in most cases'],
+      weaknesses: ['Still rocks fore and aft like the catamaran', 'Center drum adds drag and ~20 lb'],
       layout: c => [-1, 0, 1].map(s => ({ x: c.drumOffset, z: s * c.pontoonSpacing / 2 })),
     },
     tri3bow: {
-      label: 'Triangle: bow drum + 2 stern drums', drums: 3,
-      blurb: 'Spreads drums fore and aft, which resists nose-diving in waves. Bow lift and stern lift differ, so trim it with crew position.',
+      label: 'Triangle: 1 bow + 2 stern drums', drums: 3,
+      blurb: 'One drum up front on the centerline, two at the stern.',
+      strengths: ['Stable both ways, at ~20 lb under the pontoon', 'Bow drum lifts the nose into waves'],
+      weaknesses: ['Bow-down unless crew sit aft or drums shift forward', 'One bow drum carries the whole front: a leak there is serious'],
       layout: c => [
         { x: c.drumOffset + c.drumSpread, z: 0 },
         { x: c.drumOffset - c.drumSpread, z: -c.pontoonSpacing / 2 },
         { x: c.drumOffset - c.drumSpread, z: c.pontoonSpacing / 2 },
       ],
     },
+    tri3stern: {
+      label: 'Reverse triangle: 2 bow + 1 stern drum', drums: 3,
+      blurb: 'Two drums up front, one at the stern on the centerline.',
+      strengths: ['Most lift where crew lean in rapids, at the bow', 'Wide bow resists nose-diving and rolling as you enter drops'],
+      weaknesses: ['Stern-heavy crews squat the single stern drum', 'Wide, flat bow pushes more water'],
+      layout: c => [
+        { x: c.drumOffset + c.drumSpread, z: -c.pontoonSpacing / 2 },
+        { x: c.drumOffset + c.drumSpread, z: c.pontoonSpacing / 2 },
+        { x: c.drumOffset - c.drumSpread, z: 0 },
+      ],
+    },
     quad4pontoon: {
       label: 'Pontoon: 4 drums (2 per side)', drums: 4,
-      blurb: 'Original render. Most lift and best pitch stability, at ~40 lb more than the catamaran.',
+      blurb: 'Two drums end to end on each side (the original render).',
+      strengths: ['Most stable both ways; survives any single leak', 'Long hulls track straight and ride low'],
+      weaknesses: ['Heaviest (~40 lb over the catamaran) and close to the 150 lb limit', 'Long waterline turns slowly', 'Twice the lashing'],
       layout: c => {
         const hx = drumSpec(c).len / 2 + 0.5;
         const out = [];
@@ -80,9 +109,24 @@
         return out;
       },
     },
+    diamond4: {
+      label: 'Diamond: bow, stern, port, starboard', drums: 4,
+      blurb: 'One drum at each point of a diamond: bow and stern on the centerline, port and starboard at mid-length.',
+      strengths: ['Stable both ways with 4 drums spread over a short frame', 'Survives any single leak', 'Pivots well: drums are near the middle'],
+      weaknesses: ['Heaviest class, like the pontoon', 'Bow and stern drums need their own cross beams'],
+      layout: c => {
+        const ax = Math.max(c.drumSpread + 10, drumSpec(c).len / 2 + 8);
+        return [
+          { x: c.drumOffset + ax, z: 0 }, { x: c.drumOffset - ax, z: 0 },
+          { x: c.drumOffset, z: -c.pontoonSpacing / 2 }, { x: c.drumOffset, z: c.pontoonSpacing / 2 },
+        ];
+      },
+    },
     quad4wide: {
       label: 'Wide raft: 4 drums across', drums: 4,
-      blurb: 'Very stable side to side, but wide and short fore-aft, so it pitches like the catamaran. Needs longer beams.',
+      blurb: 'Four drums side by side across a wide frame.',
+      strengths: ['Hardest to tip sideways', 'Survives any single leak'],
+      weaknesses: ['Still rocks fore and aft: every drum is short', 'Widest and draggiest; needs longer beams'],
       layout: c => {
         const step = Math.max(c.pontoonSpacing / 3, drumSpec(c).dia + 1);
         return [-1.5, -0.5, 0.5, 1.5].map(k => ({ x: c.drumOffset, z: k * step }));
@@ -129,18 +173,23 @@
     const c = withDefaults(cfgIn);
     const raw = Array.isArray(c.drums) ? c.drums : PRESETS[c.preset].layout(c);
     const drum = drumSpec(c);
-    const drums = raw.map((d, i) => { const sp = drumSpec(c, i); return { id: i, x: d.x, z: d.z, failed: c.failedDrum === i, spec: sp, r: sp.dia / 2, len: sp.len }; });
+    const drums = raw.map((d, i) => { const sp = drumSpec(c, i); return { id: i, x: d.x, z: d.z, axis: d.axis === 'z' ? 'z' : 'x', failed: c.failedDrum === i, spec: sp, r: sp.dia / 2, len: sp.len }; });
+    // half-extents in plan: a lengthwise drum runs along x, a crosswise one along z
+    drums.forEach(d => { d.ex = d.axis === 'x' ? d.len / 2 : d.r; d.ez = d.axis === 'x' ? d.r : d.len / 2; });
     // Drums are lashed up snug to the frame, so their tops line up; a smaller
     // drum's bottom sits higher (y0) than the largest drum's (y = 0).
     const r = Math.max(...drums.map(d => d.r));
     drums.forEach(d => { d.y0 = 2 * (r - d.r); });
     const mixed = drums.some(d => !sameSpec(d.spec, drums[0].spec));
-    const lines = [...new Set(drums.map(d => +d.z.toFixed(2)))].sort((a, b) => a - b);
+    const presetLines = !Array.isArray(c.drums) && PRESETS[c.preset] && PRESETS[c.preset].lines;
+    const crosswise = drums.some(d => d.axis === 'z');
+    const lines = presetLines ? presetLines(c) : [...new Set(drums.map(d => +d.z.toFixed(2)))].sort((a, b) => a - b);
     // stacked: rails rest on the drums, beams lashed on top (the render).
     // fitted: rails and beams in one plane joined by tees/crosses, sitting on the drum tops.
     const fitted = c.frameStyle === 'fitted';
     const off = c.railsPerPontoon === 1 ? 0 : Math.min(RAIL_OFFSET, r * 0.8);
-    const railY = fitted ? 2 * r + PIPE_R : r + Math.sqrt(r * r - off * off) + PIPE_R;
+    // rails across crosswise drums sit on the drum tops
+    const railY = fitted || crosswise ? 2 * r + PIPE_R : r + Math.sqrt(r * r - off * off) + PIPE_R;
     const beamY = fitted ? railY : railY + 2 * PIPE_R;
     const deckBottom = beamY + PIPE_R;
     const deckTop = deckBottom + c.deck.thickness;
@@ -158,9 +207,9 @@
       x0: L / 2, x1: L / 2 + c.bowStrut, topY: railY + c.bowRiser, z: outerZ,
     } : null;
     const xs = [-L / 2, L / 2 + (bow ? c.bowStrut + PIPE_R : 0)];
-    drums.forEach(d => { xs.push(d.x - d.len / 2, d.x + d.len / 2); });
+    drums.forEach(d => { xs.push(d.x - d.ex, d.x + d.ex); });
     const zs = [-W / 2, W / 2];
-    drums.forEach(d => zs.push(d.z - d.r, d.z + d.r));
+    drums.forEach(d => zs.push(d.z - d.ez, d.z + d.ez));
     const mastTop = c.mastHeight > 0 ? deckTop + c.mastHeight : deckTop;
     const wallTop = Math.max(bow ? bow.topY + PIPE_R : 0, c.noodleRail ? deckTop + 2.5 : 0);
     const overall = {
@@ -171,13 +220,13 @@
     const overlaps = [];
     for (let i = 0; i < drums.length; i++) for (let j = i + 1; j < drums.length; j++) {
       const a = drums[i], b = drums[j];
-      if (Math.abs(a.z - b.z) < a.r + b.r && Math.abs(a.x - b.x) < (a.len + b.len) / 2) overlaps.push([i, j]);
+      if (Math.abs(a.z - b.z) < a.ez + b.ez && Math.abs(a.x - b.x) < a.ex + b.ex) overlaps.push([i, j]);
     }
     return {
       config: c, drum, r, mixed, fitted, frameWidth: W, railOffset: off, drums, lines, rails, beams, railY, beamY, deckBottom, deckTop, bow, outerZ,
       mastTop, wallHeight: Math.max(0, wallTop - deckTop), overall, overlaps,
       beamsTooShort: !fitted && outerZ + PIPE_R > W / 2,
-      drumsOffFrame: drums.some(d => d.x - d.len / 2 < -L / 2 - 1 || d.x + d.len / 2 > L / 2 + 1),
+      drumsOffFrame: drums.some(d => d.x - d.ex < -L / 2 - 1 || d.x + d.ex > L / 2 + 1),
     };
   }
 
@@ -359,7 +408,11 @@
     const out = [];
     g.drums.filter(d => !d.failed).forEach(d => {
       const dl = d.len / SLICES;
-      for (let k = 0; k < SLICES; k++) out.push({ x: d.x - d.len / 2 + (k + 0.5) * dl, z: d.z, dl, r: d.r, y0: d.y0, drum: d.id });
+      for (let k = 0; k < SLICES; k++) {
+        const u = -d.len / 2 + (k + 0.5) * dl;
+        out.push(d.axis === 'x' ? { x: d.x + u, z: d.z, dl, r: d.r, y0: d.y0, axis: 'x', drum: d.id }
+                                : { x: d.x, z: d.z + u, dl, r: d.r, y0: d.y0, axis: 'z', drum: d.id });
+      }
     });
     return out;
   }
@@ -424,8 +477,10 @@
       V += vol; KBm += vol * (segCentroidY(hh, s.r) + s.y0);
       const w = segWidth(hh, s.r), wa = w * s.dl;
       A += wa; Ax += wa * s.x; Az += wa * s.z;
-      Izz += wa * s.z * s.z + s.dl * w ** 3 / 12;   // roll (about x axis)
-      Ixx += wa * s.x * s.x + w * s.dl ** 3 / 12;   // pitch (about z axis)
+      // strip own inertia: w across the drum, dl along it
+      const spanZ = s.axis === 'x' ? w : s.dl, spanX = s.axis === 'x' ? s.dl : w;
+      Izz += wa * s.z * s.z + wa * spanZ * spanZ / 12;   // roll (about x axis)
+      Ixx += wa * s.x * s.x + wa * spanX * spanX / 12;   // pitch (about z axis)
       const pd = perDrum[s.drum] || (perDrum[s.drum] = { min: Infinity, max: -Infinity, lb: 0 });
       pd.min = Math.min(pd.min, hh); pd.max = Math.max(pd.max, hh); pd.lb += vol * WATER;
     }
@@ -617,7 +672,7 @@
       if (Math.abs(sol.rollDeg) > 2) add('warn', `Heel ${Math.abs(sol.rollDeg).toFixed(1)}°`, 'Center the load side to side.');
       if (sol.gmRoll < 0) add('error', `Side-to-side unstable (GM ${sol.gmRoll.toFixed(0)}")`, 'It will roll onto one side. Spread the drums wider.');
       else if (sol.gmRoll < 12) add('warn', `Low side-to-side stability (GM ${sol.gmRoll.toFixed(0)}")`, 'Spread the pontoons wider or lower the crew.');
-      if (sol.gmPitch < 0) add('warn', `Fore-aft unstable: see-saws on the drums (GM ${sol.gmPitch.toFixed(0)}")`, `The drums are only ${Math.max(...g.drums.map(d => d.len))}" long under a ${c.frameLength}" frame and the crew sits high, so the boat rocks bow-down or stern-down until the frame hits the water. Spread drums fore-aft (Triangle or Pontoon preset), keep the crew low and centered, or shorten the frame.`);
+      if (sol.gmPitch < 0) add('warn', `Fore-aft unstable: see-saws on the drums (GM ${sol.gmPitch.toFixed(0)}")`, `The drums are only ${Math.max(...g.drums.map(d => d.ex * 2)).toFixed(1)}" long fore-aft under a ${c.frameLength}" frame and the crew sits high, so the boat rocks bow-down or stern-down until the frame hits the water. Spread drums fore-aft (Triangle or Pontoon preset), keep the crew low and centered, or shorten the frame.`);
       else if (sol.gmPitch < 12) add('warn', `Low fore-aft stability (GM ${sol.gmPitch.toFixed(0)}")`, 'Spread drums further fore-aft or keep the crew low.');
     }
     if (!fwd.ok || fwd.bowFreeboard < 2) add('warn', 'Nose-dive risk with crew at the bow', !fwd.ok ? 'Moving the crew forward overwhelms the bow.' : `Bow clearance drops to ${fwd.bowFreeboard.toFixed(1)}". Consider the Triangle or Pontoon preset, a drum further forward, or crew seated aft of center.`);
@@ -767,25 +822,105 @@
     return links;
   }
 
-  function comparePresets(build, rules) {
-    return Object.keys(PRESETS).map(id => {
-      const cfg = Object.assign({}, build.config, { preset: id, drums: undefined, failedDrum: null });
-      if (id === 'quad4wide') cfg.frameWidth = Math.max(cfg.frameWidth, Math.ceil(2 * (1.5 * Math.max(cfg.pontoonSpacing / 3, drumSpec(cfg).dia + 1) + RAIL_OFFSET + PIPE_R)));
-      const a = analyze(Object.assign({}, build, { config: cfg }), rules);
-      const s = a.solution;
+  // Fit the frame to a layout: long enough to hold every drum, wide enough
+  // for the outer rails. Used by the comparison and when switching layouts.
+  function fitFrame(cfg) {
+    const out = Object.assign({}, cfg);
+    for (let k = 0; k < 2; k++) {
+      const g = geometry(out);
+      const needL = Math.ceil(2 * Math.max(...g.drums.map(d => Math.abs(d.x) + d.ex)) / 2) * 2;
+      if (needL > out.frameLength) out.frameLength = Math.min(120, needL);
+      if (g.beamsTooShort) out.frameWidth = Math.min(110, Math.ceil(2 * (g.outerZ + PIPE_R) / 2) * 2);
+    }
+    return out;
+  }
+
+  // Compare every layout with the team's parts, crew and drums, and spell
+  // out the tradeoffs in plain words.
+  function comparePresets(build, rules, opts) {
+    opts = opts || {};
+    const max = (rules && rules.max_boat_weight_lb) || 150;
+    const bought = inventory((build.parts || []).filter(isBought));
+    const rows = Object.keys(PRESETS).map(id => {
+      const P = PRESETS[id];
+      const cfg = fitFrame(Object.assign({}, build.config, { preset: id, drums: undefined, failedDrum: null }));
+      const b2 = Object.assign({}, build, { config: cfg });
+      const parts = (build.parts || []).map(p => p.role === 'drum' ? Object.assign({}, p, { quantity: Math.max(+p.quantity || 0, P.drums) }) : p);
+      const a = analyze(Object.assign({}, b2, { parts }), rules, { catalog: opts.catalog });
+      const s = a.solution, g = a.geometry;
+      const fwd = a.scenarios.crewForward;
       return {
-        id, label: PRESETS[id].label, blurb: PRESETS[id].blurb, drums: PRESETS[id].drums,
+        id, label: P.label, blurb: P.blurb, drums: P.drums, config: { frameLength: cfg.frameLength, frameWidth: cfg.frameWidth },
         weight: a.weights.total, ok: s.ok, loadPct: s.loadPct, maxDraft: s.maxDraft, gmRoll: s.gmRoll, gmPitch: s.gmPitch,
-        bowFwd: a.scenarios.crewForward.ok ? a.scenarios.crewForward.bowFreeboard : -Infinity,
+        reserve: s.ok ? s.maxLb - s.W : 0,
+        bowFwd: fwd.ok ? fwd.bowFreeboard : -Infinity,
         survivesLeak: a.scenarios.leaks.every(l => l.sol.ok),
+        drumsNeeded: Math.max(0, P.drums - (bought.drum || 0)),
+        sticks: a.requirements.items.pipe, sticksNeeded: Math.max(0, a.requirements.items.pipe - (bought.pipe || 0)),
+        size: g.overall,
+        costToFinish: a.shopping.neededCost,
         errors: a.rules.filter(x => x.level === 'error').length + a.recommendations.filter(x => x.level === 'error').length,
+        strengths: P.strengths, weaknesses: P.weaknesses,
       };
     });
+    const lightest = Math.min(...rows.map(r => r.weight));
+    const cheapest = Math.min(...rows.map(r => r.costToFinish));
+    rows.forEach(r => {
+      const pros = [], cons = [];
+      if (!r.ok) cons.push('Does not float with this crew');
+      if (r.weight >= max) cons.push(`${r.weight.toFixed(0)} lb: over the ${max} lb limit`);
+      else if (r.weight - lightest < 1) pros.push(`Lightest option: ${r.weight.toFixed(0)} lb`);
+      else if (max - r.weight < 10) cons.push(`${r.weight.toFixed(0)} lb: only ${(max - r.weight).toFixed(0)} lb under the limit`);
+      else pros.push(`${r.weight.toFixed(0)} lb, ${(max - r.weight).toFixed(0)} lb under the limit`);
+      if (r.ok) {
+        if (r.gmPitch < 0) cons.push(`Rocks fore and aft (pitch GM ${r.gmPitch.toFixed(0)}")`);
+        else if (r.gmPitch >= 24) pros.push(`Steady fore and aft (pitch GM ${r.gmPitch.toFixed(0)}")`);
+        if (r.gmRoll < 12) cons.push(`Tippy side to side (roll GM ${r.gmRoll.toFixed(0)}")`);
+        else if (r.gmRoll >= 60) pros.push(`Very steady side to side (roll GM ${r.gmRoll.toFixed(0)}")`);
+        if (r.loadPct > 60) cons.push(`Sits deep: ${r.loadPct.toFixed(0)}% of lift used, ${r.maxDraft.toFixed(1)}" draft`);
+        else if (r.loadPct <= 35) pros.push(`Rides high: ${r.loadPct.toFixed(0)}% of lift used, ${r.maxDraft.toFixed(1)}" draft`);
+        if (!isFinite(r.bowFwd) || r.bowFwd < 2) cons.push('Nose-dives if the crew shift forward');
+        else if (r.bowFwd >= 6) pros.push(`Bow stays ${r.bowFwd.toFixed(0)}" clear with the crew forward`);
+      }
+      (r.survivesLeak ? pros : cons).push(r.survivesLeak ? 'Still floats if any one drum leaks' : 'Losing one drum can sink or capsize it');
+      if (r.drumsNeeded) cons.push(`Needs ${r.drumsNeeded} more drum${r.drumsNeeded > 1 ? 's' : ''} than you have`);
+      else pros.push(`Uses drums you already have (${r.drums})`);
+      if (r.sticksNeeded) cons.push(`Needs ${r.sticksNeeded} more 10 ft pipe stick${r.sticksNeeded > 1 ? 's' : ''} (${r.sticks} total)`);
+      else pros.push(`Cut list fits the pipe you bought (${r.sticks} sticks)`);
+      if (r.costToFinish - cheapest < 1) pros.push(`Cheapest to finish: ~$${r.costToFinish.toFixed(0)} more`);
+      r.pros = pros; r.cons = cons;
+    });
+    return rows;
+  }
+
+  // Rank layouts by what the team cares about most. Hard limits (over the
+  // weight limit, sinking, rule errors) always rank last.
+  const PRIORITIES = {
+    balanced: { label: 'Balanced', w: { stab: 1, leak: 1, weight: 0.6, owned: 0.6, cost: 0.4 } },
+    stability: { label: 'Stability in rapids', w: { stab: 2, leak: 1.5, weight: 0.3, owned: 0.3, cost: 0.2 } },
+    light: { label: 'Light and easy to carry', w: { stab: 0.6, leak: 0.4, weight: 2, owned: 0.5, cost: 0.4 } },
+    owned: { label: 'Use what we already bought', w: { stab: 0.6, leak: 0.4, weight: 0.4, owned: 2, cost: 1 } },
+  };
+  function rankPresets(rows, priority) {
+    const w = (PRIORITIES[priority] || PRIORITIES.balanced).w;
+    const clamp01 = v => Math.max(0, Math.min(1, v));
+    const scored = rows.map(r => {
+      // a boat that tips over one way is a real problem, not just a lower score
+      const stab = r.ok ? (clamp01((r.gmPitch + 10) / 70) + clamp01(r.gmRoll / 80) + clamp01((isFinite(r.bowFwd) ? r.bowFwd : -2) / 8)) / 3
+        - (r.gmPitch < 0 ? 0.4 : 0) - (r.gmRoll < 0 ? 0.6 : 0) - (!isFinite(r.bowFwd) || r.bowFwd < 2 ? 0.15 : 0) : 0;
+      const weight = clamp01((150 - r.weight) / 50);
+      const owned = 1 - clamp01((r.drumsNeeded + r.sticksNeeded) / 4);
+      const cost = clamp01(1 - r.costToFinish / 600);
+      const blocked = !r.ok || r.weight >= 150 || r.errors > 0;
+      const score = blocked ? -1 : w.stab * stab + w.leak * (r.survivesLeak ? 1 : 0) + w.weight * weight + w.owned * owned + w.cost * cost;
+      return Object.assign({}, r, { score, blocked });
+    });
+    return scored.sort((a, b) => b.score - a.score);
   }
 
   return {
     WATER, DRUM, DRUM_SIZES, drumSpec, drumLabel, PIPE_R, RAIL_OFFSET, PRESETS, DEFAULT_CONFIG, inventory,
-    withDefaults, geometry, requirements, shoppingList, storeLinks, weights, massItems, crewPositions, solve, checkRules, analyze, comparePresets,
+    withDefaults, geometry, requirements, shoppingList, storeLinks, fitFrame, rankPresets, PRIORITIES, weights, massItems, crewPositions, solve, checkRules, analyze, comparePresets,
     segArea, drumMaxLb,
   };
 });

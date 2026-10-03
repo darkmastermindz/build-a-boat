@@ -204,3 +204,32 @@ test('placement suggestion only appears when it levels the boat', () => {
     assert.ok(Math.abs(a.solution.rollDeg) < 1, 'no suggestion only when already level');
   }
 });
+
+test('crosswise tandem: steady fore-aft but tippy side to side (the reverse of the catamaran)', () => {
+  const run = preset => { const b = clone(build); b.config.preset = preset; return M.analyze(b, rules, { skipLeak: true }).solution; };
+  const cat = run('cat2'), tan = run('tandem2');
+  assert.ok(tan.gmPitch > cat.gmPitch, 'tandem pitch stiffer');
+  assert.ok(tan.gmRoll < cat.gmRoll, 'tandem roll softer');
+  const g = M.geometry(Object.assign({}, build.config, { preset: 'tandem2' }));
+  assert.ok(g.drums.every(d => d.axis === 'z'));
+  assert.ok(g.rails.every(r => Math.abs(r.z) < g.drums[0].len / 2), 'rails sit on the crosswise drums');
+});
+
+test('comparison: every layout gets pros, cons and a fitted frame; ranking respects hard limits', () => {
+  const catalog = require('../data/catalog.json');
+  const rows = M.comparePresets(build, rules, { catalog });
+  assert.strictEqual(rows.length, Object.keys(M.PRESETS).length);
+  rows.forEach(r => {
+    assert.ok(r.pros.length + r.cons.length >= 4, r.id);
+    assert.ok(r.strengths.length && r.weaknesses.length, r.id);
+    const g = M.geometry(Object.assign({}, build.config, { preset: r.id }, r.config));
+    assert.ok(!g.drumsOffFrame, `${r.id} frame holds its drums`);
+  });
+  for (const p of Object.keys(M.PRIORITIES)) {
+    const ranked = M.rankPresets(rows, p);
+    const firstBlocked = ranked.findIndex(r => r.blocked);
+    if (firstBlocked >= 0) assert.ok(ranked.slice(firstBlocked).every(r => r.blocked), `${p}: blocked layouts rank last`);
+  }
+  const light = M.rankPresets(rows, 'light')[0], stab = M.rankPresets(rows, 'stability')[0];
+  assert.ok(light.weight <= stab.weight, 'light priority picks a lighter boat');
+});

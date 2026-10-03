@@ -85,8 +85,12 @@ bob/
     availability once you pick your store.
 - **Check tab**: competition rules, recommendations, what the layout needs
   compared with what's listed, and the pipe cut list.
-- **Compare tab**: every layout run on your parts and crew, with a suggested
-  pick.
+- **Compare tab**: 8 structures (catamaran, tandem, trimaran, triangle,
+  reverse triangle, pontoon, diamond, wide raft), each run with your crew,
+  drums and parts.
+  - Every structure gets plain-language pros and cons: stability, leaks,
+    weight, parts you own, handling and build effort.
+  - A "what matters most" selector re-ranks them.
 - **Design profiles** (the dropdown in the header): load a suggested design
   or a team design, then **Save** (overwrite) or **Save as…** (new profile).
   - On the Netlify site, profiles are shared with everyone through
