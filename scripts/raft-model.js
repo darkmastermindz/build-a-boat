@@ -60,6 +60,13 @@
       weaknesses: ['No backup: losing a drum swamps that side', 'Rocks fore and aft over a long frame, so seat the crew low and centered'],
       layout: c => [-1, 1].map(s => ({ x: c.drumOffset, z: s * c.pontoonSpacing / 2 })),
     },
+    stagger2: {
+      label: 'Staggered catamaran: 2 drums offset', drums: 2,
+      blurb: 'Two drums side by side but shifted fore and aft, like the team\'s box-frame sketch.',
+      strengths: ['Spreads the lift fore and aft, so it rocks less than a straight catamaran', 'Same 2 drums and weight class as the catamaran'],
+      weaknesses: ['Lopsided: trims and turns a little differently each way', 'Still no backup if a drum leaks'],
+      layout: c => [-1, 1].map(s => ({ x: c.drumOffset + s * c.drumSpread / 2, z: s * c.pontoonSpacing / 2 })),
+    },
     tandem2: {
       label: 'Tandem: 2 drums crosswise', drums: 2,
       blurb: 'Two drums laid across the boat, one at the bow and one at the stern. Same weight as the catamaran, turned 90°.',
@@ -96,6 +103,16 @@
         { x: c.drumOffset + c.drumSpread, z: c.pontoonSpacing / 2 },
         { x: c.drumOffset - c.drumSpread, z: 0 },
       ],
+    },
+    tri3pack: {
+      label: 'Packed triangle: 2 drums side by side + 1 behind', drums: 3,
+      blurb: 'Two drums side by side at the bow sharing a middle wall, and one drum butted up behind them on the centerline, like the team\'s second box-frame sketch.',
+      strengths: ['Compact (about 4 ft wide); the boxes share a wall and a crossbar, so it takes less pipe than 3 separate boxes', 'Lift at the bow and the stern, so it rides over waves instead of see-sawing'],
+      weaknesses: ['Narrow: with 2 adults it can tip sideways. Open the "Front pair gap" to widen it, at the cost of more pipe', 'Three drums plus boxes runs close to the 150 lb limit', 'Shared corners need 4-way side-outlet fittings'],
+      layout: c => {
+        const d = drumSpec(c), ax = d.len / 2 + 2, az = d.dia / 2 + 1 + Math.min(14, Math.max(0, c.packGap || 0)) / 2;   // boxes touch: 2" end clearance, 1" side clearance
+        return [{ x: c.drumOffset + ax, z: -az }, { x: c.drumOffset + ax, z: az }, { x: c.drumOffset - ax, z: 0 }];
+      },
     },
     quad4pontoon: {
       label: 'Pontoon: 4 drums (2 per side)', drums: 4,
@@ -135,7 +152,7 @@
   };
 
   const DEFAULT_CONFIG = {
-    preset: 'cat2', frameStyle: 'stacked', retention: 'bands', cageStyle: 'cradle', fittingTakeoff: 1.25, railsPerPontoon: 2, centerSpine: false, frameLength: 84, frameWidth: 72, beamCount: 4, pontoonSpacing: 47,
+    preset: 'cat2', frameStyle: 'stacked', retention: 'bands', cageStyle: 'cradle', packGap: 0, fittingTakeoff: 1.25, railsPerPontoon: 2, centerSpine: false, frameLength: 84, frameWidth: 72, beamCount: 4, pontoonSpacing: 47,
     drumOffset: 0, drumSpread: 20, bow: true, bowRiser: 12, bowStrut: 18,
     deck: { length: 72, width: 24, thickness: 2.3 }, mastHeight: 30, noodleRail: true,
     crew: { count: 2, weightEach: 175, xOffset: 0, zOffset: 0 }, failedDrum: null,
@@ -184,6 +201,7 @@
     const presetLines = !Array.isArray(c.drums) && PRESETS[c.preset] && PRESETS[c.preset].lines;
     const crosswise = drums.some(d => d.axis === 'z');
     const lines = presetLines ? presetLines(c) : [...new Set(drums.map(d => +d.z.toFixed(2)))].sort((a, b) => a - b);
+    if (c.frameStyle === 'boxes') return boxGeometry(c, drum, drums, r, mixed);
     // stacked: rails rest on the drums, beams lashed on top (the render).
     // fitted: rails and beams in one plane joined by tees/crosses, sitting on the drum tops.
     const fitted = c.frameStyle === 'fitted';
@@ -271,6 +289,121 @@
     };
   }
 
+  // ── Box frames: every drum sits inside its own box of pipe ──
+  // A box is a top and a bottom rectangle joined by four corner posts. Boxes
+  // are joined to their nearest neighbours by short links (top, and bottom
+  // when the bottoms line up), and the deck sits on the box tops. There is no
+  // separate deck frame, and the drums are trapped without straps.
+  function boxGeometry(c, drum, drums, r, mixed) {
+    const topY = 2 * r + PIPE_R;                         // top rails just above the tallest drum
+    const deckBottom = topY + PIPE_R, deckTop = deckBottom + c.deck.thickness;
+    const boxes = drums.map(d => ({ id: d.id, x0: d.x - d.ex - 2, x1: d.x + d.ex + 2, z0: d.z - d.ez - 1, z1: d.z + d.ez + 1, yb: d.y0 - PIPE_R, attach: [] }));
+    // join boxes with a minimum spanning tree on centre distance
+    const ctr = b => [(b.x0 + b.x1) / 2, (b.z0 + b.z1) / 2];
+    const dist = (a, b) => Math.hypot(ctr(a)[0] - ctr(b)[0], ctr(a)[1] - ctr(b)[1]);
+    const inTree = new Set([0]), edges = [];
+    while (boxes.length && inTree.size < boxes.length) {
+      let best = null;
+      inTree.forEach(i => boxes.forEach((b, j) => { if (!inTree.has(j) && (!best || dist(boxes[i], b) < best.d)) best = { i, j, d: dist(boxes[i], b) }; }));
+      edges.push([best.i, best.j]); inTree.add(best.j);
+    }
+    const links = [], contacts = [];
+    edges.forEach(([i, j]) => {
+      const A = boxes[i], B = boxes[j];
+      const ox = Math.min(A.x1, B.x1) - Math.max(A.x0, B.x0), oz = Math.min(A.z1, B.z1) - Math.max(A.z0, B.z0);
+      const levels = Math.abs(A.yb - B.yb) < 0.5 ? ['top', 'bottom'] : ['top'];
+      if (oz >= 8 && ox < 8) {                           // one in front of the other
+        const [F, Bk] = A.x0 > B.x0 ? [A, B] : [B, A];   // F is the front box
+        if (F.x0 - Bk.x1 < 4) { const m = (F.x0 + Bk.x1) / 2; F.x0 = m; Bk.x1 = m; return; }   // close: share one end
+        const lo = Math.max(A.z0, B.z0), hi = Math.min(A.z1, B.z1);
+        const zs = hi - lo < 24 ? [(lo + hi) / 2] : [lo + 8, hi - 8];   // keep links clear of the corner fittings
+        zs.forEach(z => links.push({ dir: 'x', z, xa: Bk.x1, xb: F.x0, from: Bk, to: F, levels }));
+      } else if (ox >= 8) {                              // side by side
+        const [P, S] = A.z0 < B.z0 ? [A, B] : [B, A];   // P is the port-side box
+        if (S.z0 - P.z1 < 6) { const m = (S.z0 + P.z1) / 2; S.z0 = m; P.z1 = m; return; }   // close: share one wall
+        const lo = Math.max(A.x0, B.x0), hi = Math.min(A.x1, B.x1);
+        const xs = hi - lo < 24 ? [(lo + hi) / 2] : [lo + 8, hi - 8];
+        xs.forEach(x => links.push({ dir: 'z', x, za: P.z1, zb: S.z0, from: P, to: S, levels }));
+      } else {                                           // diagonal neighbours: corner to corner
+        const [F, Bk] = ctr(A)[0] > ctr(B)[0] ? [A, B] : [B, A];
+        if (ox < 8 && F.x0 - Bk.x1 < 6) {                // nearly touching: meet at one line and tie the corners together
+          const m = F.met ? F.x0 : Bk.met ? Bk.x1 : (F.x0 + Bk.x1) / 2; F.x0 = m; Bk.x1 = m; F.met = Bk.met = true;
+          if (oz > 0 && oz < 4) {                        // sides overlap slightly: meet at one corner instead of leaving a stub
+            const [Lo, Hi] = ctr(F)[1] < ctr(Bk)[1] ? [F, Bk] : [Bk, F], mz = (Lo.z1 + Hi.z0) / 2; Lo.z1 = mz; Hi.z0 = mz;
+          }
+          contacts.push([Bk.id, F.id]); return;
+        }
+        const pa = [ctr(B)[0] > ctr(A)[0] ? A.x1 : A.x0, ctr(B)[1] > ctr(A)[1] ? A.z1 : A.z0];
+        const pb = [ctr(A)[0] > ctr(B)[0] ? B.x1 : B.x0, ctr(A)[1] > ctr(B)[1] ? B.z1 : B.z0];
+        links.push({ dir: 'd', pa, pb, from: A, to: B, levels });
+      }
+    });
+    const pieces = [];
+    const add = (kind, a, b, id) => pieces.push({ kind, drum: id, a, b });
+    // links, and where they land on each box's top/bottom edges
+    links.forEach(l => l.levels.forEach(level => {
+      const ya = level === 'top' ? topY : l.from.yb, yb2 = level === 'top' ? topY : l.to.yb;
+      if (l.dir === 'x') { add('link', [l.xa, ya, l.z], [l.xb, yb2, l.z], l.from.id); l.from.attach.push({ level, edge: 'x1', t: l.z }); l.to.attach.push({ level, edge: 'x0', t: l.z }); }
+      else if (l.dir === 'z') { add('link', [l.x, ya, l.za], [l.x, yb2, l.zb], l.from.id); l.from.attach.push({ level, edge: 'z1', t: l.x }); l.to.attach.push({ level, edge: 'z0', t: l.x }); }
+      else add('link', [l.pa[0], ya, l.pa[1]], [l.pb[0], yb2, l.pb[1]], l.from.id);
+    }));
+    // box edges, split wherever a link lands
+    boxes.forEach(b => ['top', 'bottom'].forEach(level => {
+      const y = level === 'top' ? topY : b.yb;
+      const edgesOf = { z0: ['x', b.x0, b.x1, b.z0], z1: ['x', b.x0, b.x1, b.z1], x0: ['z', b.z0, b.z1, b.x0], x1: ['z', b.z0, b.z1, b.x1] };
+      Object.entries(edgesOf).forEach(([name, [dir, lo, hi, fixed]]) => {
+        const cuts2 = b.attach.filter(at => at.level === level && at.edge === name && at.t > lo + 0.5 && at.t < hi - 0.5).map(at => at.t);
+        const pts = [lo, ...cuts2.sort((p, q) => p - q), hi];
+        for (let k = 0; k < pts.length - 1; k++) {
+          if (dir === 'x') add(level, [pts[k], y, fixed], [pts[k + 1], y, fixed], b.id);
+          else add(level, [fixed, y, pts[k]], [fixed, y, pts[k + 1]], b.id);
+        }
+      });
+      if (level === 'bottom') [[b.x0, b.z0], [b.x0, b.z1], [b.x1, b.z0], [b.x1, b.z1]].forEach(([x, z]) => add('post', [x, b.yb, z], [x, topY, z], b.id));
+    }));
+    // a corner that lands partway along another box's edge splits that edge
+    // (e.g. a box butted against the middle of a wider pair of boxes)
+    const corners = pieces.flatMap(pc => [pc.a, pc.b]);
+    for (let i = pieces.length - 1; i >= 0; i--) {
+      const pc = pieces[i], d = pc.b.map((v, k) => v - pc.a[k]), L2 = d.reduce((t, v) => t + v * v, 0);
+      if (L2 < 1e-6) { pieces.splice(i, 1); continue; }
+      const ts = [...new Set(corners.map(pt => {
+        const t = pt.reduce((s2, v, k) => s2 + (v - pc.a[k]) * d[k], 0) / L2;
+        const off = Math.hypot(...pt.map((v, k) => v - (pc.a[k] + t * d[k])));
+        return off < 0.1 && t * Math.sqrt(L2) > 0.5 && (1 - t) * Math.sqrt(L2) > 0.5 ? +t.toFixed(4) : null;
+      }).filter(t => t != null))].sort((p, q) => p - q);
+      if (!ts.length) continue;
+      const pts = [pc.a, ...ts.map(t => pc.a.map((v, k) => v + t * d[k])), pc.b];
+      pieces.splice(i, 1, ...pts.slice(1).map((pt, k) => ({ kind: pc.kind, drum: pc.drum, a: pts[k], b: pt })));
+    }
+    // boxes that share an end share those pieces
+    const key = pt => pt.map(v => v.toFixed(1)).join(',');
+    const seen = new Set();
+    for (let i = pieces.length - 1; i >= 0; i--) {
+      const k2 = [key(pieces[i].a), key(pieces[i].b)].sort().join('|');
+      if (seen.has(k2)) pieces.splice(i, 1); else seen.add(k2);
+    }
+    pieces.forEach(pc => { pc.len = Math.hypot(pc.b[0] - pc.a[0], pc.b[1] - pc.a[1], pc.b[2] - pc.a[2]); });
+    const xsAll = boxes.flatMap(b => [b.x0, b.x1]), zsAll = boxes.flatMap(b => [b.z0, b.z1]);
+    const L = 2 * Math.max(...xsAll.map(Math.abs)), outerZ = Math.max(...zsAll.map(Math.abs));
+    c.frameLength = Math.round(L);                       // used for freeboard corners
+    const mastTop = c.mastHeight > 0 ? deckTop + c.mastHeight : deckTop;
+    const wallTop = c.noodleRail ? deckTop + 2.5 : 0;
+    const overlaps = [];
+    for (let i = 0; i < drums.length; i++) for (let j = i + 1; j < drums.length; j++) {
+      const a = drums[i], b = drums[j];
+      if (Math.abs(a.z - b.z) < a.ez + b.ez && Math.abs(a.x - b.x) < a.ex + b.ex) overlaps.push([i, j]);
+    }
+    return {
+      config: c, drum, r, mixed, fitted: false, boxes: true, boxList: boxes, boxContacts: contacts, frameWidth: 2 * outerZ, railOffset: 0,
+      cage: true, cagePieces: pieces, lowestY: Math.min(...boxes.map(b => b.yb)) - PIPE_R, cageUnsupported: false,
+      drums, lines: [], rails: [], beams: [], railY: topY, beamY: topY, deckBottom, deckTop, bow: null, outerZ,
+      mastTop, wallHeight: Math.max(0, wallTop - deckTop),
+      overall: { length: Math.max(...xsAll) - Math.min(...xsAll), width: Math.max(...zsAll) - Math.min(...zsAll), height: Math.max(mastTop, wallTop) },
+      overlaps, beamsTooShort: false, drumsOffFrame: false,
+    };
+  }
+
   // ── Material requirements derived from geometry ──
   const KERF = 0.125;
   function binPack(cuts) {
@@ -305,6 +438,7 @@
     return Math.ceil(pieces * len * wid * 1.15 / (SHEET.w * SHEET.l));
   }
   function requirements(g, parts) {
+    if (g.boxes) return boxRequirements(g, parts);
     const c = g.config;
     const r = g.r;
     const tieLen = Math.max(17, ...(parts || []).filter(p => p.role === 'zip-tie').map(p => +p.length_in || 17));
@@ -389,6 +523,42 @@
         cement: g.bow || g.fitted ? 1 : 0,
       },
       tieCount: ties, tieLength: tieLen,
+    };
+  }
+
+  function boxRequirements(g) {
+    const c = g.config, k = c.fittingTakeoff || 0;
+    const cuts = g.cagePieces.map(pc => ({ label: `box ${pc.drum + 1} ${pc.kind}`, len: +(pc.len - 2 * k).toFixed(2), cage: true }));
+    if (c.mastHeight > 0) cuts.push({ label: 'mast', len: c.mastHeight + 6 });
+    // every joint: 2 pipes at an angle = elbow (3-way corners need side-outlet tees), 3+ = tee
+    const fit = { elbow: 0, tee: 0, cross: 0, coupling: 0 };
+    const k3 = pt => pt.map(v => v.toFixed(1)).join(','), dirs = new Map();
+    g.cagePieces.forEach(pc => [[pc.a, pc.b], [pc.b, pc.a]].forEach(([p0, p1]) => {
+      const kk = k3(p0); (dirs.get(kk) || dirs.set(kk, []).get(kk)).push([p1[0] - p0[0], p1[1] - p0[1], p1[2] - p0[2]]);
+    }));
+    dirs.forEach(ds => {
+      if (ds.length >= 4) fit.cross++;                       // shared corner: 4-way side-outlet fitting
+      else if (ds.length === 3) fit.tee++;
+      else if (ds.length === 2) {
+        const [u, v] = ds, dot = u[0] * v[0] + u[1] * v[1] + u[2] * v[2];
+        if (dot < 0 && Math.abs(dot) > 0.99 * Math.hypot(...u) * Math.hypot(...v)) fit.coupling++; else fit.elbow++;
+      }
+    });
+    const sticks = binPack(cuts);
+    const pipeLen = cuts.reduce((t, x) => t + x.len, 0), cageLen = cuts.filter(x => x.cage).reduce((t, x) => t + x.len, 0);
+    const ties = 16 + (c.mastHeight > 0 ? 6 : 0);              // deck tie-downs and mast; drums need no bands
+    const layers = Math.max(1, Math.round(c.deck.thickness - 0.3));
+    return {
+      cuts, sticks, pipeLength_in: pipeLen, cageLength_in: cageLen,
+      items: {
+        drum: g.drums.length, pipe: sticks.length, elbow: fit.elbow, tee: fit.tee, cross: fit.cross, coupling: fit.coupling,
+        'zip-tie': Math.ceil(ties * 1.15),
+        xps: sheetsFor(c.deck.length, c.deck.width, layers),
+        coroplast: Math.ceil(2 * c.deck.length * c.deck.width * 1.15 / (SHEET.w * SHEET.l)),
+        'spray-foam': Math.ceil(pipeLen * PIPE_ID_AREA / FOAM_IN3_PER_CAN),
+        cement: 1,
+      },
+      tieCount: ties, tieLength: 17,
     };
   }
 
@@ -733,7 +903,9 @@
     const spent = parts.filter(p => p.status === 'bought' || p.status === 'installed').reduce((s, p) => s + (+p.quantity || 0) * (+p.unit_cost_usd || 0), 0);
     const recs = recommend({ build, g, req, wt, sol, fwd, side, leaks, rulesOut, crewW });
     if (g.cageUnsupported) recs.push({ level: 'warn', title: 'The cage is only modeled for lengthwise drums', detail: 'Crosswise drums use zip-tie bands here. Switch to a lengthwise layout to compare a caged build.' });
-    if (!opts.noVariant && g.drums.every(d => d.axis === 'x')) {
+    if (g.boxes) recs.push({ level: 'info', title: `Box frames: each drum sits in its own box of pipe (${(req.cageLength_in / 12).toFixed(0)} ft of pipe)`,
+      detail: 'Drums are trapped without straps and the deck sits on the box tops, so there is no separate deck frame. The bottom rails sit just under the drums and can catch rocks in shallow water. Every box corner joins 3 pipes, so use side-outlet tees (3-way corners) there.' + (req.items.cross ? ` Where boxes share a wall or butt against another box's crossbar, ${req.items.cross} joints take 4 pipes: use 4-way side-outlet fittings there.` : '') + (g.boxContacts.length ? ` Boxes ${g.boxContacts.map(([a2, b2]) => `${a2 + 1} and ${b2 + 1}`).join(', ')} meet corner to corner: join them where their end rails meet (a 4-way fitting where the corners touch, short ties otherwise).` : '') });
+    if (!opts.noVariant && !g.boxes && g.drums.every(d => d.axis === 'x')) {
       const other = g.cage ? Object.assign({}, c, { retention: 'bands' }) : Object.assign({}, c, { retention: 'cage' });
       const v = analyze(Object.assign({}, build, { config: other }), rules, { skipLeak: true, noVariant: true });
       const dW = (g.cage ? wt.total - v.weights.total : v.weights.total - wt.total), dS = g.cage ? req.items.pipe - v.requirements.items.pipe : v.requirements.items.pipe - req.items.pipe;
@@ -972,11 +1144,15 @@
       const fwd = a.scenarios.crewForward;
       // the same layout with the other drum retention (bands vs cage)
       let variant = null;
-      if (g.drums.every(d => d.axis === 'x')) {
+      if (!g.boxes && g.drums.every(d => d.axis === 'x')) {
         const vcfg = Object.assign({}, cfg, { retention: g.cage ? 'bands' : 'cage' });
         const va = analyze(Object.assign({}, b2, { parts, config: vcfg }), rules, { skipLeak: true, noVariant: true });
         variant = { retention: vcfg.retention, weight: va.weights.total, sticks: va.requirements.items.pipe, gmRoll: va.solution.gmRoll, gmPitch: va.solution.gmPitch, ok: va.solution.ok };
       }
+      // the same layout built as box frames (each drum in its own box), or back on a deck frame
+      const bcfg = Object.assign({}, cfg, { frameStyle: g.boxes ? (build.config.frameStyle === 'boxes' ? 'fitted' : build.config.frameStyle) : 'boxes' });
+      const ba = analyze(Object.assign({}, b2, { parts, config: bcfg }), rules, { skipLeak: true, noVariant: true });
+      const boxVariant = { boxes: !g.boxes, weight: ba.weights.total, sticks: ba.requirements.items.pipe, gmRoll: ba.solution.gmRoll, gmPitch: ba.solution.gmPitch, ok: ba.solution.ok };
       return {
         id, label: P.label, blurb: P.blurb, drums: P.drums, config: { frameLength: cfg.frameLength, frameWidth: cfg.frameWidth },
         weight: a.weights.total, ok: s.ok, loadPct: s.loadPct, maxDraft: s.maxDraft, gmRoll: s.gmRoll, gmPitch: s.gmPitch,
@@ -988,7 +1164,7 @@
         size: g.overall,
         costToFinish: a.shopping.neededCost,
         errors: a.rules.filter(x => x.level === 'error').length + a.recommendations.filter(x => x.level === 'error').length,
-        strengths: P.strengths, weaknesses: P.weaknesses, caged: g.cage, variant,
+        strengths: P.strengths, weaknesses: P.weaknesses, caged: g.cage, boxes: !!g.boxes, variant, boxVariant,
       };
     });
     const lightest = Math.min(...rows.map(r => r.weight));
@@ -1016,13 +1192,21 @@
       if (r.sticksNeeded) cons.push(`Needs ${r.sticksNeeded} more 10 ft pipe stick${r.sticksNeeded > 1 ? 's' : ''} (${r.sticks} total)`);
       else pros.push(`Cut list fits the pipe you bought (${r.sticks} sticks)`);
       if (r.costToFinish - cheapest < 1) pros.push(`Cheapest to finish: ~$${r.costToFinish.toFixed(0)} more`);
-      if (r.caged) pros.push('Drums trapped in a second frame: no long straps needed');
+      if (r.boxes) pros.push('Each drum boxed in: no straps, and no separate deck frame');
+      else if (r.caged) pros.push('Drums trapped in a second frame: no long straps needed');
       const v = r.variant;
       if (v) {
         const dW = v.weight - r.weight, dS = v.sticks - r.sticks;
         r.retentionNote = v.retention === 'cage'
           ? `Caged instead of strapped: ${v.weight.toFixed(0)} lb (+${dW.toFixed(0)}), ${v.sticks} sticks (+${dS})${v.weight >= max ? `, over the ${max} lb limit` : ''}. Drums can't slip out, and no long straps are needed.`
           : `Strapped instead of caged: ${v.weight.toFixed(0)} lb (${dW.toFixed(0)}), ${v.sticks} sticks (${dS}). Lighter, but relies on drum straps.`;
+      }
+      const bv = r.boxVariant;
+      if (bv) {
+        const dW = bv.weight - r.weight, dS = bv.sticks - r.sticks, sgn = x => (x >= 0 ? '+' : '') + x.toFixed(0);
+        r.boxNote = bv.boxes
+          ? `As box frames (each drum in its own box, no deck frame): ${bv.weight.toFixed(0)} lb (${sgn(dW)}), ${bv.sticks} sticks (${sgn(dS)})${bv.weight >= max ? `, over the ${max} lb limit` : ''}. Drums are trapped and the boxes carry the deck.`
+          : `On a deck frame instead of boxes: ${bv.weight.toFixed(0)} lb (${sgn(dW)}), ${bv.sticks} sticks (${sgn(dS)}).`;
       }
       r.pros = pros; r.cons = cons;
     });
