@@ -14,42 +14,41 @@ Generated from `data/build.json` by `scripts/raft-model.js`. Open
 
 | Parameter | Value |
 |-----------|-------|
-| Layout | Catamaran: 2 drums |
-| Drums | 2 × 55 gal plastic, tight-head (bung caps) (55 gal, 22.5" × 34.5", 20 lb) |
-| Frame | 84" rails × 72" beams, 5 beams, pontoon spacing 47" |
+| Layout | Packed triangle: 1 bow drum + 2 side by side |
+| Drums | 3 × 55 gal plastic, tight-head (bung caps) (55 gal, 22.5" × 34.5", 20 lb) |
+| Frame | 89" rails × 72" beams, 0 beams, pontoon spacing 47" |
 | Deck | 72" × 24" × 2.3" |
-| Frame | Fitted deck frame (tees and crosses) |
-| Drum retention | Zip-tie bands |
-| Overall size | 8.6 ft × 5.8 ft × 4.7 ft |
+| Frame | Box frames: each drum in its own box of pipe, joined by links |
+| Drum retention | Trapped in the boxes |
+| Overall size | 6.4 ft × 4.4 ft × 4.7 ft |
 | Crew | 2 × 175 lb |
-| Predicted final weight | 106.0 lb (limit 150) |
-| Bought so far | 73.7 lb on the boat + 9.0 lb spares/offcuts |
+| Predicted final weight | 137.7 lb (limit 150) |
+| Bought so far | 95.1 lb on the boat + 7.6 lb spares/offcuts |
 | Measured | 0.0 lb (0% of predicted) |
 
 ## Weight
 
 | | lb |
 |---|---|
-| **Predicted final boat** | **106.0** |
-| Bought so far (on the boat) | 73.7 |
-| Bought spares and offcuts (not on the boat) | 9.0 |
-| Still to buy | 32.3 |
+| **Predicted final boat** | **137.7** |
+| Bought so far (on the boat) | 95.1 |
+| Bought spares and offcuts (not on the boat) | 7.6 |
+| Still to buy | 42.5 |
 | Measured on a scale | 0.0 |
 
 ## Next shopping trip
 
 | Item | Qty | Est. | Priority | Shop | Why |
 |------|-----|------|----------|------|-----|
-| Heavy-duty UV cable ties 17", 120 lb (100-pack) | 1 | $24.98 | needed | [Home Depot](https://www.homedepot.com/s/Heavy-duty%20UV%20cable%20ties%2017%20in%2C%20120%20lb) · [Lowe's](https://www.lowes.com/search?searchTerm=Heavy-duty%20UV%20cable%20ties%2017%20in%2C%20120%20lb) · [Harbor Freight - Charlotte area](https://www.harborfreight.com) | Layout needs 56 ties; 40 bought. Suggests ties of 18" or less, since the longer ones may break the rule. |
+| 1-1/2" x 10 ft PVC Sch 40 DWV pipe (plain end) | 3 | $35.88 | needed | [Home Depot](https://www.homedepot.com/s/1-1%2F2%20in%20x%2010%20ft%20PVC%20Sch%2040%20DWV%20pipe) · [Lowe's](https://www.lowes.com/search?searchTerm=1-1%2F2%20in%20x%2010%20ft%20PVC%20Sch%2040%20DWV%20pipe) | Layout needs 8; 5 bought. |
 | XPS foam board 1" x 4 ft x 8 ft (FOAMULAR) | 1 | $24.97 | needed | [Home Depot](https://www.homedepot.com/p/p/315197840) · [Lowe's](https://www.lowes.com/search?searchTerm=XPS%20foam%20board%201%20in%20x%204%20ft%20x%208%20ft) | Layout needs 1; 0 bought. |
-| Coroplast corrugated plastic 4 mm, 4 x 8 ft | 2 | $76.58 | needed | [Home Depot](https://www.homedepot.com/s/Coroplast%20corrugated%20plastic%204%20mm%2C%204%20x%208%20ft) · [Lowe's](https://www.lowes.com/search?searchTerm=Coroplast%20corrugated%20plastic%204%20mm%2C%204%20x%208%20ft) | Layout needs 2; 0 bought. |
-| Expanding spray foam, 12 oz (Great Stuff or similar) | 2 | $13.96 (est.) | needed | [Home Depot](https://www.homedepot.com/s/Expanding%20spray%20foam%2C%2012%20oz) · [Lowe's](https://www.lowes.com/search?searchTerm=Expanding%20spray%20foam%2C%2012%20oz) | Layout needs 2; 0 bought. |
+| Coroplast corrugated plastic 4 mm, 4 x 8 ft | 1 | $38.29 | needed | [Home Depot](https://www.homedepot.com/s/Coroplast%20corrugated%20plastic%204%20mm%2C%204%20x%208%20ft) · [Lowe's](https://www.lowes.com/search?searchTerm=Coroplast%20corrugated%20plastic%204%20mm%2C%204%20x%208%20ft) | Layout needs 1; 0 bought. |
+| Expanding spray foam, 12 oz (Great Stuff or similar) | 3 | $20.94 (est.) | needed | [Home Depot](https://www.homedepot.com/s/Expanding%20spray%20foam%2C%2012%20oz) · [Lowe's](https://www.lowes.com/search?searchTerm=Expanding%20spray%20foam%2C%2012%20oz) | Layout needs 3; 0 bought. |
 | PVC primer + cement kit | 1 | $11.98 | needed | [Home Depot](https://www.homedepot.com/s/PVC%20primer%20%2B%20cement%20kit) · [Lowe's](https://www.lowes.com/search?searchTerm=PVC%20primer%20%2B%20cement%20kit) | Layout needs 1; 0 bought. |
 | 2-part marine epoxy | 2 | $10.00 (est.) | needed | [Home Depot](https://www.homedepot.com/s/2-part%20marine%20epoxy) · [Lowe's](https://www.lowes.com/search?searchTerm=2-part%20marine%20epoxy) · [Harbor Freight - Charlotte area](https://www.harborfreight.com) | Planned on the parts list, not bought yet. |
 | 100% silicone / marine sealant, 10.1 oz | 3 | $19.50 (est.) | needed | [Home Depot](https://www.homedepot.com/s/100%25%20silicone%20%2F%20marine%20sealant%2C%2010.1%20oz) · [Lowe's](https://www.lowes.com/search?searchTerm=100%25%20silicone%20%2F%20marine%20sealant%2C%2010.1%20oz) · [Harbor Freight - Charlotte area](https://www.harborfreight.com) | Planned on the parts list, not bought yet. |
 | Polypropylene rope 3/8" (floats) | 1 | $9.98 (est.) | needed | [Home Depot](https://www.homedepot.com/s/Polypropylene%20rope%203%2F8%20in) · [Lowe's](https://www.lowes.com/search?searchTerm=Polypropylene%20rope%203%2F8%20in) | Swapped for Polypropylene rope 3/8" (floats): 550 paracord, 100 ft may not float. |
 | Flush-cut snips | 1 | $7.99 (est.) | needed | [Home Depot](https://www.homedepot.com/s/Flush-cut%20snips) · [Lowe's](https://www.lowes.com/search?searchTerm=Flush-cut%20snips) | Planned on the parts list, not bought yet. |
-| 1-1/2" x 10 ft PVC Sch 40 DWV pipe (plain end) | 1 | $11.96 | spare | [Home Depot](https://www.homedepot.com/s/1-1%2F2%20in%20x%2010%20ft%20PVC%20Sch%2040%20DWV%20pipe) · [Lowe's](https://www.lowes.com/search?searchTerm=1-1%2F2%20in%20x%2010%20ft%20PVC%20Sch%2040%20DWV%20pipe) | Only 21" of pipe to spare. A spare stick covers a mis-cut. |
 | Pool noodles | 8 | $28.64 | optional | [Home Depot](https://homedepot.com/p/Pool-Mate-Blue-and-Pink-Swimming-Pool-Water-Noodles-12-Pack-TWLN36-12/304884154) · [Lowe's](https://www.lowes.com/search?searchTerm=Pool%20noodles) | Planned on the parts list, not bought yet. |
 | Outdoor seat cushion, 18-24 in | 2 | $45.96 | optional | [Home Depot](https://www.homedepot.com/s/Outdoor%20seat%20cushion%2C%2018-24%20in) · [Lowe's](https://www.lowes.com/search?searchTerm=Outdoor%20seat%20cushion%2C%2018-24%20in) | Planned on the parts list, not bought yet. May not float: bucket-test it. |
 | Outdoor acrylic craft paint set (18 colors) | 1 | $28.98 | optional | [Home Depot](https://www.homedepot.com/s/Outdoor%20acrylic%20craft%20paint%20set) · [Lowe's](https://www.lowes.com/search?searchTerm=Outdoor%20acrylic%20craft%20paint%20set) | Planned on the parts list, not bought yet. |
@@ -59,7 +58,7 @@ Generated from `data/build.json` by `scripts/raft-model.js`. Open
 | Foam paint brush multi-pack | 1 | $6.98 | optional | [Home Depot](https://www.homedepot.com/s/Foam%20paint%20brush%20multi-pack) · [Lowe's](https://www.lowes.com/search?searchTerm=Foam%20paint%20brush%20multi-pack) | Planned on the parts list, not bought yet. |
 | Painter's tape 0.94 in x 60 yd | 1 | $6.47 | optional | [Home Depot](https://www.homedepot.com/s/Painter's%20tape%200.94%20in%20x%2060%20yd) · [Lowe's](https://www.lowes.com/search?searchTerm=Painter's%20tape%200.94%20in%20x%2060%20yd) | Planned on the parts list, not bought yet. |
 | Fabric glue, 4 oz | 1 | $5.48 | optional | [Home Depot](https://www.homedepot.com/s/Fabric%20glue%2C%204%20oz) · [Lowe's](https://www.lowes.com/search?searchTerm=Fabric%20glue%2C%204%20oz) | Planned on the parts list, not bought yet. |
-| **Needed** | | **$199.94** | | | $390.33 including spare and optional |
+| **Needed** | | **$179.53** | | | $357.96 including spare and optional |
 
 Open `raft-simulation.html` → Check → Next shopping trip and enter a ZIP code for nearby Home Depot, Lowe's and local-supplier map links. The ZIP stays on your device.
 
@@ -67,19 +66,19 @@ Open `raft-simulation.html` → Check → Next shopping trip and enter a ZIP cod
 
 | Metric | Value |
 |--------|-------|
-| Max draft | 10.9" |
-| Load (of max buoyancy) | 46% (456 lb on 991 lb) |
-| Frame clearance above water | 11.1" |
-| Trim / heel | -1.1° / -0.0° |
-| Stability GM roll / pitch | 46" / -15" |
-| Crew at bow: bow clearance | nose-dives |
+| Max draft | 9.8" |
+| Load (of max buoyancy) | 31% (488 lb on 1577 lb) |
+| Frame clearance above water | 14.6" |
+| Trim / heel | -0.3° / 0.0° |
+| Stability GM roll / pitch | 2" / 44" |
+| Crew at bow: bow clearance | 5.8" |
 | Lose one drum | sinks or capsizes |
 
 ## Competition rules
 
-- ✅ **~106 lb, under the 150 lb limit (44 lb margin)**
-- ✅ **Size 8.6 × 5.8 × 4.7 ft (L × W × H)** — Limit 10 × 10 × 5 ft.
-- ✅ **Wall height ~10" (limit < 24")**
+- ✅ **~138 lb, under the 150 lb limit (12 lb margin)**
+- ✅ **Size 6.4 × 4.4 × 4.7 ft (L × W × H)** — Limit 10 × 10 × 5 ft.
+- ✅ **Wall height ~3" (limit < 24")**
 - ✅ **No metal parts**
 - ✅ **Securing materials ≤ 18" pieces; zip ties trimmed flush** — Drum bands made of daisy-chained ties: confirm with the organizers.
 - ⚠️ **Zip ties longer than 18"** — 36 in. heavy-duty cable tie, black. The rule caps securing materials at 18". Ask the organizers whether a long tie trimmed flush counts by its installed length. If not, use daisy-chained ties of 18" or less.
@@ -87,21 +86,21 @@ Open `raft-simulation.html` → Check → Next shopping trip and enter a ZIP cod
 
 ## Recommendations
 
-- ✅ **Load is 46% of max buoyancy** — Max draft 10.9", with 535 lb reserve.
-- ⚠️ **Fore-aft unstable: see-saws on the drums (GM -15")** — The drums are only 34.5" long fore-aft under a 84" frame and the crew sits high, so the boat rocks bow-down or stern-down until the frame hits the water. Spread drums fore-aft (Triangle or Pontoon preset), keep the crew low and centered, or shorten the frame.
-- ⚠️ **Nose-dive risk with crew at the bow** — Moving the crew forward overwhelms the bow.
+- ✅ **Load is 31% of max buoyancy** — Max draft 9.8", with 1090 lb reserve.
+- ⚠️ **Low side-to-side stability (GM 2")** — Spread the pontoons wider or lower the crew.
+- ⚠️ **Leaning crew heels the boat hard** — 15° heel with crew at the deck edge.
 - ⚠️ **Losing one drum sinks or capsizes the boat** — No redundancy. Seal and test the bung caps, or add a drum. Foam-filled rails and the XPS deck still float the wreck.
-- ℹ️ **List has 4 drums; configuration uses 2** — Extra drums are not counted in the weight.
-- ⚠️ **Pipe fits with only 21" to spare** — One mis-cut means another 10 ft stick. Measure twice, cut the long pieces first, or buy a spare stick.
-- ℹ️ **10 spare elbows on the list** — Keep for repairs or trim the list to save weight and cost.
-- ℹ️ **18 spare tees (3-way, incl. side-outlet tees) on the list** — Keep for repairs or trim the list to save weight and cost.
-- ℹ️ **3 spare couplings on the list** — Keep for repairs or trim the list to save weight and cost.
-- ⚠️ **Parts list is short 16 zip ties** — This configuration needs 56; the list has 40.
+- ℹ️ **List has 4 drums; configuration uses 3** — Extra drums are not counted in the weight.
+- ⚠️ **Parts list is short 3 10 ft pipe sticks** — This configuration needs 8; the list has 5.
+- ℹ️ **16 spare elbows on the list** — Keep for repairs or trim the list to save weight and cost.
+- ℹ️ **8 spare tees (3-way, incl. side-outlet tees) on the list** — Keep for repairs or trim the list to save weight and cost.
+- ℹ️ **3 spare double sani tees (4-way) on the list** — Keep for repairs or trim the list to save weight and cost.
+- ℹ️ **4 spare couplings on the list** — Keep for repairs or trim the list to save weight and cost.
 - ℹ️ **1 spare XPS sheets on the list** — Keep for repairs or trim the list to save weight and cost.
-- ℹ️ **2 spare spray-foam cans on the list** — Keep for repairs or trim the list to save weight and cost.
-- ℹ️ **Cut lengths assume 1.25" fitting take-off** — Dry-fit one tee and measure center-to-socket-bottom, then set the take-off to match before cutting.
+- ℹ️ **1 spare Coroplast sheets on the list** — Keep for repairs or trim the list to save weight and cost.
+- ℹ️ **1 spare spray-foam cans on the list** — Keep for repairs or trim the list to save weight and cost.
 - ℹ️ **Only 0% of the weight is measured** — Weigh parts as they arrive and tick "measured".
-- ℹ️ **Option: trap the drums in a second frame (+14 lb, +3 sticks)** — A lower PVC cradle joined by posts to the deck frame holds each drum, so no long drum straps are needed. Weight would be 120 lb. Configure → Drum retention.
+- ℹ️ **Box frames: each drum sits in its own box of pipe (67 ft of pipe)** — Drums are trapped without straps and the deck sits on the box tops, so there is no separate deck frame. The bottom rails sit just under the drums and can catch rocks in shallow water. Every box corner joins 3 pipes, so use side-outlet tees (3-way corners) there. Where boxes share a wall or butt against another box's crossbar, 8 of the 20 joints take 4 pipes: use the 4-way side-outlet tees there.
 
 ## Structure options and tradeoffs
 
@@ -109,235 +108,234 @@ Ranked for a balanced mix of stability, leak safety, weight, parts on hand and c
 
 | # | Layout | lb | Load | Roll GM | Pitch GM | Crew at bow | Leak OK | Sticks |
 |---|--------|----|------|---------|----------|-------------|---------|--------|
-| 1 | Pontoon: 4 drums (2 per side) | 146 | 25% | 94" | 59" | 8.8" | ✓ | 5 |
-| 2 | Reverse triangle: 2 bow + 1 stern drum | 126 | 32% | 39" | 50" | 10.4" | ✕ | 5 |
-| 3 | Diamond: bow, stern, port, starboard | 148 | 25% | 37" | 86" | 9.7" | ✕ | 6 |
-| 4 | Triangle: 1 bow + 2 stern drums | 126 | 32% | 39" | 50" | 0.5" | ✕ | 5 |
-| 5 | Staggered catamaran: 2 drums offset | 106 | 46% | 46" | -2" | dives | ✕ | 5 |
-| 6 | Catamaran: 2 drums **(current)** | 106 | 46% | 46" | -15" | dives | ✕ | 5 |
-| 7 | Trimaran: 3 drums side by side | 126 | 32% | 42" | -10" | dives | ✕ | 5 |
-| — | Tandem: 2 drums crosswise | 101 | 45% | -15" | 76" | 5.3" | ✕ | 4 |
-| — | Packed triangle: 2 drums side by side + 1 behind | 120 | 32% | -4" | 46" | 10.0" | ✕ | 4 |
-| — | Wide raft: 4 drums across | 161 ❌ | 26% | 120" | -7" | dives | ✓ | 8 |
+| 1 | Reverse triangle: 2 bow + 1 stern drum | 142 | 31% | 34" | 45" | 13.0" | ✕ | 9 |
+| 2 | Packed triangle: 1 bow drum + 2 side by side **(current)** | 138 | 31% | 2" | 44" | 5.8" | ✕ | 8 |
+| 3 | Triangle: 1 bow + 2 stern drums | 142 | 31% | 39" | 48" | 6.0" | ✕ | 9 |
+| — | Catamaran: 2 drums | 114 | ✕ | —" | —" | dives | ✕ | 7 |
+| — | Staggered catamaran: 2 drums offset | 112 | ✕ | —" | —" | dives | ✕ | 6 |
+| — | Tandem: 2 drums crosswise | 116 | 43% | -14" | 72" | 8.3" | ✕ | 7 |
+| — | Trimaran: 3 drums side by side | 133 | ✕ | —" | —" | dives | ✕ | 7 |
+| — | Pontoon: 4 drums (2 per side) | 176 ❌ | 25% | 86" | 53" | 12.2" | ✕ | 11 |
+| — | Diamond: bow, stern, port, starboard | 181 ❌ | 25% | 34" | 78" | 12.1" | ✕ | 12 |
+| — | Wide raft: 4 drums across | 163 ❌ | ✕ | —" | —" | dives | ✕ | 9 |
 
 GM (metacentric height): positive means the boat rights itself, negative means it tips until something else touches the water.
 
-### 1. Pontoon: 4 drums (2 per side)
-
-Two drums end to end on each side (the original render).
-
-- ✅ Steady fore and aft (pitch GM 59")
-- ✅ Very steady side to side (roll GM 94")
-- ✅ Rides high: 25% of lift used, 6.8" draft
-- ✅ Bow stays 9" clear with the crew forward
-- ✅ Still floats if any one drum leaks
-- ✅ Uses drums you already have (4)
-- ✅ Cut list fits the pipe you bought (5 sticks)
-- ✅ Cheapest to finish: ~$200 more
-- ⚠️ 146 lb: only 4 lb under the limit
-- 👍 Most stable both ways; survives any single leak
-- 👍 Long hulls track straight and ride low
-- 👎 Heaviest (~40 lb over the catamaran) and close to the 150 lb limit
-- 👎 Long waterline turns slowly
-- 👎 Twice the lashing
-- 🔒 Caged instead of strapped: 171 lb (+25), 9 sticks (+4), over the 150 lb limit. Drums can't slip out, and no long straps are needed.
-- 📦 As box frames (each drum in its own box, no deck frame): 177 lb (+31), 11 sticks (+6), over the 150 lb limit. Drums are trapped and the boxes carry the deck.
-
-### 2. Reverse triangle: 2 bow + 1 stern drum
+### 1. Reverse triangle: 2 bow + 1 stern drum
 
 Two drums up front, one at the stern on the centerline.
 
-- ✅ 126 lb, 24 lb under the limit
-- ✅ Steady fore and aft (pitch GM 50")
-- ✅ Rides high: 32% of lift used, 11.1" draft
-- ✅ Bow stays 10" clear with the crew forward
+- ✅ Steady fore and aft (pitch GM 45")
+- ✅ Rides high: 31% of lift used, 15.4" draft
+- ✅ Bow stays 13" clear with the crew forward
 - ✅ Uses drums you already have (3)
-- ✅ Cut list fits the pipe you bought (5 sticks)
-- ✅ Cheapest to finish: ~$200 more
+- ✅ Each drum boxed in: no straps, and no separate deck frame
+- ⚠️ 142 lb: only 8 lb under the limit
 - ⚠️ Losing one drum can sink or capsize it
+- ⚠️ Needs 4 more 10 ft pipe sticks (9 total)
 - 👍 Most lift where crew lean in rapids, at the bow
 - 👍 Wide bow resists nose-diving and rolling as you enter drops
 - 👎 Stern-heavy crews squat the single stern drum
 - 👎 Wide, flat bow pushes more water
-- 🔒 Caged instead of strapped: 147 lb (+21), 9 sticks (+4). Drums can't slip out, and no long straps are needed.
-- 📦 As box frames (each drum in its own box, no deck frame): 143 lb (+17), 9 sticks (+4). Drums are trapped and the boxes carry the deck.
 
-### 3. Diamond: bow, stern, port, starboard
+- 📦 On a deck frame instead of boxes: 126 lb (-16), 5 sticks (-4).
 
-One drum at each point of a diamond: bow and stern on the centerline, port and starboard at mid-length.
+### 2. Packed triangle: 1 bow drum + 2 side by side (current)
 
-- ✅ Steady fore and aft (pitch GM 86")
-- ✅ Rides high: 25% of lift used, 6.8" draft
-- ✅ Bow stays 10" clear with the crew forward
-- ✅ Uses drums you already have (4)
-- ⚠️ 148 lb: only 2 lb under the limit
+The team's current design: two drums side by side at the stern, boxes sharing a middle wall, and one drum in front of them on the centerline, its box butted against their crossbar.
+
+- ✅ 138 lb, 12 lb under the limit
+- ✅ Steady fore and aft (pitch GM 44")
+- ✅ Rides high: 31% of lift used, 9.8" draft
+- ✅ Uses drums you already have (3)
+- ✅ Each drum boxed in: no straps, and no separate deck frame
+- ⚠️ Tippy side to side (roll GM 2")
 - ⚠️ Losing one drum can sink or capsize it
-- ⚠️ Needs 1 more 10 ft pipe stick (6 total)
-- 👍 Stable both ways with 4 drums spread over a short frame
-- 👍 Survives any single leak
-- 👍 Pivots well: drums are near the middle
-- 👎 Heaviest class, like the pontoon
-- 👎 Bow and stern drums need their own cross beams
-- 🔒 Caged instead of strapped: 177 lb (+29), 10 sticks (+4), over the 150 lb limit. Drums can't slip out, and no long straps are needed.
-- 📦 As box frames (each drum in its own box, no deck frame): 181 lb (+34), 12 sticks (+6), over the 150 lb limit. Drums are trapped and the boxes carry the deck.
+- ⚠️ Needs 3 more 10 ft pipe sticks (8 total)
+- 👍 Compact (about 4 ft wide); the boxes share a wall and a crossbar, so it takes less pipe than 3 separate boxes
+- 👍 Lift at the bow and the stern, so it rides over waves instead of see-sawing
+- 👎 Narrow: with 2 adults it can tip sideways. Open the "Pair gap" to widen it, at the cost of more pipe
+- 👎 Three drums plus boxes runs close to the 150 lb limit
+- 👎 Shared corners need 4-way side-outlet fittings
 
-### 4. Triangle: 1 bow + 2 stern drums
+- 📦 On a deck frame instead of boxes: 122 lb (-16), 5 sticks (-3).
+
+### 3. Triangle: 1 bow + 2 stern drums
 
 One drum up front on the centerline, two at the stern.
 
-- ✅ 126 lb, 24 lb under the limit
-- ✅ Steady fore and aft (pitch GM 50")
-- ✅ Rides high: 32% of lift used, 11.3" draft
+- ✅ Steady fore and aft (pitch GM 48")
+- ✅ Rides high: 31% of lift used, 9.8" draft
+- ✅ Bow stays 6" clear with the crew forward
 - ✅ Uses drums you already have (3)
-- ✅ Cut list fits the pipe you bought (5 sticks)
-- ✅ Cheapest to finish: ~$200 more
-- ⚠️ Nose-dives if the crew shift forward
+- ✅ Each drum boxed in: no straps, and no separate deck frame
+- ⚠️ 142 lb: only 8 lb under the limit
 - ⚠️ Losing one drum can sink or capsize it
+- ⚠️ Needs 4 more 10 ft pipe sticks (9 total)
 - 👍 Stable both ways, at ~20 lb under the pontoon
 - 👍 Bow drum lifts the nose into waves
 - 👎 Bow-down unless crew sit aft or drums shift forward
 - 👎 One bow drum carries the whole front: a leak there is serious
-- 🔒 Caged instead of strapped: 147 lb (+21), 9 sticks (+4). Drums can't slip out, and no long straps are needed.
-- 📦 As box frames (each drum in its own box, no deck frame): 143 lb (+17), 9 sticks (+4). Drums are trapped and the boxes carry the deck.
 
-### 5. Staggered catamaran: 2 drums offset
+- 📦 On a deck frame instead of boxes: 126 lb (-16), 5 sticks (-4).
 
-Two drums side by side but shifted fore and aft, like the team's box-frame sketch.
-
-- ✅ 106 lb, 44 lb under the limit
-- ✅ Uses drums you already have (2)
-- ✅ Cut list fits the pipe you bought (5 sticks)
-- ✅ Cheapest to finish: ~$200 more
-- ⚠️ Rocks fore and aft (pitch GM -2")
-- ⚠️ Nose-dives if the crew shift forward
-- ⚠️ Losing one drum can sink or capsize it
-- 👍 Spreads the lift fore and aft, so it rocks less than a straight catamaran
-- 👍 Same 2 drums and weight class as the catamaran
-- 👎 Lopsided: trims and turns a little differently each way
-- 👎 Still no backup if a drum leaks
-- 🔒 Caged instead of strapped: 120 lb (+14), 7 sticks (+2). Drums can't slip out, and no long straps are needed.
-- 📦 As box frames (each drum in its own box, no deck frame): 112 lb (+6), 6 sticks (+1). Drums are trapped and the boxes carry the deck.
-
-### 6. Catamaran: 2 drums (current)
+### —. Catamaran: 2 drums
 
 One drum per side. The lightest and simplest boat to build.
 
-- ✅ 106 lb, 44 lb under the limit
+- ✅ 114 lb, 36 lb under the limit
 - ✅ Uses drums you already have (2)
-- ✅ Cut list fits the pipe you bought (5 sticks)
-- ✅ Cheapest to finish: ~$200 more
-- ⚠️ Rocks fore and aft (pitch GM -15")
-- ⚠️ Nose-dives if the crew shift forward
+- ✅ Each drum boxed in: no straps, and no separate deck frame
+- ⚠️ Does not float with this crew
 - ⚠️ Losing one drum can sink or capsize it
+- ⚠️ Needs 2 more 10 ft pipe sticks (7 total)
 - 👍 Lightest and cheapest; the fewest lashings
 - 👍 Turns easily: short waterline, nothing in the middle
 - 👎 No backup: losing a drum swamps that side
 - 👎 Rocks fore and aft over a long frame, so seat the crew low and centered
-- 🔒 Caged instead of strapped: 120 lb (+14), 8 sticks (+3). Drums can't slip out, and no long straps are needed.
-- 📦 As box frames (each drum in its own box, no deck frame): 114 lb (+8), 7 sticks (+2). Drums are trapped and the boxes carry the deck.
 
-### 7. Trimaran: 3 drums side by side
+- 📦 On a deck frame instead of boxes: 106 lb (-8), 5 sticks (-2).
 
-A center drum between the two side drums.
+### —. Staggered catamaran: 2 drums offset
 
-- ✅ 126 lb, 24 lb under the limit
-- ✅ Rides high: 32% of lift used, 8.2" draft
-- ✅ Uses drums you already have (3)
-- ✅ Cut list fits the pipe you bought (5 sticks)
-- ✅ Cheapest to finish: ~$200 more
-- ⚠️ Rocks fore and aft (pitch GM -10")
-- ⚠️ Nose-dives if the crew shift forward
+Two drums side by side but shifted fore and aft, like the team's box-frame sketch.
+
+- ✅ Lightest option: 112 lb
+- ✅ Uses drums you already have (2)
+- ✅ Cheapest to finish: ~$156 more
+- ✅ Each drum boxed in: no straps, and no separate deck frame
+- ⚠️ Does not float with this crew
 - ⚠️ Losing one drum can sink or capsize it
-- 👍 About 50% more lift than the catamaran
-- 👍 Survives losing one side drum in most cases
-- 👎 Still rocks fore and aft like the catamaran
-- 👎 Center drum adds drag and ~20 lb
-- 🔒 Caged instead of strapped: 147 lb (+21), 9 sticks (+4). Drums can't slip out, and no long straps are needed.
-- 📦 As box frames (each drum in its own box, no deck frame): 134 lb (+8), 7 sticks (+2). Drums are trapped and the boxes carry the deck.
+- ⚠️ Needs 1 more 10 ft pipe stick (6 total)
+- 👍 Spreads the lift fore and aft, so it rocks less than a straight catamaran
+- 👍 Same 2 drums and weight class as the catamaran
+- 👎 Lopsided: trims and turns a little differently each way
+- 👎 Still no backup if a drum leaks
+
+- 📦 On a deck frame instead of boxes: 106 lb (-6), 5 sticks (-1).
 
 ### —. Tandem: 2 drums crosswise
 
 Two drums laid across the boat, one at the bow and one at the stern. Same weight as the catamaran, turned 90°.
 
-- ✅ Lightest option: 101 lb
-- ✅ Steady fore and aft (pitch GM 76")
+- ✅ 116 lb, 34 lb under the limit
+- ✅ Steady fore and aft (pitch GM 72")
+- ✅ Bow stays 8" clear with the crew forward
 - ✅ Uses drums you already have (2)
-- ✅ Cut list fits the pipe you bought (4 sticks)
-- ✅ Cheapest to finish: ~$200 more
-- ⚠️ Tippy side to side (roll GM -15")
+- ✅ Each drum boxed in: no straps, and no separate deck frame
+- ⚠️ Tippy side to side (roll GM -14")
 - ⚠️ Losing one drum can sink or capsize it
+- ⚠️ Needs 2 more 10 ft pipe sticks (7 total)
 - 👍 Rides over waves bow-first: a drum lifts each end
 - 👍 Same weight and drum count as the catamaran
 - 👎 Tippy side to side: only ~3 ft of drum across the beam
 - 👎 Drums push water broadside, so it is slow to paddle
 - 👎 Crosswise lashing is harder to keep tight
 
-- 📦 As box frames (each drum in its own box, no deck frame): 116 lb (+15), 7 sticks (+3). Drums are trapped and the boxes carry the deck.
+- 📦 On a deck frame instead of boxes: 102 lb (-14), 5 sticks (-2).
 
-### —. Packed triangle: 2 drums side by side + 1 behind
+### —. Trimaran: 3 drums side by side
 
-Two drums side by side at the bow sharing a middle wall, and one drum butted up behind them on the centerline, like the team's second box-frame sketch.
+A center drum between the two side drums.
 
-- ✅ 120 lb, 30 lb under the limit
-- ✅ Steady fore and aft (pitch GM 46")
-- ✅ Rides high: 32% of lift used, 11.0" draft
-- ✅ Bow stays 10" clear with the crew forward
+- ✅ 133 lb, 17 lb under the limit
 - ✅ Uses drums you already have (3)
-- ✅ Cut list fits the pipe you bought (4 sticks)
-- ✅ Cheapest to finish: ~$200 more
-- ⚠️ Tippy side to side (roll GM -4")
+- ✅ Each drum boxed in: no straps, and no separate deck frame
+- ⚠️ Does not float with this crew
 - ⚠️ Losing one drum can sink or capsize it
-- 👍 Compact (about 4 ft wide); the boxes share a wall and a crossbar, so it takes less pipe than 3 separate boxes
-- 👍 Lift at the bow and the stern, so it rides over waves instead of see-sawing
-- 👎 Narrow: with 2 adults it can tip sideways. Open the "Front pair gap" to widen it, at the cost of more pipe
-- 👎 Three drums plus boxes runs close to the 150 lb limit
-- 👎 Shared corners need 4-way side-outlet fittings
-- 🔒 Caged instead of strapped: 142 lb (+21), 8 sticks (+4). Drums can't slip out, and no long straps are needed.
-- 📦 As box frames (each drum in its own box, no deck frame): 138 lb (+18), 7 sticks (+3). Drums are trapped and the boxes carry the deck.
+- ⚠️ Needs 2 more 10 ft pipe sticks (7 total)
+- 👍 About 50% more lift than the catamaran
+- 👍 Survives losing one side drum in most cases
+- 👎 Still rocks fore and aft like the catamaran
+- 👎 Center drum adds drag and ~20 lb
+
+- 📦 On a deck frame instead of boxes: 126 lb (-7), 5 sticks (-2).
+
+### —. Pontoon: 4 drums (2 per side)
+
+Two drums end to end on each side (the original render).
+
+- ✅ Steady fore and aft (pitch GM 53")
+- ✅ Very steady side to side (roll GM 86")
+- ✅ Rides high: 25% of lift used, 10.3" draft
+- ✅ Bow stays 12" clear with the crew forward
+- ✅ Uses drums you already have (4)
+- ✅ Each drum boxed in: no straps, and no separate deck frame
+- ⚠️ 176 lb: over the 150 lb limit
+- ⚠️ Losing one drum can sink or capsize it
+- ⚠️ Needs 6 more 10 ft pipe sticks (11 total)
+- 👍 Most stable both ways; survives any single leak
+- 👍 Long hulls track straight and ride low
+- 👎 Heaviest (~40 lb over the catamaran) and close to the 150 lb limit
+- 👎 Long waterline turns slowly
+- 👎 Twice the lashing
+
+- 📦 On a deck frame instead of boxes: 146 lb (-30), 5 sticks (-6).
+
+### —. Diamond: bow, stern, port, starboard
+
+One drum at each point of a diamond: bow and stern on the centerline, port and starboard at mid-length.
+
+- ✅ Steady fore and aft (pitch GM 78")
+- ✅ Rides high: 25% of lift used, 10.3" draft
+- ✅ Bow stays 12" clear with the crew forward
+- ✅ Uses drums you already have (4)
+- ✅ Each drum boxed in: no straps, and no separate deck frame
+- ⚠️ 181 lb: over the 150 lb limit
+- ⚠️ Losing one drum can sink or capsize it
+- ⚠️ Needs 7 more 10 ft pipe sticks (12 total)
+- 👍 Stable both ways with 4 drums spread over a short frame
+- 👍 Survives any single leak
+- 👍 Pivots well: drums are near the middle
+- 👎 Heaviest class, like the pontoon
+- 👎 Bow and stern drums need their own cross beams
+
+- 📦 On a deck frame instead of boxes: 149 lb (-32), 6 sticks (-6).
 
 ### —. Wide raft: 4 drums across
 
 Four drums side by side across a wide frame.
 
-- ✅ Very steady side to side (roll GM 120")
-- ✅ Rides high: 26% of lift used, 7.1" draft
-- ✅ Still floats if any one drum leaks
 - ✅ Uses drums you already have (4)
-- ⚠️ 161 lb: over the 150 lb limit
-- ⚠️ Rocks fore and aft (pitch GM -7")
-- ⚠️ Nose-dives if the crew shift forward
-- ⚠️ Needs 3 more 10 ft pipe sticks (8 total)
+- ✅ Each drum boxed in: no straps, and no separate deck frame
+- ⚠️ Does not float with this crew
+- ⚠️ 163 lb: over the 150 lb limit
+- ⚠️ Losing one drum can sink or capsize it
+- ⚠️ Needs 4 more 10 ft pipe sticks (9 total)
 - 👍 Hardest to tip sideways
 - 👍 Survives any single leak
 - 👎 Still rocks fore and aft: every drum is short
 - 👎 Widest and draggiest; needs longer beams
-- 🔒 Caged instead of strapped: 190 lb (+28), 12 sticks (+4), over the 150 lb limit. Drums can't slip out, and no long straps are needed.
-- 📦 As box frames (each drum in its own box, no deck frame): 164 lb (+3), 9 sticks (+1), over the 150 lb limit. Drums are trapped and the boxes carry the deck.
+
+- 📦 On a deck frame instead of boxes: 161 lb (-1), 8 sticks (-1).
 
 
 ## Needed for this layout vs parts list
 
 | Item | Needed | Listed |
 |------|--------|--------|
-| drum | 2 | 4 |
-| pipe | 5 | 5 |
-| elbow | 6 | 16 |
-| tee | 10 | 4 ⚠️ |
-| cross | 3 | 3 |
-| coupling | 1 | 4 |
-| zip-tie | 56 | 4 ⚠️ |
+| drum | 3 | 4 |
+| pipe | 8 | 5 ⚠️ |
+| elbow | 0 | 16 |
+| tee | 20 | 4 ⚠️ |
+| cross | 0 | 3 |
+| coupling | 0 | 4 |
+| zip-tie | 26 | 4 ⚠️ |
 | xps | 1 | 2 |
-| coroplast | 2 | 2 |
-| spray-foam | 2 | 4 |
+| coroplast | 1 | 2 |
+| spray-foam | 3 | 4 |
 | cement | 1 | 1 |
 
 ### Pipe cut list (10 ft sticks)
 
-1. mast 36", bow bar half port 23.5", beam 5.2 21", beam 3.2 21", bow strut port 18" — offcut 0"
-2. beam 3.1 21", beam 1.2 21", beam 4.2 21", bow bar half stbd 23.5", beam 5.1 21" — offcut 12"
-3. beam 4.1 21", beam 2.1 21", rail 3.4 18.5", rail 2.4 18.5", rail 3.1 18.5", beam 2.2 21" — offcut 1"
-4. rail 1.3 18.5", rail 1.4 18.5", rail 2.2 18.5", beam 1.1 21", bow strut stbd 18", rail 3.3 18.5" — offcut 6"
-5. rail 2.3 18.5", rail 1.2 18.5", rail 1.1 18.5", rail 3.2 18.5", rail 2.1 18.5", bow riser stbd 12", bow riser port 12" — offcut 3"
+1. box 1 top 36", box 1 top 36", box 1 bottom 36", box 2 bottom 9.75" — offcut 2"
+2. box 1 bottom 36", box 2 top 36", box 2 bottom 36", box 3 top 9.75" — offcut 2"
+3. box 3 top 36", box 3 top 36", box 3 bottom 36", box 3 bottom 9.75" — offcut 2"
+4. box 3 bottom 36", mast 36", box 2 top 24", box 1 top 22" — offcut 2"
+5. box 2 bottom 24", box 3 top 24", box 3 bottom 24", box 1 bottom 22", box 1 post 21.9" — offcut 4"
+6. box 1 post 21.9", box 1 post 21.9", box 1 post 21.9", box 2 post 21.9", box 2 post 21.9", box 2 top 9.75" — offcut 0"
+7. box 3 post 21.9", box 3 post 21.9", box 3 post 21.9", box 3 post 21.9", box 2 top 11.75", box 2 bottom 11.75" — offcut 8"
+8. box 3 top 11.75", box 3 bottom 11.75" — offcut 96"
 
 ## Parts list
 
