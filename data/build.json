@@ -1,14 +1,14 @@
 {
   "name": "Team BOB pirate raft",
-  "updated": "2026-10-02",
+  "updated": "2026-10-03",
   "notes": "The team's actual build. Edit it in raft-simulation.html (Parts tab), export it, and commit it here. Status: planned | bought | installed. Frame config inferred from purchases (3 double sani tees, 5 sticks): one rail per drum line plus a center spine, 5 beams. Confirm against the mockup.",
   "config": {
-    "preset": "cat2",
+    "preset": "tri3pack",
     "frameLength": 84,
     "frameWidth": 72,
     "beamCount": 5,
     "pontoonSpacing": 47,
-    "drumOffset": 0,
+    "drumOffset": 6,
     "drumSpread": 20,
     "bow": true,
     "bowRiser": 12,
@@ -27,7 +27,7 @@
       "zOffset": 0
     },
     "failedDrum": null,
-    "frameStyle": "fitted",
+    "frameStyle": "boxes",
     "fittingTakeoff": 1.25,
     "railsPerPontoon": 1,
     "centerSpine": true,
@@ -38,7 +38,8 @@
       "len": 34.5,
       "weight": 20,
       "weightMeasured": false
-    }
+    },
+    "packGap": 4
   },
   "parts": [
     {
