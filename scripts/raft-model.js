@@ -105,13 +105,13 @@
       ],
     },
     tri3pack: {
-      label: 'Packed triangle: 2 drums side by side + 1 behind', drums: 3,
-      blurb: 'Two drums side by side at the bow sharing a middle wall, and one drum butted up behind them on the centerline, like the team\'s second box-frame sketch.',
+      label: 'Packed triangle: 1 bow drum + 2 side by side', drums: 3,
+      blurb: 'The team\'s current design: two drums side by side at the stern, boxes sharing a middle wall, and one drum in front of them on the centerline, its box butted against their crossbar.',
       strengths: ['Compact (about 4 ft wide); the boxes share a wall and a crossbar, so it takes less pipe than 3 separate boxes', 'Lift at the bow and the stern, so it rides over waves instead of see-sawing'],
-      weaknesses: ['Narrow: with 2 adults it can tip sideways. Open the "Front pair gap" to widen it, at the cost of more pipe', 'Three drums plus boxes runs close to the 150 lb limit', 'Shared corners need 4-way side-outlet fittings'],
+      weaknesses: ['Narrow: with 2 adults it can tip sideways. Open the "Pair gap" to widen it, at the cost of more pipe', 'Three drums plus boxes runs close to the 150 lb limit', 'Shared corners need 4-way side-outlet fittings'],
       layout: c => {
         const d = drumSpec(c), ax = d.len / 2 + 2, az = d.dia / 2 + 1 + Math.min(14, Math.max(0, c.packGap || 0)) / 2;   // boxes touch: 2" end clearance, 1" side clearance
-        return [{ x: c.drumOffset + ax, z: -az }, { x: c.drumOffset + ax, z: az }, { x: c.drumOffset - ax, z: 0 }];
+        return [{ x: c.drumOffset + ax, z: 0 }, { x: c.drumOffset - ax, z: -az }, { x: c.drumOffset - ax, z: az }];
       },
     },
     quad4pontoon: {
@@ -531,14 +531,14 @@
     const cuts = g.cagePieces.map(pc => ({ label: `box ${pc.drum + 1} ${pc.kind}`, len: +(pc.len - 2 * k).toFixed(2), cage: true }));
     if (c.mastHeight > 0) cuts.push({ label: 'mast', len: c.mastHeight + 6 });
     // every joint: 2 pipes at an angle = elbow (3-way corners need side-outlet tees), 3+ = tee
-    const fit = { elbow: 0, tee: 0, cross: 0, coupling: 0 };
+    const fit = { elbow: 0, tee: 0, four: 0, coupling: 0 };
     const k3 = pt => pt.map(v => v.toFixed(1)).join(','), dirs = new Map();
     g.cagePieces.forEach(pc => [[pc.a, pc.b], [pc.b, pc.a]].forEach(([p0, p1]) => {
       const kk = k3(p0); (dirs.get(kk) || dirs.set(kk, []).get(kk)).push([p1[0] - p0[0], p1[1] - p0[1], p1[2] - p0[2]]);
     }));
     dirs.forEach(ds => {
-      if (ds.length >= 4) fit.cross++;                       // shared corner: 4-way side-outlet fitting
-      else if (ds.length === 3) fit.tee++;
+      if (ds.length >= 4) { fit.tee++; fit.four++; }         // shared corner: 4-way side-outlet tee
+      else if (ds.length === 3) fit.tee++;                   // box corner: 3-way side-outlet fitting
       else if (ds.length === 2) {
         const [u, v] = ds, dot = u[0] * v[0] + u[1] * v[1] + u[2] * v[2];
         if (dot < 0 && Math.abs(dot) > 0.99 * Math.hypot(...u) * Math.hypot(...v)) fit.coupling++; else fit.elbow++;
@@ -551,14 +551,14 @@
     return {
       cuts, sticks, pipeLength_in: pipeLen, cageLength_in: cageLen,
       items: {
-        drum: g.drums.length, pipe: sticks.length, elbow: fit.elbow, tee: fit.tee, cross: fit.cross, coupling: fit.coupling,
+        drum: g.drums.length, pipe: sticks.length, elbow: fit.elbow, tee: fit.tee, cross: 0, coupling: fit.coupling,
         'zip-tie': Math.ceil(ties * 1.15),
         xps: sheetsFor(c.deck.length, c.deck.width, layers),
         coroplast: Math.ceil(2 * c.deck.length * c.deck.width * 1.15 / (SHEET.w * SHEET.l)),
         'spray-foam': Math.ceil(pipeLen * PIPE_ID_AREA / FOAM_IN3_PER_CAN),
         cement: 1,
       },
-      tieCount: ties, tieLength: 17,
+      tieCount: ties, tieLength: 17, fourWay: fit.four,
     };
   }
 
@@ -904,7 +904,7 @@
     const recs = recommend({ build, g, req, wt, sol, fwd, side, leaks, rulesOut, crewW });
     if (g.cageUnsupported) recs.push({ level: 'warn', title: 'The cage is only modeled for lengthwise drums', detail: 'Crosswise drums use zip-tie bands here. Switch to a lengthwise layout to compare a caged build.' });
     if (g.boxes) recs.push({ level: 'info', title: `Box frames: each drum sits in its own box of pipe (${(req.cageLength_in / 12).toFixed(0)} ft of pipe)`,
-      detail: 'Drums are trapped without straps and the deck sits on the box tops, so there is no separate deck frame. The bottom rails sit just under the drums and can catch rocks in shallow water. Every box corner joins 3 pipes, so use side-outlet tees (3-way corners) there.' + (req.items.cross ? ` Where boxes share a wall or butt against another box's crossbar, ${req.items.cross} joints take 4 pipes: use 4-way side-outlet fittings there.` : '') + (g.boxContacts.length ? ` Boxes ${g.boxContacts.map(([a2, b2]) => `${a2 + 1} and ${b2 + 1}`).join(', ')} meet corner to corner: join them where their end rails meet (a 4-way fitting where the corners touch, short ties otherwise).` : '') });
+      detail: 'Drums are trapped without straps and the deck sits on the box tops, so there is no separate deck frame. The bottom rails sit just under the drums and can catch rocks in shallow water. Every box corner joins 3 pipes, so use side-outlet tees (3-way corners) there.' + (req.fourWay ? ` Where boxes share a wall or butt against another box's crossbar, ${req.fourWay} of the ${req.items.tee} joints take 4 pipes: use the 4-way side-outlet tees there.` : '') + (g.boxContacts.length ? ` Boxes ${g.boxContacts.map(([a2, b2]) => `${a2 + 1} and ${b2 + 1}`).join(', ')} meet corner to corner: join them where their end rails meet (a 4-way fitting where the corners touch, short ties otherwise).` : '') });
     if (!opts.noVariant && !g.boxes && g.drums.every(d => d.axis === 'x')) {
       const other = g.cage ? Object.assign({}, c, { retention: 'bands' }) : Object.assign({}, c, { retention: 'cage' });
       const v = analyze(Object.assign({}, build, { config: other }), rules, { skipLeak: true, noVariant: true });
