@@ -27,7 +27,7 @@ const dateStr = new Date().toISOString().split('T')[0];
 const suppliers = read('suppliers.json').suppliers || [];
 const a = M.analyze(build, rules, { catalog, suppliers });
 const g = a.geometry, c = g.config, s = a.solution;
-const cmp = M.comparePresets(build, rules);
+const cmp = M.rankPresets(M.comparePresets(build, rules, { catalog }), 'balanced');
 const icon = { ok: '✅', warn: '⚠️', error: '❌', info: 'ℹ️' };
 const f1 = v => (v == null || !isFinite(v)) ? '—' : v.toFixed(1);
 const f0 = v => (v == null || !isFinite(v)) ? '—' : v.toFixed(0);
@@ -104,11 +104,25 @@ ${a.rules.map(r => `- ${icon[r.level]} **${r.title}**${r.detail ? ` — ${r.deta
 
 ${a.recommendations.filter(r => !a.rules.some(x => x.title === r.title)).map(r => `- ${icon[r.level]} **${r.title}**${r.detail ? ` — ${r.detail}` : ''}`).join('\n') || '- ✅ Nothing to flag.'}
 
-## Layout comparison (same parts, frame and crew)
+## Structure options and tradeoffs
 
-| Layout | lb | Load | Draft | GM roll | GM pitch | Crew at bow | Survives leak |
-|--------|----|------|-------|---------|----------|-------------|---------------|
-${cmp.map(r => `| ${r.label}${r.id === c.preset ? ' **(current)**' : ''} | ${f0(r.weight)}${r.weight >= (rules.max_boat_weight_lb || 150) ? ' ❌' : ''} | ${r.ok ? f0(r.loadPct) + '%' : '✕'} | ${r.ok ? f1(r.maxDraft) + '"' : '—'} | ${f0(r.gmRoll)}" | ${f0(r.gmPitch)}" | ${isFinite(r.bowFwd) ? f1(r.bowFwd) + '"' : 'dives'} | ${r.survivesLeak ? '✓' : '✕'} |`).join('\n')}
+Ranked for a balanced mix of stability, leak safety, weight, parts on hand and cost (same crew, drums and parts; each frame stretched to fit its drums). Change the priority in the simulator's Compare tab.
+
+| # | Layout | lb | Load | Roll GM | Pitch GM | Crew at bow | Leak OK | Sticks |
+|---|--------|----|------|---------|----------|-------------|---------|--------|
+${cmp.map((r, i) => `| ${r.blocked ? '—' : i + 1} | ${r.label}${r.id === c.preset ? ' **(current)**' : ''} | ${f0(r.weight)}${r.weight >= (rules.max_boat_weight_lb || 150) ? ' ❌' : ''} | ${r.ok ? f0(r.loadPct) + '%' : '✕'} | ${f0(r.gmRoll)}" | ${f0(r.gmPitch)}" | ${isFinite(r.bowFwd) ? f1(r.bowFwd) + '"' : 'dives'} | ${r.survivesLeak ? '✓' : '✕'} | ${r.sticks} |`).join('\n')}
+
+GM (metacentric height): positive means the boat rights itself, negative means it tips until something else touches the water.
+
+${cmp.map((r, i) => `### ${r.blocked ? '—' : i + 1}. ${r.label}${r.id === c.preset ? ' (current)' : ''}
+
+${r.blurb}
+
+${r.pros.map(t => `- ✅ ${t}`).join('\n')}
+${r.cons.map(t => `- ⚠️ ${t}`).join('\n')}
+${r.strengths.map(t => `- 👍 ${t}`).join('\n')}
+${r.weaknesses.map(t => `- 👎 ${t}`).join('\n')}
+`).join('\n')}
 
 ## Needed for this layout vs parts list
 
