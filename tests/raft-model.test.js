@@ -1,9 +1,12 @@
 const test = require('node:test');
 const assert = require('node:assert');
 const M = require('../scripts/raft-model.js');
-const build = require('../data/build.json');
+const current = require('../data/build.json');
 const rules = require('../data/rules.json');
 const clone = o => JSON.parse(JSON.stringify(o));
+// reference boat for the physics tests: the team's parts on the earlier 2-drum spine-frame catamaran
+const build = clone(current);
+Object.assign(build.config, { preset: 'cat2', frameStyle: 'fitted', drumOffset: 0, packGap: 0 });
 const near = (a, b, tol, msg) => assert.ok(Math.abs(a - b) <= tol, `${msg}: ${a} vs ${b}`);
 
 test('drum displacement matches cylinder geometry', () => {
@@ -286,7 +289,7 @@ test('box frames: packed triangle shares walls and crossbars, with no doubled pi
   const kinds = k => g.cagePieces.filter(p => p.kind === k).length;
   assert.strictEqual(g.drums.length, 3);
   assert.strictEqual(kinds('link'), 0, 'boxes butt together, no links');
-  assert.strictEqual(kinds('post'), 10, 'the front pair shares its middle posts');
+  assert.strictEqual(kinds('post'), 10, 'the side-by-side pair shares its middle posts');
   // no pipe runs inside another: every joint sits at a piece end, never partway along one
   const ends = g.cagePieces.flatMap(p => [p.a, p.b]);
   g.cagePieces.forEach(p => ends.forEach(e => {
@@ -294,9 +297,9 @@ test('box frames: packed triangle shares walls and crossbars, with no doubled pi
     const off = Math.hypot(...e.map((v, k) => v - (p.a[k] + t * d[k])));
     assert.ok(!(off < 0.1 && t * L > 0.5 && (1 - t) * L > 0.5), 'joint partway along a pipe');
   }));
-  assert.ok(q.items.cross >= 4, 'shared corners take 4-way fittings');
+  assert.ok(q.fourWay >= 4 && q.items.cross === 0, 'shared corners take 4-way side-outlet tees');
   assert.ok(q.cuts.every(c => c.len >= 2));
-  for (let gap = 0; gap <= 14; gap++) {             // widening the front pair never leaves stubs
+  for (let gap = 0; gap <= 14; gap++) {             // widening the side-by-side pair never leaves stubs
     const q2 = M.requirements(M.geometry(Object.assign({}, b.config, { packGap: gap })), b.parts);
     assert.ok(q2.cuts.every(c => c.len >= 2), `gap ${gap}`);
   }
@@ -308,4 +311,14 @@ test('box frames: every layout builds without pipe stubs', () => {
     const q = M.requirements(M.geometry(b.config), b.parts);
     assert.ok(q.cuts.every(c => c.len >= 2), preset);
   }
+});
+
+test('current plan: packed triangle in box frames passes the rules and floats level', () => {
+  const a = M.analyze(current, rules), s = a.solution;
+  assert.strictEqual(current.config.preset, 'tri3pack');
+  assert.ok(a.geometry.boxes && a.geometry.drums.length === 3);
+  assert.ok(a.geometry.drums[0].x > a.geometry.drums[1].x && a.geometry.drums[0].z === 0, 'single drum at the bow');
+  assert.ok(s.ok && s.gmRoll > 0 && s.gmPitch > 12 && Math.abs(s.pitchDeg) < 1.5);
+  assert.ok(a.weights.predicted < 150);
+  assert.deepStrictEqual([...a.rules, ...a.recommendations].filter(r => r.level === 'error').map(r => r.title), []);
 });

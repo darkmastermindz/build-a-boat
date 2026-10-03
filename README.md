@@ -14,6 +14,17 @@ recommendations.
 **https://bob-sim.netlify.app**: the simulator, deployed on Netlify,
 with shared design profiles.
 
+## 🏴‍☠️ Current plan
+
+**Packed triangle in box frames** (the default in `data/build.json`):
+- 1 drum at the bow and 2 side by side behind it, every drum boxed in 1-1/2"
+  PVC.
+- The rear pair sits 4" apart, and the drums sit 6" forward so the boat
+  floats level.
+- Predicted weight about 138 lb. Side-to-side stability is low (GM +2"), so
+  keep the crew low and centered.
+- See `docs/design.md` for the numbers and tradeoffs.
+
 ## 🚀 Quick start
 
 Requires Node 24 (see `.nvmrc`).
@@ -56,7 +67,7 @@ bob/
 ## ⛵ Simulator
 
 - **Frame joinery**: *Fitted* (1-1/2" DWV tees, double sani tees and
-  elbows, cut to length: the team's current build) or *Stacked* (beams
+  elbows, cut to length: the team's first mockup) or *Stacked* (beams
   zip-tied on rails, from the original render). Fitted mode computes the
   fitting counts and exact cut lengths, and "Fit frame length to drums" sizes
   the frame to the drums.
@@ -72,7 +83,7 @@ bob/
   layout in Compare.
 - **Layouts with 2–4 drums**: catamaran (2), staggered catamaran (2),
   trimaran (3 side by side), triangle (bow drum + 2 stern), packed triangle
-  (2 side by side + 1 behind), pontoon (4, 2 per side) and wide raft (4
+  (bow drum + 2 side by side, the **current plan**), pontoon (4, 2 per side) and wide raft (4
   across). Each one has adjustable frame length, beam length, beam count,
   pontoon spacing, drum position, deck size, mast height, bow frame and
   noodle rail.

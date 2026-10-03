@@ -25,14 +25,14 @@ function make(id, name, description, edit) {
 }
 
 const profiles = [
-  make('current-plan', 'Current plan: spine frame, 2 drums', 'What the team bought: 1-1/2" DWV, one rail per drum plus a center spine, 5 beams, 3 double sani tees, 5 sticks.', () => {}),
-  make('spine-4-beams', 'Spine frame, 4 beams (pipe margin)', 'Same frame with 4 beams. More spare pipe for mis-cuts; uses 2 double sani tees.', b => { b.config.beamCount = 4; }),
-  make('tri3-level', 'Triangle: 3 drums, levelled', 'Bow drum + 2 stern drums on the spine frame, shifted 7" forward to float level. Fixes the see-saw.', b => { b.config.preset = 'tri3bow'; b.config.drumOffset = 7; drums(b, 3); }),
-  make('quad4-pontoon', 'Pontoon: 4 drums', '4 drums (2 per side) on the spine frame, seat cushions dropped. Most stable; survives a leak.', b => { b.config.preset = 'quad4pontoon'; drums(b, 4); noCushions(b); }),
-  make('stagger2-boxes', 'Box frames: staggered catamaran', 'The team\'s Onshape sketch: each drum in its own box of pipe, boxes offset fore and aft and joined by links. Drums are trapped without straps.', b => { b.config.preset = 'stagger2'; b.config.frameStyle = 'boxes'; }),
-  make('tri3stern-boxes', 'Box frames: reverse triangle', 'Three boxed drums, 2 at the bow and 1 at the stern. Stable both ways; boxes meet corner to corner.', b => { b.config.preset = 'tri3stern'; b.config.frameStyle = 'boxes'; drums(b, 3); }),
-  make('tri3pack-boxes', 'Box frames: packed triangle', 'The team\'s second Onshape sketch: 2 drums side by side in boxes sharing a middle wall, and a third box butted against their crossbar. Compact but narrow; check side-to-side stability.', b => { b.config.preset = 'tri3pack'; b.config.frameStyle = 'boxes'; drums(b, 3); }),
-  make('render-stacked', 'Original render (stacked frame)', 'The 4-drum render: two rails per drum, beams zip-tied on top.', b => { b.config.preset = 'quad4pontoon'; Object.assign(b.config, { frameStyle: 'stacked', railsPerPontoon: 2, centerSpine: false, beamCount: 4 }); drums(b, 4); noCushions(b); }),
+  make('current-plan', 'Current plan: packed triangle in box frames', 'What the team is building: 2 drums side by side at the stern and 1 in front on the centerline, each boxed in 1-1/2" PVC. The rear pair sits 4" apart (it tips sideways when touching) and the drums sit 6" forward to float level.', () => {}),
+  make('spine-2-drums', 'Earlier plan: spine frame, 2 drums', 'The first mockup: 2 drums on a fitted 1-1/2" DWV frame, one rail per drum plus a center spine, 5 beams.', b => { Object.assign(b.config, { preset: 'cat2', frameStyle: 'fitted', drumOffset: 0 }); }),
+  make('spine-4-beams', 'Spine frame, 4 beams (pipe margin)', 'The earlier spine frame with 4 beams. More spare pipe for mis-cuts; uses 2 double sani tees.', b => { Object.assign(b.config, { preset: 'cat2', frameStyle: 'fitted', drumOffset: 0, beamCount: 4 }); }),
+  make('tri3-level', 'Triangle: 3 drums, levelled', 'Bow drum + 2 stern drums on the spine frame, shifted 7" forward to float level. Fixes the see-saw.', b => { Object.assign(b.config, { preset: 'tri3bow', frameStyle: 'fitted', drumOffset: 7 }); drums(b, 3); }),
+  make('quad4-pontoon', 'Pontoon: 4 drums', '4 drums (2 per side) on the spine frame, seat cushions dropped. Most stable; survives a leak.', b => { Object.assign(b.config, { preset: 'quad4pontoon', frameStyle: 'fitted', drumOffset: 0 }); drums(b, 4); noCushions(b); }),
+  make('stagger2-boxes', 'Box frames: staggered catamaran', 'The team\'s Onshape sketch: each drum in its own box of pipe, boxes offset fore and aft and joined by links. Drums are trapped without straps.', b => { Object.assign(b.config, { preset: 'stagger2', frameStyle: 'boxes', drumOffset: 0 }); }),
+  make('tri3stern-boxes', 'Box frames: reverse triangle', 'Three boxed drums, 2 at the bow and 1 at the stern. Stable both ways; boxes meet corner to corner.', b => { Object.assign(b.config, { preset: 'tri3stern', frameStyle: 'boxes', drumOffset: 0 }); drums(b, 3); }),
+  make('render-stacked', 'Original render (stacked frame)', 'The 4-drum render: two rails per drum, beams zip-tied on top.', b => { b.config.preset = 'quad4pontoon'; Object.assign(b.config, { drumOffset: 0, frameStyle: 'stacked', railsPerPontoon: 2, centerSpine: false, beamCount: 4 }); drums(b, 4); noCushions(b); }),
 ];
 
 fs.writeFileSync(path.join(ROOT, 'data/profiles.json'), JSON.stringify({

@@ -1,7 +1,13 @@
 # Design Notes: Pirate Drum Raft
 
-**Status:** open-ended. The team is choosing between **2, 3 and 4 drum**
-layouts and building the actual parts list. Use
+**Status:** the current plan (2026-10-03) is the **packed triangle in box
+frames**.
+- Two drums sit side by side at the stern and one sits in front of them on
+  the centerline.
+- Every drum is boxed in 1-1/2" PVC: top and bottom rectangles and corner
+  posts.
+- This is the default in `data/build.json`. The other 2–4 drum layouts are
+  still in the simulator for comparison. Use
 [`raft-simulation.html`](../raft-simulation.html) to try configurations; this
 doc records the reasoning and the findings so far.
 
@@ -125,7 +131,7 @@ in plain words and ranks the structures by what matters most: **Balanced**,
 **Stability in rapids**, **Light and easy to carry**, or **Use what we
 already bought**. The full computed list is in `reports/latest-report.md`.
 
-As of the current build (fitted spine frame, 2 crew at 175 lb, 55 gal drums):
+With the team's parts, 2 crew at 175 lb and 55 gal drums (frames fitted to each layout):
 
 | Structure | Drums | ~lb | Stable side to side? | Stable fore and aft? | Survives a leak? | Main tradeoff |
 |-----------|-------|-----|----------------------|----------------------|------------------|---------------|
@@ -154,19 +160,42 @@ offset fore and aft (the **Staggered catamaran** layout).
 - Staggering steadies the fore-and-aft rocking of a 2-drum boat a lot (pitch
   GM −14" → −2"), at about the catamaran's weight.
 
-The team's second sketch is the **Packed triangle** layout: 2 drums side by
-side in boxes that share a middle wall, and a third box butted against
-their end crossbar on the centerline.
-- Sharing walls saves pipe: 138 lb and 7 sticks, against 143 lb and 9 sticks
-  for three separate boxes (reverse triangle).
-- Where boxes share a corner, 4 pipes meet, so it needs about eight 4-way
-  side-outlet fittings.
-- **Tradeoff:** it is only about 4 ft wide. With 2 × 175 lb crew, roll GM is
-  −4" (it can tip sideways), and losing any one drum sinks or capsizes it.
-  - The **Front pair gap** slider (0–14") spreads the front drums apart:
-    - 4" gives roll GM +1" at 139 lb;
-    - 8" gives +7" at 148 lb;
-    - 14" gives +18" at 149 lb, right at the limit.
+### Current plan: packed triangle in box frames
+
+The team's second sketch, and now the default build, is the **Packed
+triangle** layout.
+- One drum sits at the bow on the centerline.
+- Two drums sit side by side behind it, all parallel to the direction of
+  travel.
+- The rear pair's boxes share a middle wall. The bow box butts against
+  their front crossbar.
+
+Default settings in `data/build.json`:
+- **Pair gap 4"** between the side-by-side boxes. Touching (0") gives
+  roll GM −4" with 2 × 175 lb crew, so it would tip sideways.
+- **Drums 6" forward** under the deck, so the boat floats level (trim
+  −0.3°). With the drums centered it trims 4° bow-down.
+
+Computed numbers:
+
+| | |
+|---|---|
+| Predicted weight | **138 lb** (limit 150) |
+| Size | 6.4 × 4.4 ft |
+| Load | 31% of max buoyancy; frame 14.6" above the water |
+| Stability | Roll GM +2" (low), pitch GM +44" |
+| Crew at the bow | Bow still 5.8" clear |
+| Pipe | ~70 ft = 8 sticks |
+| Joints | 20 side-outlet joints, 8 of them 4-way where boxes share a corner (the team has 24 Zernmiarder 4-way side-outlet tees) |
+
+Tradeoffs and what to watch:
+- **Side-to-side stability is low.** Keep the crew low and centered.
+  Widening the gap helps: 8" gives roll GM +7" at 148 lb, and 14" gives +18"
+  at 149 lb, right at the limit.
+- **No backup:** losing any one drum sinks or capsizes it, so test the bung
+  caps.
+- Sharing walls saves pipe compared with three separate boxes (reverse
+  triangle: 143 lb, 9 sticks).
 
 - **Why cage:** the drums can't slip out even if a tie breaks, and you don't
   need long straps around the drums. That sidesteps the 18" securing-material
