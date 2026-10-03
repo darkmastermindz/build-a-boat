@@ -125,6 +125,19 @@
   .banner{background:var(--warn);color:#1a1200;padding:8px 16px;font-size:13px;display:none}
   .banner.show{display:block}
   .best{outline:2px solid var(--ok);outline-offset:-2px}
+  .cmpcard{border:1px solid var(--line);border-radius:8px;padding:10px 12px;margin:10px 0;background:var(--chip)}
+  .cmpcard.top{border-color:var(--ok);box-shadow:inset 3px 0 0 var(--ok)}
+  .cmpcard.blocked{opacity:.75}
+  .cmpcard h3{font:700 15px "Barlow Condensed",sans-serif;display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-bottom:2px}
+  .cmpcard .rank{font:700 12px Barlow,sans-serif;color:var(--muted)}
+  .cmpcard ul{list-style:none;margin:6px 0 0}
+  .cmpcard li{display:grid;grid-template-columns:16px 1fr;gap:4px;font-size:12.5px;padding:1px 0}
+  .cmpcard li::before{font-weight:700}
+  .cmpcard li.pro::before{content:"+";color:var(--ok)}
+  .cmpcard li.con::before{content:"–";color:var(--warn)}
+  .cmpcard li.note::before{content:"·";color:var(--muted)}
+  .cmpcard .sect{font-size:11px;text-transform:uppercase;letter-spacing:.4px;color:var(--muted);margin-top:8px}
+  .cmpcard .btns{margin:8px 0 0}
   .tag{display:inline-block;font-size:10.5px;padding:0 5px;border-radius:4px;border:1px solid var(--line);color:var(--muted);margin-left:4px}
   .muted{color:var(--muted)}
   .small{font-size:12px}
@@ -199,6 +212,12 @@
       </div>
       <div class="toggles"><label><input type="checkbox" id="drumMeasured"> Weighed on a scale</label></div>
       <p class="blurb" id="drumNote"></p>
+      <div class="row"><label for="retention">Drum retention</label><select id="retention" style="grid-column:span 2">
+        <option value="bands">Zip-tie bands around each drum</option>
+        <option value="cage:cradle">Caged: lower cradle (2 rails) + posts</option>
+        <option value="cage:single">Caged, light: 1 lower rail + posts</option>
+      </select></div>
+      <p class="blurb" id="retentionNote"></p>
       <h3 class="sub">Each drum</h3>
       <p class="blurb">Positions follow the layout. Leave a drum on "Same as default" or give it its own measurements, for example one that's a little smaller.</p>
       <div id="drumList"></div>
@@ -252,9 +271,11 @@
     </section>
 
     <section class="pane" id="pane-compare">
-      <p class="blurb">Every layout, run with your current parts list, frame and crew. Green outline marks the best legal option: under the weight limit, no errors, stable both ways, and survives a leak where possible.</p>
+      <p class="blurb">Every structure, run with your crew, drums and parts. The frame is stretched to fit each layout's drums. Pick what matters most and the list re-ranks.</p>
+      <div class="row"><label for="cmpPriority">What matters most</label><select id="cmpPriority" style="grid-column:span 2"></select></div>
       <div style="overflow-x:auto"><table id="cmpTable"></table></div>
-      <div id="cmpNotes" class="small muted" style="margin-top:10px"></div>
+      <p class="small muted" style="margin:6px 0 10px">Roll / pitch GM = how strongly it rights itself side to side / fore and aft. Positive is stable, negative means it tips until something else touches the water.</p>
+      <div id="cmpCards"></div>
     </section>
   </aside>
 
@@ -332,7 +353,7 @@ const SL = [
   ['beamCount','Cross beams',2,6,1,''],
   ['pontoonSpacing','Pontoon spacing',28,90,1,'"'],
   ['drumOffset','Drums fore/aft',-30,30,1,'"'],
-  ['drumSpread','Triangle spread',10,45,1,'"', c => c.preset === 'tri3bow'],
+  ['drumSpread','Fore-aft spread',10,45,1,'"', c => ['tri3bow','tri3stern','tandem2','diamond4'].includes(c.preset)],
   ['deck.length','Deck length',36,96,6,'"'],
   ['deck.width','Deck width',18,48,2,'"'],
   ['mastHeight','Mast above deck',0,40,1,'"'],
@@ -356,7 +377,9 @@ function sliderRow(def){
 function initControls(){
   const sel = $('preset');
   Object.entries(M.PRESETS).forEach(([id,p]) => sel.append(el('option', { value:id }, p.label)));
-  sel.onchange = () => { if (sel.value === 'custom') return; build.config.preset = sel.value; delete build.config.drums; build.config.failedDrum = null; ensureWidth(); syncControls(); changed(); };
+  sel.onchange = () => { if (sel.value === 'custom') return; build.config.preset = sel.value; delete build.config.drums; build.config.failedDrum = null;
+    const fitted = M.fitFrame(build.config); build.config.frameLength = fitted.frameLength; build.config.frameWidth = fitted.frameWidth;
+    ensureWidth(); syncControls(); changed(); };
   SL.forEach(d => $('sliders').append(sliderRow(d)));
   CREW.forEach(d => $('crewSliders').append(sliderRow(d)));
   const ds = $('drumSize');
@@ -378,6 +401,7 @@ function initControls(){
     };
   });
   $('drumMeasured').onchange = e => { build.config.drum = Object.assign({}, M.drumSpec(build.config), { weightMeasured: e.target.checked }); syncDrumPart(); changed(); };
+  $('retention').onchange = e => { const [ret, st] = e.target.value.split(':'); build.config.retention = ret; if (st) build.config.cageStyle = st; changed(); };
   $('railsPerPontoon').onchange = e => { build.config.railsPerPontoon = +e.target.value; changed(); };
   $('centerSpine').onchange = e => { build.config.centerSpine = e.target.checked; changed(); };
   $('frameStyle').onchange = e => { build.config.frameStyle = e.target.value; syncControls(); changed(); };
@@ -427,6 +451,9 @@ function renderDrumList(){
     }
     return row;
   }));
+  const rn = A.recommendations.find(x => /trapped between two frames|Option: trap the drums|only modeled for lengthwise/.test(x.title));
+  $('retentionNote').textContent = rn ? `${rn.title}. ${rn.detail}` : '';
+  $('retention').value = c.retention === 'cage' ? 'cage:' + (c.cageStyle === 'single' ? 'single' : 'cradle') : 'bands';
   const pl = A.placement, btn = $('applyPlacement');
   btn.hidden = !pl;
   if (pl) btn.onclick = () => { c.drumSpecs = pl.drumSpecs.map(x => x ? Object.assign({}, x) : null); changed(); };
@@ -462,6 +489,7 @@ function syncControls(){
   $('drumNote').textContent = `Each drum: ~${lift.toFixed(0)} lb of lift fully submerged (${geoGal.toFixed(0)} gal of outside volume). Buoyancy uses the outside diameter and length, so measure across the ribs and end to end.${dspec.size !== 'custom' ? ' Standard sizes vary by maker: measure yours and edit.' : ''}`;
   $('frameStyle').value = c.frameStyle || 'stacked';
   $('railsPerPontoon').value = String(c.railsPerPontoon || 2);
+  $('retention').value = c.retention === 'cage' ? 'cage:' + (c.cageStyle === 'single' ? 'single' : 'cradle') : 'bands';
   $('centerSpine').checked = !!c.centerSpine;
   $('bow').checked = !!c.bow; $('noodleRail').checked = !!c.noodleRail;
 }
@@ -588,27 +616,49 @@ function renderCheck(){
   $('cutTable').replaceChildren(el('tr', {}, el('th', {}, '#'), el('th', {}, 'Cuts'), el('th', { class:'num' }, 'Offcut')),
     ...A.requirements.sticks.map((s, i) => el('tr', {}, el('td', {}, i+1), el('td', {}, s.cuts.map(c => `${c.label} ${c.len}"`).join(' · ')), el('td', { class:'num' }, f0(s.left) + '"'))));
 }
+let cmpPriority = (() => { try { return localStorage.getItem('bob-cmp-priority') || 'balanced'; } catch (e) { return 'balanced'; } })();
+function useLayout(r){
+  build.config.preset = r.id; delete build.config.drums; build.config.failedDrum = null;
+  build.config.frameLength = r.config.frameLength; build.config.frameWidth = r.config.frameWidth;
+  ensureWidth(); syncControls(); changed();
+}
 function renderCompare(){
-  const rows = M.comparePresets(build, rules);
+  const sel = $('cmpPriority');
+  if (!sel.options.length) {
+    Object.entries(M.PRIORITIES).forEach(([k, v]) => sel.append(el('option', { value: k }, v.label)));
+    sel.onchange = () => { cmpPriority = sel.value; try { localStorage.setItem('bob-cmp-priority', cmpPriority); } catch (e) {} renderCompare(); };
+  }
+  sel.value = cmpPriority;
   const max = rules.max_boat_weight_lb || 150;
-  const score = r => (r.ok && r.errors === 0 && r.weight < max && r.gmPitch > 0 && r.gmRoll > 0 ? 100 : 0) + (r.survivesLeak ? 20 : 0) - r.loadPct * 0.2 + Math.min(r.gmPitch, 60) * 0.1;
-  const best = rows.reduce((a, b) => score(b) > score(a) ? b : a, rows[0]);
+  const ranked = M.rankPresets(M.comparePresets(build, rules, { catalog }), cmpPriority);
+  const top = ranked.find(r => !r.blocked);
   const yes = v => v ? '✓' : '✕';
   $('cmpTable').replaceChildren(
-    el('tr', {}, ...['Layout','lb','Load','Draft','Roll GM','Pitch GM','Bow fwd','Leak',''].map((h,i) => el('th', { class: i && i < 8 ? 'num' : '' }, h))),
-    ...rows.map(r => el('tr', { class: r === best ? 'best' : '' },
-      el('td', {}, r.label, r.id === build.config.preset ? el('span', { class:'tag' }, 'current') : ''),
+    el('tr', {}, ...['#','Layout','lb','Roll','Pitch','Leak','Sticks'].map((h,i) => el('th', { class: i > 1 ? 'num' : '' }, h))),
+    ...ranked.map((r, i) => el('tr', { class: r === top ? 'best' : '' },
+      el('td', {}, r.blocked ? '—' : i + 1),
+      el('td', {}, r.label.split(':')[0], r.id === build.config.preset ? el('span', { class:'tag' }, 'current') : ''),
       el('td', { class:'num', style: r.weight >= max ? 'color:var(--err)' : '' }, f0(r.weight)),
-      el('td', { class:'num' }, r.ok ? f0(r.loadPct) + '%' : '✕'),
-      el('td', { class:'num' }, r.ok ? f1(r.maxDraft) + '"' : '—'),
-      el('td', { class:'num', style: r.gmRoll < 0 ? 'color:var(--err)' : '' }, f0(r.gmRoll) + '"'),
-      el('td', { class:'num', style: r.gmPitch < 0 ? 'color:var(--warn)' : '' }, f0(r.gmPitch) + '"'),
-      el('td', { class:'num' }, isFinite(r.bowFwd) ? f1(r.bowFwd) + '"' : 'dives'),
+      el('td', { class:'num', style: r.gmRoll < 0 ? 'color:var(--err)' : r.gmRoll < 12 ? 'color:var(--warn)' : '' }, f0(r.gmRoll)),
+      el('td', { class:'num', style: r.gmPitch < 0 ? 'color:var(--warn)' : '' }, f0(r.gmPitch)),
       el('td', { class:'num' }, yes(r.survivesLeak)),
-      el('td', {}, el('button', { class:'btn ghost sm', onclick: () => { build.config.preset = r.id; delete build.config.drums; build.config.failedDrum = null; ensureWidth(); syncControls(); changed(); } }, 'Use')))));
-  $('cmpNotes').replaceChildren(
-    el('p', {}, 'GM is metacentric height: positive means it rights itself, negative means it tips until something else touches the water. "Bow fwd" is frame clearance at the bow with everyone seated at the front of the deck.'),
-    el('p', { style:'margin-top:6px' }, `Suggested: ${best.label}. ${best.blurb}`));
+      el('td', { class:'num', style: r.sticksNeeded ? 'color:var(--warn)' : '' }, r.sticks))));
+  $('cmpCards').replaceChildren(...ranked.map((r, i) => {
+    const li = (cls, t) => el('li', { class: cls }, t);
+    return el('div', { class: 'cmpcard' + (r === top ? ' top' : '') + (r.blocked ? ' blocked' : '') },
+      el('h3', {}, el('span', { class:'rank' }, r.blocked ? 'Not allowed / unsafe' : `#${i + 1}`), r.label,
+        r === top ? el('span', { class:'tag' }, `best for ${M.PRIORITIES[cmpPriority].label.toLowerCase()}`) : '',
+        r.id === build.config.preset ? el('span', { class:'tag' }, 'current') : ''),
+      el('div', { class:'small muted' }, r.blurb),
+      el('div', { class:'sect' }, 'With your crew and parts'),
+      el('ul', {}, ...r.pros.map(t => li('pro', t)), ...r.cons.map(t => li('con', t))),
+      el('div', { class:'sect' }, 'Handling and build'),
+      el('ul', {}, ...r.strengths.map(t => li('pro', t)), ...r.weaknesses.map(t => li('con', t))),
+      r.retentionNote ? el('div', { class:'sect' }, 'Drum retention') : '',
+      r.retentionNote ? el('ul', {}, li('note', r.retentionNote)) : '',
+      el('div', { class:'small muted', style:'margin-top:6px' }, `${f1(r.size.length / 12)} × ${f1(r.size.width / 12)} ft · ${r.drums} drums · frame ${r.config.frameLength}" · ~$${f0(r.costToFinish)} still to buy`),
+      el('div', { class:'btns' }, el('button', { class:'btn ' + (r.id === build.config.preset ? 'ghost ' : '') + 'sm', onclick: () => useLayout(r) }, r.id === build.config.preset ? 'Reset to this layout' : 'Use this layout')));
+  }));
 }
 function renderHud(){
   const s = A.solution, g = A.geometry;
@@ -661,15 +711,25 @@ function buildBoat(){
   const joint = p => { const s = new THREE.Mesh(new THREE.SphereGeometry(1.3, 16, 12), MAT.fit); s.position.set(...p); G.frame.add(s); };
   // drums
   g.drums.forEach(d => {
-    const m = d.failed ? MAT.failed : MAT.drum, dr = d.r, dl = d.len, cy = d.y0 + dr;
+    const m = d.failed ? MAT.failed : MAT.drum, dr = d.r, dl = d.len, cy = d.y0 + dr, cross = d.axis === 'z';
+    // along(o) = a point o inches along the drum's own axis
+    const along = o => cross ? [d.x, cy, d.z + o] : [d.x + o, cy, d.z];
+    const ring = mesh => { if (!cross) mesh.rotation.y = Math.PI/2; return mesh; };
     const cyl = new THREE.Mesh(new THREE.CylinderGeometry(dr, dr, dl, 44), m);
-    cyl.rotation.z = Math.PI/2; cyl.position.set(d.x, cy, d.z); G.drums.add(cyl);
-    [-dl/6, dl/6].forEach(o => { const rib = new THREE.Mesh(new THREE.TorusGeometry(dr+.15, .35, 8, 44), d.failed ? MAT.failed : MAT.drumDark); rib.rotation.y = Math.PI/2; rib.position.set(d.x+o, cy, d.z); G.drums.add(rib); });
-    const bung = new THREE.Mesh(new THREE.CylinderGeometry(1.2, 1.2, .6, 14), MAT.fit); bung.rotation.z = Math.PI/2; bung.position.set(d.x + dl/2 + .3, cy + dr * 0.5, d.z); G.drums.add(bung);
-    // zip-tie bands
-    [-dl * 0.29, dl * 0.29].forEach(o => { const band = new THREE.Mesh(new THREE.TorusGeometry(dr+.4, .3, 6, 44), MAT.tie); band.rotation.y = Math.PI/2; band.position.set(d.x+o, cy, d.z); G.lash.add(band);
-      const span = new THREE.Mesh(new THREE.CylinderGeometry(.3,.3, Math.max(4, 2*g.railOffset), 6), MAT.tie); span.rotation.x = Math.PI/2; span.position.set(d.x+o, g.railY + R + .3, d.z); G.lash.add(span); });
+    if (cross) cyl.rotation.x = Math.PI/2; else cyl.rotation.z = Math.PI/2;
+    cyl.position.set(d.x, cy, d.z); G.drums.add(cyl);
+    [-dl/6, dl/6].forEach(o => { const rib = ring(new THREE.Mesh(new THREE.TorusGeometry(dr+.15, .35, 8, 44), d.failed ? MAT.failed : MAT.drumDark)); rib.position.set(...along(o)); G.drums.add(rib); });
+    const bung = new THREE.Mesh(new THREE.CylinderGeometry(1.2, 1.2, .6, 14), MAT.fit);
+    if (cross) bung.rotation.x = Math.PI/2; else bung.rotation.z = Math.PI/2;
+    const bp = along(dl/2 + .3); bung.position.set(bp[0], cy + dr * 0.5, bp[2]); G.drums.add(bung);
+    // zip-tie bands (not used when the drums are caged)
+    (g.cage ? [] : [-dl * 0.29, dl * 0.29]).forEach(o => { const band = ring(new THREE.Mesh(new THREE.TorusGeometry(dr+.4, .3, 6, 44), MAT.tie)); band.position.set(...along(o)); G.lash.add(band);
+      const span = new THREE.Mesh(new THREE.CylinderGeometry(.3,.3, Math.max(4, 2*g.railOffset), 6), MAT.tie);
+      if (cross) span.rotation.z = Math.PI/2; else span.rotation.x = Math.PI/2;
+      const sp = along(o); span.position.set(sp[0], g.railY + R + .3, sp[2]); G.lash.add(span); });
   });
+  // cage: lower cradle rails, end ties and posts up to the deck frame
+  if (g.cage) g.cagePieces.forEach(pc => { pipe(pc.a, pc.b, G.frame); joint(pc.a); joint(pc.b); });
   // rails + beams + ties
   g.rails.forEach(rl => pipe([rl.x0, g.railY, rl.z], [rl.x1, g.railY, rl.z], G.frame));
   g.beams.forEach(x => {

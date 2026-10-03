@@ -204,3 +204,55 @@ test('placement suggestion only appears when it levels the boat', () => {
     assert.ok(Math.abs(a.solution.rollDeg) < 1, 'no suggestion only when already level');
   }
 });
+
+test('crosswise tandem: steady fore-aft but tippy side to side (the reverse of the catamaran)', () => {
+  const run = preset => { const b = clone(build); b.config.preset = preset; return M.analyze(b, rules, { skipLeak: true }).solution; };
+  const cat = run('cat2'), tan = run('tandem2');
+  assert.ok(tan.gmPitch > cat.gmPitch, 'tandem pitch stiffer');
+  assert.ok(tan.gmRoll < cat.gmRoll, 'tandem roll softer');
+  const g = M.geometry(Object.assign({}, build.config, { preset: 'tandem2' }));
+  assert.ok(g.drums.every(d => d.axis === 'z'));
+  assert.ok(g.rails.every(r => Math.abs(r.z) < g.drums[0].len / 2), 'rails sit on the crosswise drums');
+});
+
+test('comparison: every layout gets pros, cons and a fitted frame; ranking respects hard limits', () => {
+  const catalog = require('../data/catalog.json');
+  const rows = M.comparePresets(build, rules, { catalog });
+  assert.strictEqual(rows.length, Object.keys(M.PRESETS).length);
+  rows.forEach(r => {
+    assert.ok(r.pros.length + r.cons.length >= 4, r.id);
+    assert.ok(r.strengths.length && r.weaknesses.length, r.id);
+    const g = M.geometry(Object.assign({}, build.config, { preset: r.id }, r.config));
+    assert.ok(!g.drumsOffFrame, `${r.id} frame holds its drums`);
+  });
+  for (const p of Object.keys(M.PRIORITIES)) {
+    const ranked = M.rankPresets(rows, p);
+    const firstBlocked = ranked.findIndex(r => r.blocked);
+    if (firstBlocked >= 0) assert.ok(ranked.slice(firstBlocked).every(r => r.blocked), `${p}: blocked layouts rank last`);
+  }
+  const light = M.rankPresets(rows, 'light')[0], stab = M.rankPresets(rows, 'stability')[0];
+  assert.ok(light.weight <= stab.weight, 'light priority picks a lighter boat');
+});
+
+test('cage: a second frame traps the drums, costs pipe and weight, adds a little lift, drops the drum bands', () => {
+  const run = (retention, cageStyle) => { const b = clone(build); Object.assign(b.config, { preset: 'cat2', retention, cageStyle }); return M.analyze(b, rules, { skipLeak: true }); };
+  const bands = run('bands'), cradle = run('cage', 'cradle'), single = run('cage', 'single');
+  assert.ok(cradle.geometry.cage && !bands.geometry.cage);
+  assert.ok(cradle.requirements.cageLength_in > 0 && cradle.requirements.pipeLength_in > bands.requirements.pipeLength_in);
+  assert.ok(cradle.weights.total > single.weights.total && single.weights.total > bands.weights.total, 'cradle > single > bands');
+  assert.ok(cradle.solution.maxLb > bands.solution.maxLb, 'foam-filled cage pipes add lift');
+  assert.ok(cradle.requirements.items['zip-tie'] < bands.requirements.items['zip-tie'], 'no drum bands');
+  // posts land on the deck frame and every post is spliced into a rail with a tee (fitted frame)
+  const posts = cradle.geometry.cagePieces.filter(p => p.kind === 'post');
+  assert.ok(posts.every(p => Math.abs(p.b[1] - cradle.geometry.railY) < 1e-9));
+  assert.ok(cradle.recommendations.some(r => /trapped between two frames/.test(r.title)));
+  assert.ok(bands.recommendations.some(r => /Option: trap the drums/.test(r.title)));
+});
+
+test('cage pushing a heavy layout over the limit is flagged', () => {
+  const b = clone(build); Object.assign(b.config, { preset: 'quad4pontoon', retention: 'cage', cageStyle: 'cradle' });
+  b.parts.find(p => p.role === 'drum').quantity = 4;
+  const a = M.analyze(b, rules, { skipLeak: true });
+  assert.ok(a.weights.total >= 150);
+  assert.ok(a.rules.some(r => r.id === 'weight' && r.level === 'error'));
+});
