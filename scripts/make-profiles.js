@@ -29,6 +29,8 @@ const profiles = [
   make('spine-4-beams', 'Spine frame, 4 beams (pipe margin)', 'Same frame with 4 beams. More spare pipe for mis-cuts; uses 2 double sani tees.', b => { b.config.beamCount = 4; }),
   make('tri3-level', 'Triangle: 3 drums, levelled', 'Bow drum + 2 stern drums on the spine frame, shifted 7" forward to float level. Fixes the see-saw.', b => { b.config.preset = 'tri3bow'; b.config.drumOffset = 7; drums(b, 3); }),
   make('quad4-pontoon', 'Pontoon: 4 drums', '4 drums (2 per side) on the spine frame, seat cushions dropped. Most stable; survives a leak.', b => { b.config.preset = 'quad4pontoon'; drums(b, 4); noCushions(b); }),
+  make('stagger2-boxes', 'Box frames: staggered catamaran', 'The team\'s Onshape sketch: each drum in its own box of pipe, boxes offset fore and aft and joined by links. Drums are trapped without straps.', b => { b.config.preset = 'stagger2'; b.config.frameStyle = 'boxes'; }),
+  make('tri3stern-boxes', 'Box frames: reverse triangle', 'Three boxed drums, 2 at the bow and 1 at the stern. Stable both ways; boxes meet corner to corner.', b => { b.config.preset = 'tri3stern'; b.config.frameStyle = 'boxes'; drums(b, 3); }),
   make('render-stacked', 'Original render (stacked frame)', 'The 4-drum render: two rails per drum, beams zip-tied on top.', b => { b.config.preset = 'quad4pontoon'; Object.assign(b.config, { frameStyle: 'stacked', railsPerPontoon: 2, centerSpine: false, beamCount: 4 }); drums(b, 4); noCushions(b); }),
 ];
 

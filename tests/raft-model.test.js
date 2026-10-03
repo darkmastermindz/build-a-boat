@@ -256,3 +256,33 @@ test('cage pushing a heavy layout over the limit is flagged', () => {
   assert.ok(a.weights.total >= 150);
   assert.ok(a.rules.some(r => r.id === 'weight' && r.level === 'error'));
 });
+
+test('box frames: each drum in its own box, joined to its neighbours, no deck frame', () => {
+  const b = clone(build); Object.assign(b.config, { preset: 'stagger2', frameStyle: 'boxes' });
+  const a = M.analyze(b, rules, { skipLeak: true }), g = a.geometry, q = a.requirements;
+  assert.ok(g.boxes && g.cage && g.rails.length === 0 && g.beams.length === 0);
+  const kinds = k => g.cagePieces.filter(p => p.kind === k).length;
+  assert.strictEqual(kinds('post'), 4 * g.drums.length, 'four corner posts per box');
+  assert.ok(kinds('link') >= 2, 'boxes are joined');
+  // every box encloses its drum, top above it and bottom below it
+  g.drums.forEach((d, i) => {
+    const bx = g.boxList[i];
+    assert.ok(bx.x0 < d.x - d.ex && bx.x1 > d.x + d.ex && bx.z0 < d.z - d.ez && bx.z1 > d.z + d.ez);
+    assert.ok(bx.yb < d.y0 && g.railY > d.y0 + 2 * d.r);
+  });
+  assert.ok(q.cuts.every(c => c.len >= 2), 'no pipe stubs');
+  assert.strictEqual(q.items.cross, 0);
+  assert.ok(q.items.tee >= 8 * g.drums.length, 'every box corner joins 3 pipes');
+  assert.ok(a.recommendations.some(r => /^Box frames:/.test(r.title)));
+  // staggering the boxes steadies pitch versus the straight catamaran
+  const straight = M.analyze(Object.assign(clone(b), { config: Object.assign({}, b.config, { preset: 'cat2' }) }), rules, { skipLeak: true });
+  assert.ok(a.solution.gmPitch > straight.solution.gmPitch);
+});
+
+test('box frames: every layout builds without pipe stubs', () => {
+  for (const preset of Object.keys(M.PRESETS)) {
+    const b = clone(build); Object.assign(b.config, { preset, frameStyle: 'boxes' });
+    const q = M.requirements(M.geometry(b.config), b.parts);
+    assert.ok(q.cuts.every(c => c.len >= 2), preset);
+  }
+});

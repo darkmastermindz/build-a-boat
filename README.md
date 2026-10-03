@@ -60,6 +60,10 @@ bob/
   zip-tied on rails, from the original render). Fitted mode computes the
   fitting counts and exact cut lengths, and "Fit frame length to drums" sizes
   the frame to the drums.
+- **Frame joinery**: also **Box frames**, where each drum sits in its own box
+  of pipe (top and bottom rectangles and corner posts) and the boxes are
+  linked, with no separate deck frame. Pairs with the **Staggered
+  catamaran** layout from the team's Onshape sketch.
 - **Drum retention**: zip-tie bands, or **caged** between two PVC frames
   (a lower cradle or a single rail under each drum, with posts up to the deck
   frame). Caging adds pipe, fittings and weight, and is shown for every
