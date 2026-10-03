@@ -212,6 +212,12 @@
       </div>
       <div class="toggles"><label><input type="checkbox" id="drumMeasured"> Weighed on a scale</label></div>
       <p class="blurb" id="drumNote"></p>
+      <div class="row"><label for="retention">Drum retention</label><select id="retention" style="grid-column:span 2">
+        <option value="bands">Zip-tie bands around each drum</option>
+        <option value="cage:cradle">Caged: lower cradle (2 rails) + posts</option>
+        <option value="cage:single">Caged, light: 1 lower rail + posts</option>
+      </select></div>
+      <p class="blurb" id="retentionNote"></p>
       <h3 class="sub">Each drum</h3>
       <p class="blurb">Positions follow the layout. Leave a drum on "Same as default" or give it its own measurements, for example one that's a little smaller.</p>
       <div id="drumList"></div>
@@ -395,6 +401,7 @@ function initControls(){
     };
   });
   $('drumMeasured').onchange = e => { build.config.drum = Object.assign({}, M.drumSpec(build.config), { weightMeasured: e.target.checked }); syncDrumPart(); changed(); };
+  $('retention').onchange = e => { const [ret, st] = e.target.value.split(':'); build.config.retention = ret; if (st) build.config.cageStyle = st; changed(); };
   $('railsPerPontoon').onchange = e => { build.config.railsPerPontoon = +e.target.value; changed(); };
   $('centerSpine').onchange = e => { build.config.centerSpine = e.target.checked; changed(); };
   $('frameStyle').onchange = e => { build.config.frameStyle = e.target.value; syncControls(); changed(); };
@@ -444,6 +451,9 @@ function renderDrumList(){
     }
     return row;
   }));
+  const rn = A.recommendations.find(x => /trapped between two frames|Option: trap the drums|only modeled for lengthwise/.test(x.title));
+  $('retentionNote').textContent = rn ? `${rn.title}. ${rn.detail}` : '';
+  $('retention').value = c.retention === 'cage' ? 'cage:' + (c.cageStyle === 'single' ? 'single' : 'cradle') : 'bands';
   const pl = A.placement, btn = $('applyPlacement');
   btn.hidden = !pl;
   if (pl) btn.onclick = () => { c.drumSpecs = pl.drumSpecs.map(x => x ? Object.assign({}, x) : null); changed(); };
@@ -479,6 +489,7 @@ function syncControls(){
   $('drumNote').textContent = `Each drum: ~${lift.toFixed(0)} lb of lift fully submerged (${geoGal.toFixed(0)} gal of outside volume). Buoyancy uses the outside diameter and length, so measure across the ribs and end to end.${dspec.size !== 'custom' ? ' Standard sizes vary by maker: measure yours and edit.' : ''}`;
   $('frameStyle').value = c.frameStyle || 'stacked';
   $('railsPerPontoon').value = String(c.railsPerPontoon || 2);
+  $('retention').value = c.retention === 'cage' ? 'cage:' + (c.cageStyle === 'single' ? 'single' : 'cradle') : 'bands';
   $('centerSpine').checked = !!c.centerSpine;
   $('bow').checked = !!c.bow; $('noodleRail').checked = !!c.noodleRail;
 }
@@ -643,6 +654,8 @@ function renderCompare(){
       el('ul', {}, ...r.pros.map(t => li('pro', t)), ...r.cons.map(t => li('con', t))),
       el('div', { class:'sect' }, 'Handling and build'),
       el('ul', {}, ...r.strengths.map(t => li('pro', t)), ...r.weaknesses.map(t => li('con', t))),
+      r.retentionNote ? el('div', { class:'sect' }, 'Drum retention') : '',
+      r.retentionNote ? el('ul', {}, li('note', r.retentionNote)) : '',
       el('div', { class:'small muted', style:'margin-top:6px' }, `${f1(r.size.length / 12)} × ${f1(r.size.width / 12)} ft · ${r.drums} drums · frame ${r.config.frameLength}" · ~$${f0(r.costToFinish)} still to buy`),
       el('div', { class:'btns' }, el('button', { class:'btn ' + (r.id === build.config.preset ? 'ghost ' : '') + 'sm', onclick: () => useLayout(r) }, r.id === build.config.preset ? 'Reset to this layout' : 'Use this layout')));
   }));
@@ -709,12 +722,14 @@ function buildBoat(){
     const bung = new THREE.Mesh(new THREE.CylinderGeometry(1.2, 1.2, .6, 14), MAT.fit);
     if (cross) bung.rotation.x = Math.PI/2; else bung.rotation.z = Math.PI/2;
     const bp = along(dl/2 + .3); bung.position.set(bp[0], cy + dr * 0.5, bp[2]); G.drums.add(bung);
-    // zip-tie bands
-    [-dl * 0.29, dl * 0.29].forEach(o => { const band = ring(new THREE.Mesh(new THREE.TorusGeometry(dr+.4, .3, 6, 44), MAT.tie)); band.position.set(...along(o)); G.lash.add(band);
+    // zip-tie bands (not used when the drums are caged)
+    (g.cage ? [] : [-dl * 0.29, dl * 0.29]).forEach(o => { const band = ring(new THREE.Mesh(new THREE.TorusGeometry(dr+.4, .3, 6, 44), MAT.tie)); band.position.set(...along(o)); G.lash.add(band);
       const span = new THREE.Mesh(new THREE.CylinderGeometry(.3,.3, Math.max(4, 2*g.railOffset), 6), MAT.tie);
       if (cross) span.rotation.z = Math.PI/2; else span.rotation.x = Math.PI/2;
       const sp = along(o); span.position.set(sp[0], g.railY + R + .3, sp[2]); G.lash.add(span); });
   });
+  // cage: lower cradle rails, end ties and posts up to the deck frame
+  if (g.cage) g.cagePieces.forEach(pc => { pipe(pc.a, pc.b, G.frame); joint(pc.a); joint(pc.b); });
   // rails + beams + ties
   g.rails.forEach(rl => pipe([rl.x0, g.railY, rl.z], [rl.x1, g.railY, rl.z], G.frame));
   g.beams.forEach(x => {

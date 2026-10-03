@@ -18,6 +18,7 @@ Generated from `data/build.json` by `scripts/raft-model.js`. Open
 | Drums | 2 × 55 gal plastic, tight-head (bung caps) (55 gal, 22.5" × 34.5", 20 lb) |
 | Frame | 84" rails × 72" beams, 5 beams, pontoon spacing 47" |
 | Deck | 72" × 24" × 2.3" |
+| Drum retention | Zip-tie bands |
 | Overall size | 8.6 ft × 5.8 ft × 4.7 ft |
 | Crew | 2 × 175 lb |
 | Predicted final weight | 106.0 lb (limit 150) |
@@ -99,6 +100,7 @@ Open `raft-simulation.html` → Check → Next shopping trip and enter a ZIP cod
 - ℹ️ **2 spare spray-foam cans on the list** — Keep for repairs or trim the list to save weight and cost.
 - ℹ️ **Cut lengths assume 1.25" fitting take-off** — Dry-fit one tee and measure center-to-socket-bottom, then set the take-off to match before cutting.
 - ℹ️ **Only 0% of the weight is measured** — Weigh parts as they arrive and tick "measured".
+- ℹ️ **Option: trap the drums in a second frame (+14 lb, +3 sticks)** — A lower PVC cradle joined by posts to the deck frame holds each drum, so no long drum straps are needed. Weight would be 120 lb. Configure → Drum retention.
 
 ## Structure options and tradeoffs
 
@@ -108,12 +110,12 @@ Ranked for a balanced mix of stability, leak safety, weight, parts on hand and c
 |---|--------|----|------|---------|----------|-------------|---------|--------|
 | 1 | Pontoon: 4 drums (2 per side) | 146 | 25% | 94" | 59" | 8.8" | ✓ | 5 |
 | 2 | Reverse triangle: 2 bow + 1 stern drum | 126 | 32% | 39" | 50" | 10.4" | ✕ | 5 |
-| 3 | Diamond: bow, stern, port, starboard | 147 | 25% | 37" | 86" | 9.7" | ✕ | 6 |
+| 3 | Diamond: bow, stern, port, starboard | 148 | 25% | 37" | 86" | 9.7" | ✕ | 6 |
 | 4 | Triangle: 1 bow + 2 stern drums | 126 | 32% | 39" | 50" | 0.5" | ✕ | 5 |
-| 5 | Wide raft: 4 drums across | 148 | 25% | 122" | -7" | dives | ✓ | 8 |
-| 6 | Catamaran: 2 drums **(current)** | 106 | 46% | 46" | -15" | dives | ✕ | 5 |
-| 7 | Trimaran: 3 drums side by side | 126 | 32% | 42" | -10" | dives | ✕ | 5 |
+| 5 | Catamaran: 2 drums **(current)** | 106 | 46% | 46" | -15" | dives | ✕ | 5 |
+| 6 | Trimaran: 3 drums side by side | 126 | 32% | 42" | -10" | dives | ✕ | 5 |
 | — | Tandem: 2 drums crosswise | 101 | 45% | -15" | 76" | 5.3" | ✕ | 4 |
+| — | Wide raft: 4 drums across | 161 ❌ | 26% | 120" | -7" | dives | ✓ | 8 |
 
 GM (metacentric height): positive means the boat rights itself, negative means it tips until something else touches the water.
 
@@ -135,6 +137,7 @@ Two drums end to end on each side (the original render).
 - 👎 Heaviest (~40 lb over the catamaran) and close to the 150 lb limit
 - 👎 Long waterline turns slowly
 - 👎 Twice the lashing
+- 🔒 Caged instead of strapped: 171 lb (+25), 9 sticks (+4), over the 150 lb limit. Drums can't slip out, and no long straps are needed.
 
 ### 2. Reverse triangle: 2 bow + 1 stern drum
 
@@ -152,6 +155,7 @@ Two drums up front, one at the stern on the centerline.
 - 👍 Wide bow resists nose-diving and rolling as you enter drops
 - 👎 Stern-heavy crews squat the single stern drum
 - 👎 Wide, flat bow pushes more water
+- 🔒 Caged instead of strapped: 147 lb (+21), 9 sticks (+4). Drums can't slip out, and no long straps are needed.
 
 ### 3. Diamond: bow, stern, port, starboard
 
@@ -161,7 +165,7 @@ One drum at each point of a diamond: bow and stern on the centerline, port and s
 - ✅ Rides high: 25% of lift used, 6.8" draft
 - ✅ Bow stays 10" clear with the crew forward
 - ✅ Uses drums you already have (4)
-- ⚠️ 147 lb: only 3 lb under the limit
+- ⚠️ 148 lb: only 2 lb under the limit
 - ⚠️ Losing one drum can sink or capsize it
 - ⚠️ Needs 1 more 10 ft pipe stick (6 total)
 - 👍 Stable both ways with 4 drums spread over a short frame
@@ -169,6 +173,7 @@ One drum at each point of a diamond: bow and stern on the centerline, port and s
 - 👍 Pivots well: drums are near the middle
 - 👎 Heaviest class, like the pontoon
 - 👎 Bow and stern drums need their own cross beams
+- 🔒 Caged instead of strapped: 177 lb (+29), 10 sticks (+4), over the 150 lb limit. Drums can't slip out, and no long straps are needed.
 
 ### 4. Triangle: 1 bow + 2 stern drums
 
@@ -186,25 +191,9 @@ One drum up front on the centerline, two at the stern.
 - 👍 Bow drum lifts the nose into waves
 - 👎 Bow-down unless crew sit aft or drums shift forward
 - 👎 One bow drum carries the whole front: a leak there is serious
+- 🔒 Caged instead of strapped: 147 lb (+21), 9 sticks (+4). Drums can't slip out, and no long straps are needed.
 
-### 5. Wide raft: 4 drums across
-
-Four drums side by side across a wide frame.
-
-- ✅ Very steady side to side (roll GM 122")
-- ✅ Rides high: 25% of lift used, 6.9" draft
-- ✅ Still floats if any one drum leaks
-- ✅ Uses drums you already have (4)
-- ⚠️ 148 lb: only 2 lb under the limit
-- ⚠️ Rocks fore and aft (pitch GM -7")
-- ⚠️ Nose-dives if the crew shift forward
-- ⚠️ Needs 3 more 10 ft pipe sticks (8 total)
-- 👍 Hardest to tip sideways
-- 👍 Survives any single leak
-- 👎 Still rocks fore and aft: every drum is short
-- 👎 Widest and draggiest; needs longer beams
-
-### 6. Catamaran: 2 drums (current)
+### 5. Catamaran: 2 drums (current)
 
 One drum per side. The lightest and simplest boat to build.
 
@@ -219,8 +208,9 @@ One drum per side. The lightest and simplest boat to build.
 - 👍 Turns easily: short waterline, nothing in the middle
 - 👎 No backup: losing a drum swamps that side
 - 👎 Rocks fore and aft over a long frame, so seat the crew low and centered
+- 🔒 Caged instead of strapped: 120 lb (+14), 8 sticks (+3). Drums can't slip out, and no long straps are needed.
 
-### 7. Trimaran: 3 drums side by side
+### 6. Trimaran: 3 drums side by side
 
 A center drum between the two side drums.
 
@@ -236,6 +226,7 @@ A center drum between the two side drums.
 - 👍 Survives losing one side drum in most cases
 - 👎 Still rocks fore and aft like the catamaran
 - 👎 Center drum adds drag and ~20 lb
+- 🔒 Caged instead of strapped: 147 lb (+21), 9 sticks (+4). Drums can't slip out, and no long straps are needed.
 
 ### —. Tandem: 2 drums crosswise
 
@@ -253,6 +244,25 @@ Two drums laid across the boat, one at the bow and one at the stern. Same weight
 - 👎 Tippy side to side: only ~3 ft of drum across the beam
 - 👎 Drums push water broadside, so it is slow to paddle
 - 👎 Crosswise lashing is harder to keep tight
+
+
+### —. Wide raft: 4 drums across
+
+Four drums side by side across a wide frame.
+
+- ✅ Very steady side to side (roll GM 120")
+- ✅ Rides high: 26% of lift used, 7.1" draft
+- ✅ Still floats if any one drum leaks
+- ✅ Uses drums you already have (4)
+- ⚠️ 161 lb: over the 150 lb limit
+- ⚠️ Rocks fore and aft (pitch GM -7")
+- ⚠️ Nose-dives if the crew shift forward
+- ⚠️ Needs 3 more 10 ft pipe sticks (8 total)
+- 👍 Hardest to tip sideways
+- 👍 Survives any single leak
+- 👎 Still rocks fore and aft: every drum is short
+- 👎 Widest and draggiest; needs longer beams
+- 🔒 Caged instead of strapped: 190 lb (+28), 12 sticks (+4), over the 150 lb limit. Drums can't slip out, and no long straps are needed.
 
 
 ## Needed for this layout vs parts list

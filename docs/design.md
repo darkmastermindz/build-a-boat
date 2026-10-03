@@ -138,11 +138,36 @@ As of the current build (fitted spine frame, 2 crew at 175 lb, 55 gal drums):
 | Diamond | 4 | 147 | Yes | Very | No | Pivots well, but as heavy as the pontoon and needs a 6th stick |
 | Wide raft (4 across) | 4 | 148 | Very | **No**: rocks | Yes | Hardest to tip sideways, but rocks fore and aft, is draggy and needs 8 sticks |
 
+### Holding the drums: straps vs. a cage (two frames)
+
+| Retention | How it works | Catamaran (2) | Reverse triangle (3) | Pontoon (4) |
+|-----------|--------------|---------------|----------------------|-------------|
+| **Zip-tie bands** | Ties around each drum and the deck frame | 106 lb · 5 sticks | 126 lb · 5 sticks | 146 lb · 5 sticks |
+| **Light cage** | 1 lower rail under each drum, posts at the drum ends up to the deck frame | 114 lb · 7 sticks | 138 lb · 7 sticks | **160 lb ❌** |
+| **Cradle cage** | 2 lower rails + end ties under each drum (a cradle), posts up to the deck frame | 120 lb · 8 sticks | 147 lb · 9 sticks | **171 lb ❌** |
+
+- **Why cage:** the drums can't slip out even if a tie breaks, and you don't
+  need long straps around the drums. That sidesteps the 18" securing-material
+  question.
+  - The foam-filled lower pipes add a little lift and lower the center of
+    gravity.
+  - The cage uses the side-outlet tees you already bought.
+- **Costs:**
+  - Weight: ~4–7 lb per drum.
+  - Pipe: 2–4 more 10 ft sticks.
+  - A lower frame that can catch rocks in shallow water. The cradle sits
+    ~0.3" below the drums; a single rail sits ~1.9" below.
+  - With a single rail, a drum can still rock sideways, so snug it to the
+    posts.
+- **Bottom line:** a cage fits the 2- and 3-drum layouts, but puts every
+  4-drum layout over 150 lb. Caged 4-drum pontoon end posts are shared between
+  drums (drums spaced 4" apart).
+
 **Where it lands:**
 - **Stability or safety comes first:** the **Pontoon**. Keep weight in check
   (weigh parts, skip the cushions) because the margin is thin.
 - **Weight or simplicity comes first:** the **Reverse triangle** is the best
-  3-drum option. It's stable both ways at ~126 lb, and its bow stays up when
+  3-drum option (with a light cage it's still legal at ~138 lb). It's stable both ways at ~126 lb, and its bow stays up when
   the crew lean forward into a drop.
 - **The catamaran** is only sensible for 1 light paddler seated low.
 

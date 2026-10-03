@@ -103,7 +103,7 @@
       strengths: ['Most stable both ways; survives any single leak', 'Long hulls track straight and ride low'],
       weaknesses: ['Heaviest (~40 lb over the catamaran) and close to the 150 lb limit', 'Long waterline turns slowly', 'Twice the lashing'],
       layout: c => {
-        const hx = drumSpec(c).len / 2 + 0.5;
+        const hx = drumSpec(c).len / 2 + (c.retention === 'cage' ? 2 : 0.5);   // caged drums need room for the shared end posts
         const out = [];
         [-1, 1].forEach(s => [-hx, hx].forEach(x => out.push({ x: c.drumOffset + x, z: s * c.pontoonSpacing / 2 })));
         return out;
@@ -135,7 +135,7 @@
   };
 
   const DEFAULT_CONFIG = {
-    preset: 'cat2', frameStyle: 'stacked', fittingTakeoff: 1.25, railsPerPontoon: 2, centerSpine: false, frameLength: 84, frameWidth: 72, beamCount: 4, pontoonSpacing: 47,
+    preset: 'cat2', frameStyle: 'stacked', retention: 'bands', cageStyle: 'cradle', fittingTakeoff: 1.25, railsPerPontoon: 2, centerSpine: false, frameLength: 84, frameWidth: 72, beamCount: 4, pontoonSpacing: 47,
     drumOffset: 0, drumSpread: 20, bow: true, bowRiser: 12, bowStrut: 18,
     deck: { length: 72, width: 24, thickness: 2.3 }, mastHeight: 30, noodleRail: true,
     crew: { count: 2, weightEach: 175, xOffset: 0, zOffset: 0 }, failedDrum: null,
@@ -203,6 +203,46 @@
     const beams = Array.from({ length: n }, (_, i) => -L / 2 + inset + i * (L - 2 * inset) / (n - 1));
     const outerZ = Math.max(...rails.map(rl => Math.abs(rl.z)));
     const W = fitted ? 2 * outerZ : c.frameWidth;
+    // Caged retention: a second PVC frame under each drum (a cradle of two
+    // rails and two end ties) joined to the deck frame by posts at the drum
+    // ends, so the drum is trapped instead of strapped. Lengthwise drums only.
+    const cage = c.retention === 'cage' && drums.length > 0 && drums.every(d => d.axis === 'x');
+    const cagePieces = [];
+    if (cage) {
+      drums.forEach(d => {
+        // cradle: two lower rails either side of the drum line; single: one rail straight under it
+        const co = c.cageStyle === 'single' ? 0 : off > 0 ? off : Math.min(6, d.r * 0.55);
+        const th = Math.asin(Math.min(0.95, co / (d.r + PIPE_R)));
+        const cy = d.y0 + d.r - (d.r + PIPE_R) * Math.cos(th);              // cradle rails touch the drum's underside
+        // cage ends sit just past the drum; when a cross beam is within 8" outward, extend the
+        // cage to it so the post meets the deck frame at an existing joint (no tiny pipe stubs)
+        const snapOut = (x, dir) => { const c2 = beams.filter(bx => (dir < 0 ? bx <= x : bx >= x) && Math.abs(bx - x) <= 8); return c2.length ? c2.reduce((m, bx) => Math.abs(bx - x) < Math.abs(m - x) ? bx : m) : x; };
+        const xa = snapOut(d.x - d.len / 2 - 2, -1), xb = snapOut(d.x + d.len / 2 + 2, 1);
+        (co > 0 ? [-1, 1] : [0]).forEach(sg => cagePieces.push({ kind: 'cradle', drum: d.id, a: [xa, cy, d.z + sg * co], b: [xb, cy, d.z + sg * co] }));
+        if (co > 0) [xa, xb].forEach(x => cagePieces.push({ kind: 'tie', drum: d.id, a: [x, cy, d.z - co], b: [x, cy, d.z + co] }));
+        const postZ = co > 0 && off > 0 ? [d.z - off, d.z + off] : [d.z];
+        [xa, xb].forEach(x => postZ.forEach(z => cagePieces.push({ kind: 'post', drum: d.id, a: [x, cy, z], b: [x, railY, z] })));
+      });
+      // end-to-end drums share their end ties and posts
+      const key = pt => pt.map(v => v.toFixed(1)).join(',');
+      const seen = new Set();
+      for (let i = cagePieces.length - 1; i >= 0; i--) {
+        const pc = cagePieces[i];
+        if (pc.kind === 'cradle') continue;
+        const k2 = pc.kind + ':' + [key(pc.a), key(pc.b)].sort().join('|');
+        if (seen.has(k2)) cagePieces.splice(i, 1); else seen.add(k2);
+      }
+      // a post landing mid-tie splits the tie into two pieces
+      const posts = cagePieces.filter(pc => pc.kind === 'post');
+      for (let i = cagePieces.length - 1; i >= 0; i--) {
+        const pc = cagePieces[i];
+        if (pc.kind !== 'tie') continue;
+        const mid = posts.find(po => Math.abs(po.a[0] - pc.a[0]) < 0.1 && po.a[2] > Math.min(pc.a[2], pc.b[2]) + 0.1 && po.a[2] < Math.max(pc.a[2], pc.b[2]) - 0.1);
+        if (mid) cagePieces.splice(i, 1, { kind: 'tie', drum: pc.drum, a: pc.a, b: mid.a.slice() }, { kind: 'tie', drum: pc.drum, a: mid.a.slice(), b: pc.b });
+      }
+      cagePieces.forEach(pc => { pc.len = Math.hypot(pc.b[0] - pc.a[0], pc.b[1] - pc.a[1], pc.b[2] - pc.a[2]); });
+    }
+    const lowestY = cage ? Math.min(...cagePieces.map(pc => Math.min(pc.a[1], pc.b[1]))) - PIPE_R : 0;
     const bow = c.bow ? {
       x0: L / 2, x1: L / 2 + c.bowStrut, topY: railY + c.bowRiser, z: outerZ,
     } : null;
@@ -223,7 +263,8 @@
       if (Math.abs(a.z - b.z) < a.ez + b.ez && Math.abs(a.x - b.x) < a.ex + b.ex) overlaps.push([i, j]);
     }
     return {
-      config: c, drum, r, mixed, fitted, frameWidth: W, railOffset: off, drums, lines, rails, beams, railY, beamY, deckBottom, deckTop, bow, outerZ,
+      config: c, drum, r, mixed, fitted, frameWidth: W, railOffset: off, cage, cagePieces, lowestY,
+      cageUnsupported: c.retention === 'cage' && !cage, drums, lines, rails, beams, railY, beamY, deckBottom, deckTop, bow, outerZ,
       mastTop, wallHeight: Math.max(0, wallTop - deckTop), overall, overlaps,
       beamsTooShort: !fitted && outerZ + PIPE_R > W / 2,
       drumsOffFrame: drums.some(d => d.x - d.ex < -L / 2 - 1 || d.x + d.ex > L / 2 + 1),
@@ -273,7 +314,14 @@
       // Pipe runs between fitting centers, minus the take-off at each end.
       const k = c.fittingTakeoff || 0;
       const zs = g.rails.map(rl => rl.z).sort((a, b) => a - b), xs = g.beams;
-      g.rails.forEach((rl, i) => { for (let j = 0; j < xs.length - 1; j++) cuts.push({ label: `rail ${i + 1}.${j + 1}`, len: +(xs[j + 1] - xs[j] - 2 * k).toFixed(2) }); });
+      // cage posts are spliced into the rail above them with a tee, which splits that rail segment
+      const splices = g.cage ? g.cagePieces.filter(pc => pc.kind === 'post') : [];
+      g.rails.forEach((rl, i) => {
+        const extra = splices.filter(pc => Math.abs(pc.b[2] - rl.z) < 0.5 && pc.b[0] > xs[0] + 0.5 && pc.b[0] < xs[xs.length - 1] - 0.5 && !xs.some(x => Math.abs(x - pc.b[0]) < 0.5)).map(pc => pc.b[0]);
+        fit.tee += extra.length;
+        const pts = [...xs, ...extra].sort((a, b) => a - b);
+        for (let j = 0; j < pts.length - 1; j++) cuts.push({ label: `rail ${i + 1}.${j + 1}`, len: +(pts[j + 1] - pts[j] - 2 * k).toFixed(2) });
+      });
       xs.forEach((x, i) => { for (let j = 0; j < zs.length - 1; j++) cuts.push({ label: `beam ${i + 1}.${j + 1}`, len: +(zs[j + 1] - zs[j] - 2 * k).toFixed(2) }); });
       xs.forEach((x, bi) => zs.forEach((z, ri) => {
         const endB = bi === 0 || bi === xs.length - 1, endR = ri === 0 || ri === zs.length - 1;
@@ -296,23 +344,44 @@
       });
     }
     if (c.mastHeight > 0) cuts.push({ label: 'mast', len: c.mastHeight + 6 });
+    let cageLen = 0;
+    if (g.cage) {
+      const k = c.fittingTakeoff || 0;
+      g.cagePieces.forEach(pc => cuts.push({ label: `cage ${pc.drum + 1} ${pc.kind}`, len: +(pc.len - 2 * k).toFixed(2), cage: true }));
+      // lower joints: 2 pipes meeting at an angle = elbow, 3 or more = tee (side-outlet where a post rises)
+      const deg = new Map(), dirs = new Map();
+      const k3 = pt => pt.map(v => v.toFixed(1)).join(',');
+      g.cagePieces.forEach(pc => [[pc.a, pc.b], [pc.b, pc.a]].forEach(([p0, p1]) => {
+        if (pc.kind === 'post' && p0 === pc.b) return;            // the post's top is handled by the deck frame
+        const kk = k3(p0); deg.set(kk, (deg.get(kk) || 0) + 1);
+        (dirs.get(kk) || dirs.set(kk, []).get(kk)).push([p1[0] - p0[0], p1[1] - p0[1], p1[2] - p0[2]]);
+      }));
+      deg.forEach((n, kk) => {
+        if (n >= 3) fit.tee++;
+        else if (n === 2) {
+          const [u, v] = dirs.get(kk), dot = u[0] * v[0] + u[1] * v[1] + u[2] * v[2];
+          if (dot < 0 && Math.abs(dot) > 0.99 * Math.hypot(...u) * Math.hypot(...v)) fit.coupling = (fit.coupling || 0) + 1; else fit.elbow++;
+        }
+      });
+      cageLen = cuts.filter(x => x.cage).reduce((t, x) => t + x.len, 0);
+    }
     const sticks = binPack(cuts);
     const pipeLen = cuts.reduce((s, k) => s + k.len, 0);
     const crossings = g.fitted ? 0 : g.rails.length * g.beams.length;
     const bandTiesFor = rr => Math.ceil((2 * Math.PI * rr + 8) / (tieLen - 4)) * 2;   // 2 bands per drum, ~4" lost per tie to the head and overlap
-    const ties = crossings * 2 + g.drums.reduce((t, d) => t + bandTiesFor(d.r), 0) + g.beams.length * 4 + (g.bow ? 10 : 0) + (c.mastHeight > 0 ? 6 : 0);
+    const ties = crossings * 2 + (g.cage ? g.cagePieces.filter(pc => pc.kind === 'post').length * 2 * (g.fitted ? 0 : 1) : g.drums.reduce((t, d) => t + bandTiesFor(d.r), 0)) + g.beams.length * 4 + (g.bow ? 10 : 0) + (c.mastHeight > 0 ? 6 : 0);
     const layers = Math.max(1, Math.round(c.deck.thickness - 0.3));
     const bowGuardArea = g.bow ? 2 * (g.outerZ + PIPE_R) * (c.bowStrut + c.bowRiser) * 1.3 : 0;
     const coroArea = 2 * c.deck.length * c.deck.width + bowGuardArea;
     return {
-      cuts, sticks, pipeLength_in: pipeLen,
+      cuts, sticks, pipeLength_in: pipeLen, cageLength_in: cageLen,
       items: {
         drum: g.drums.length,
         pipe: sticks.length,
         elbow: fit.elbow,
         tee: fit.tee,
         cross: fit.cross,
-        coupling: g.bow ? 1 : 0,
+        coupling: (g.bow ? 1 : 0) + (fit.coupling || 0),
         'zip-tie': Math.ceil(ties * 1.15),            // individual ties, 15% spare
         xps: sheetsFor(c.deck.length, c.deck.width, layers),
         coroplast: Math.ceil(coroArea * 1.15 / (SHEET.w * SHEET.l)),
@@ -339,11 +408,22 @@
     Object.values(USED_ROLES).forEach(k => { used[k] = k === 'pipe' ? req.pipeLength_in / STOCK : req.items[k] || 0; });
     const pool = {};
     parts.forEach(p => { const k = USED_ROLES[p.role]; if (k) pool[k] = (pool[k] || 0) + (+p.quantity || 0); });
-    return parts.filter(p => p.role !== 'drum').map(p => {
+    const rows = parts.filter(p => p.role !== 'drum').map(p => {
       const q = +p.quantity || 0, k = USED_ROLES[p.role];
       const share = k && pool[k] ? Math.min(1, used[k] / pool[k]) : 1;
       return { part: p, w: q * share * (+p.weight_lb_each || 0) };
     });
+    // the layout needs more pipe or fittings than listed: weigh the shortfall too
+    const DEFAULT_EACH = { pipe: 5.1, elbow: 0.2, tee: 0.35, cross: 0.45, coupling: 0.15 };
+    Object.keys(DEFAULT_EACH).forEach(k => {
+      const short = used[k] - (pool[k] || 0);
+      if (short <= 1e-9) return;
+      const listed = parts.filter(p => USED_ROLES[p.role] === k);
+      const qty = listed.reduce((t, p) => t + (+p.quantity || 0), 0);
+      const each = qty ? listed.reduce((t, p) => t + (+p.quantity || 0) * (+p.weight_lb_each || 0), 0) / qty : DEFAULT_EACH[k];
+      rows.push({ part: { name: `more ${k} (not on the list yet)`, role: k, status: 'planned' }, w: short * each });
+    });
+    return rows;
   }
 
   const isBought = p => p.status === 'bought' || p.status === 'installed';
@@ -386,6 +466,12 @@
       if (FRAME_ROLES.has(p.role)) frameW += w; else if (DECK_ROLES.has(p.role)) deckW += w; else topW += w;
     });
     const fx = g.bow ? c.bowStrut * 0.15 : 0;
+    if (g.cage) {
+      const req = requirements(g, build.parts), frac = req.pipeLength_in ? req.cageLength_in / req.pipeLength_in : 0;
+      const cageW = frameW * frac, total = g.cagePieces.reduce((t, pc) => t + pc.len, 0) || 1;
+      g.cagePieces.forEach(pc => items.push({ w: cageW * pc.len / total, x: (pc.a[0] + pc.b[0]) / 2, y: (pc.a[1] + pc.b[1]) / 2, z: (pc.a[2] + pc.b[2]) / 2, label: 'cage' }));
+      frameW -= cageW;
+    }
     items.push({ w: frameW, x: fx, y: g.railY + PIPE_R, z: 0, label: 'frame' });
     items.push({ w: deckW, x: 0, y: (g.deckBottom + g.deckTop) / 2, z: 0, label: 'deck' });
     items.push({ w: topW, x: 0, y: g.deckTop + 2, z: 0, label: 'fittings/decor' });
@@ -416,31 +502,50 @@
     });
     return out;
   }
-  function forces(sl, d, t, p) {
+  const PIPE_AREA = Math.PI * PIPE_R * PIPE_R;
+  // Cage pipes, cut into short pieces; a piece adds lift by how much of it is under water.
+  function pipeSlices(g) {
+    if (!g.cage) return [];
+    const out = [];
+    g.cagePieces.forEach(pc => {
+      const n = Math.max(1, Math.ceil(pc.len / 6));
+      for (let k = 0; k < n; k++) {
+        const f = (k + 0.5) / n;
+        out.push({ x: pc.a[0] + (pc.b[0] - pc.a[0]) * f, y: pc.a[1] + (pc.b[1] - pc.a[1]) * f, z: pc.a[2] + (pc.b[2] - pc.a[2]) * f, vol: PIPE_AREA * pc.len / n, vertical: pc.kind === 'post', dl: pc.len / n });
+      }
+    });
+    return out;
+  }
+  const wetFrac = (h, ps) => ps.vertical ? Math.max(0, Math.min(1, (h - (ps.y - ps.dl / 2)) / ps.dl)) : Math.max(0, Math.min(1, (h - (ps.y - PIPE_R)) / (2 * PIPE_R)));
+  function forces(sl, d, t, p, ps) {
     let F = 0, Mx = 0, Mz = 0;
     for (const s of sl) {
       const b = segArea(d - s.x * t - s.z * p - s.y0, s.r) * s.dl * WATER;
       F += b; Mx += b * s.x; Mz += b * s.z;
     }
+    for (const q of ps || []) {
+      const b = wetFrac(d - q.x * t - q.z * p, q) * q.vol * WATER;
+      F += b; Mx += b * q.x; Mz += b * q.z;
+    }
     return { F, Mx, Mz };
   }
 
   function solve(g, items) {
-    const sl = slicesOf(g);
+    const sl = slicesOf(g), ps = pipeSlices(g);
     const W = items.reduce((s, i) => s + i.w, 0);
     const xg = items.reduce((s, i) => s + i.w * i.x, 0) / W;
     const zg = items.reduce((s, i) => s + i.w * i.z, 0) / W;
     const KG = items.reduce((s, i) => s + i.w * i.y, 0) / W;
     const r = g.r;
-    const maxLb = sl.reduce((s, k) => s + Math.PI * k.r * k.r * k.dl * WATER, 0);
+    const maxLb = sl.reduce((s, k) => s + Math.PI * k.r * k.r * k.dl * WATER, 0) + ps.reduce((s, q) => s + q.vol * WATER, 0);
     const base = { W, xg, zg, KG, maxLb, loadPct: maxLb ? (W / maxLb) * 100 : Infinity };
     if (!sl.length || W >= maxLb * 0.995) return Object.assign(base, { ok: false, reason: 'sinks' });
     const span = Math.max(1, ...sl.map(s => Math.abs(s.x)), ...sl.map(s => Math.abs(s.z)));
     // initial heave by bisection at level trim
     let lo = 0, hi = 2 * r;
-    for (let i = 0; i < 50; i++) { const m = (lo + hi) / 2; forces(sl, m, 0, 0).F < W ? lo = m : hi = m; }
+    for (let i = 0; i < 50; i++) { const m = (lo + hi) / 2; forces(sl, m, 0, 0, ps).F < W ? lo = m : hi = m; }
     let v = [lo, 0, 0];
-    const resid = x => { const f = forces(sl, x[0], x[1], x[2]); return [(f.F - W) / W, (f.Mx - W * xg) / (W * span), (f.Mz - W * zg) / (W * span)]; };
+    const resid = x => { const f = forces(sl, x[0], x[1], x[2], ps); return [(f.F - W) / W, (f.Mx - W * xg) / (W * span), (f.Mz - W * zg) / (W * span)]; };
     let res = resid(v), ok = false;
     for (let it = 0; it < 80; it++) {
       const n0 = Math.hypot(...res);
@@ -484,6 +589,10 @@
       const pd = perDrum[s.drum] || (perDrum[s.drum] = { min: Infinity, max: -Infinity, lb: 0 });
       pd.min = Math.min(pd.min, hh); pd.max = Math.max(pd.max, hh); pd.lb += vol * WATER;
     }
+    for (const q of ps) {   // submerged cage pipes add volume low down (raises KB slightly)
+      const vol = wetFrac(hAt(q.x, q.z), q) * q.vol;
+      V += vol; KBm += vol * q.y;
+    }
     const cx = A ? Ax / A : 0, cz = A ? Az / A : 0;
     Ix0 = Ixx - A * cx * cx; Iz0 = Izz - A * cz * cz;
     const KB = V ? KBm / V : 0;
@@ -496,6 +605,7 @@
     const bowFreeboard = Math.min(railBottom - hAt(c.frameLength / 2, -g.outerZ), railBottom - hAt(c.frameLength / 2, g.outerZ));
     const sternFreeboard = Math.min(railBottom - hAt(-c.frameLength / 2, -g.outerZ), railBottom - hAt(-c.frameLength / 2, g.outerZ));
     const drafts = Object.values(perDrum).map(pd => pd.max);
+    if (g.cage) g.cagePieces.filter(pc => pc.kind !== 'post').forEach(pc => drafts.push(hAt((pc.a[0] + pc.b[0]) / 2, (pc.a[2] + pc.b[2]) / 2) - (pc.a[1] - PIPE_R)));
     return Object.assign(base, {
       ok: true, d, t, p, pitchDeg, rollDeg, perDrum,
       maxDraft: Math.max(...drafts), meanDraft: d,
@@ -622,6 +732,17 @@
     const cost = parts.reduce((s, p) => s + (+p.quantity || 0) * (+p.unit_cost_usd || 0), 0);
     const spent = parts.filter(p => p.status === 'bought' || p.status === 'installed').reduce((s, p) => s + (+p.quantity || 0) * (+p.unit_cost_usd || 0), 0);
     const recs = recommend({ build, g, req, wt, sol, fwd, side, leaks, rulesOut, crewW });
+    if (g.cageUnsupported) recs.push({ level: 'warn', title: 'The cage is only modeled for lengthwise drums', detail: 'Crosswise drums use zip-tie bands here. Switch to a lengthwise layout to compare a caged build.' });
+    if (!opts.noVariant && g.drums.every(d => d.axis === 'x')) {
+      const other = g.cage ? Object.assign({}, c, { retention: 'bands' }) : Object.assign({}, c, { retention: 'cage' });
+      const v = analyze(Object.assign({}, build, { config: other }), rules, { skipLeak: true, noVariant: true });
+      const dW = (g.cage ? wt.total - v.weights.total : v.weights.total - wt.total), dS = g.cage ? req.items.pipe - v.requirements.items.pipe : v.requirements.items.pipe - req.items.pipe;
+      const maxW = (rules && rules.max_boat_weight_lb) || 150;
+      if (g.cage) recs.push({ level: 'info', title: `Drums are trapped between two frames (+${dW.toFixed(0)} lb, +${dS} stick${dS === 1 ? '' : 's'} vs zip-tie bands)`,
+        detail: `Posts meet the deck frame at beam joints where they line up (use side-outlet tees there) and are spliced into the rail elsewhere. Nothing can slip out even if ties break, and you don't need long straps around the drums (the 18" securing rule). The lower frame sits ${Math.max(0, -g.lowestY).toFixed(1)}" below the drums and can catch rocks in shallow water.${c.cageStyle === 'single' ? ' With a single lower rail a drum can still rock sideways, so snug it with short ties to the posts.' : ''}` });
+      else recs.push({ level: 'info', title: `Option: trap the drums in a second frame (+${dW.toFixed(0)} lb, +${dS} stick${dS === 1 ? '' : 's'})`,
+        detail: `A lower PVC ${c.cageStyle === 'single' ? 'rail' : 'cradle'} joined by posts to the deck frame holds each drum, so no long drum straps are needed.${wt.total + dW >= maxW ? ` But it would put this layout at ${(wt.total + dW).toFixed(0)} lb, over the ${maxW} lb limit.` : ` Weight would be ${(wt.total + dW).toFixed(0)} lb.`} Configure → Drum retention.` });
+    }
     const placement = opts.skipLeak ? null : bestPlacement(build, g);
     if (placement) {
       const pos = d => drumLabel(g, d).replace(/^Drum \d+ \((.*)\)$/, '$1');
@@ -849,6 +970,13 @@
       const a = analyze(Object.assign({}, b2, { parts }), rules, { catalog: opts.catalog });
       const s = a.solution, g = a.geometry;
       const fwd = a.scenarios.crewForward;
+      // the same layout with the other drum retention (bands vs cage)
+      let variant = null;
+      if (g.drums.every(d => d.axis === 'x')) {
+        const vcfg = Object.assign({}, cfg, { retention: g.cage ? 'bands' : 'cage' });
+        const va = analyze(Object.assign({}, b2, { parts, config: vcfg }), rules, { skipLeak: true, noVariant: true });
+        variant = { retention: vcfg.retention, weight: va.weights.total, sticks: va.requirements.items.pipe, gmRoll: va.solution.gmRoll, gmPitch: va.solution.gmPitch, ok: va.solution.ok };
+      }
       return {
         id, label: P.label, blurb: P.blurb, drums: P.drums, config: { frameLength: cfg.frameLength, frameWidth: cfg.frameWidth },
         weight: a.weights.total, ok: s.ok, loadPct: s.loadPct, maxDraft: s.maxDraft, gmRoll: s.gmRoll, gmPitch: s.gmPitch,
@@ -860,7 +988,7 @@
         size: g.overall,
         costToFinish: a.shopping.neededCost,
         errors: a.rules.filter(x => x.level === 'error').length + a.recommendations.filter(x => x.level === 'error').length,
-        strengths: P.strengths, weaknesses: P.weaknesses,
+        strengths: P.strengths, weaknesses: P.weaknesses, caged: g.cage, variant,
       };
     });
     const lightest = Math.min(...rows.map(r => r.weight));
@@ -888,6 +1016,14 @@
       if (r.sticksNeeded) cons.push(`Needs ${r.sticksNeeded} more 10 ft pipe stick${r.sticksNeeded > 1 ? 's' : ''} (${r.sticks} total)`);
       else pros.push(`Cut list fits the pipe you bought (${r.sticks} sticks)`);
       if (r.costToFinish - cheapest < 1) pros.push(`Cheapest to finish: ~$${r.costToFinish.toFixed(0)} more`);
+      if (r.caged) pros.push('Drums trapped in a second frame: no long straps needed');
+      const v = r.variant;
+      if (v) {
+        const dW = v.weight - r.weight, dS = v.sticks - r.sticks;
+        r.retentionNote = v.retention === 'cage'
+          ? `Caged instead of strapped: ${v.weight.toFixed(0)} lb (+${dW.toFixed(0)}), ${v.sticks} sticks (+${dS})${v.weight >= max ? `, over the ${max} lb limit` : ''}. Drums can't slip out, and no long straps are needed.`
+          : `Strapped instead of caged: ${v.weight.toFixed(0)} lb (${dW.toFixed(0)}), ${v.sticks} sticks (${dS}). Lighter, but relies on drum straps.`;
+      }
       r.pros = pros; r.cons = cons;
     });
     return rows;

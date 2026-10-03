@@ -233,3 +233,26 @@ test('comparison: every layout gets pros, cons and a fitted frame; ranking respe
   const light = M.rankPresets(rows, 'light')[0], stab = M.rankPresets(rows, 'stability')[0];
   assert.ok(light.weight <= stab.weight, 'light priority picks a lighter boat');
 });
+
+test('cage: a second frame traps the drums, costs pipe and weight, adds a little lift, drops the drum bands', () => {
+  const run = (retention, cageStyle) => { const b = clone(build); Object.assign(b.config, { preset: 'cat2', retention, cageStyle }); return M.analyze(b, rules, { skipLeak: true }); };
+  const bands = run('bands'), cradle = run('cage', 'cradle'), single = run('cage', 'single');
+  assert.ok(cradle.geometry.cage && !bands.geometry.cage);
+  assert.ok(cradle.requirements.cageLength_in > 0 && cradle.requirements.pipeLength_in > bands.requirements.pipeLength_in);
+  assert.ok(cradle.weights.total > single.weights.total && single.weights.total > bands.weights.total, 'cradle > single > bands');
+  assert.ok(cradle.solution.maxLb > bands.solution.maxLb, 'foam-filled cage pipes add lift');
+  assert.ok(cradle.requirements.items['zip-tie'] < bands.requirements.items['zip-tie'], 'no drum bands');
+  // posts land on the deck frame and every post is spliced into a rail with a tee (fitted frame)
+  const posts = cradle.geometry.cagePieces.filter(p => p.kind === 'post');
+  assert.ok(posts.every(p => Math.abs(p.b[1] - cradle.geometry.railY) < 1e-9));
+  assert.ok(cradle.recommendations.some(r => /trapped between two frames/.test(r.title)));
+  assert.ok(bands.recommendations.some(r => /Option: trap the drums/.test(r.title)));
+});
+
+test('cage pushing a heavy layout over the limit is flagged', () => {
+  const b = clone(build); Object.assign(b.config, { preset: 'quad4pontoon', retention: 'cage', cageStyle: 'cradle' });
+  b.parts.find(p => p.role === 'drum').quantity = 4;
+  const a = M.analyze(b, rules, { skipLeak: true });
+  assert.ok(a.weights.total >= 150);
+  assert.ok(a.rules.some(r => r.id === 'weight' && r.level === 'error'));
+});
