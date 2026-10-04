@@ -110,8 +110,11 @@
       strengths: ['Compact (about 4 ft wide); the boxes share a wall and a crossbar, so it takes less pipe than 3 separate boxes', 'Lift at the bow and the stern, so it rides over waves instead of see-sawing'],
       weaknesses: ['Narrow: with 2 adults it can tip sideways. Open the "Pair gap" to widen it, at the cost of more pipe', 'Three drums plus boxes runs close to the 150 lb limit', 'Shared corners need 4-way side-outlet fittings'],
       layout: c => {
-        const d = drumSpec(c), ax = d.len / 2 + 2, az = d.dia / 2 + 1 + Math.min(14, Math.max(0, c.packGap || 0)) / 2;   // boxes touch: 2" end clearance, 1" side clearance
-        return [{ x: c.drumOffset + ax, z: 0 }, { x: c.drumOffset - ax, z: -az }, { x: c.drumOffset - ax, z: az }];
+        // boxes meet at x = drumOffset: each drum sits its own half-length plus the end clearance away,
+        // and the side-by-side pair sits its own radius plus the side clearance off the centerline
+        const eg = c.boxEndGap ?? 2, sg = c.boxSideGap ?? 1, gap = Math.min(14, Math.max(0, c.packGap || 0)) / 2;
+        const [b, p, s] = [0, 1, 2].map(i => drumSpec(c, i));
+        return [{ x: c.drumOffset + b.len / 2 + eg, z: 0 }, { x: c.drumOffset - p.len / 2 - eg, z: -(p.dia / 2 + sg + gap) }, { x: c.drumOffset - s.len / 2 - eg, z: s.dia / 2 + sg + gap }];
       },
     },
     quad4pontoon: {
@@ -152,7 +155,7 @@
   };
 
   const DEFAULT_CONFIG = {
-    preset: 'cat2', frameStyle: 'stacked', retention: 'bands', cageStyle: 'cradle', packGap: 0, fittingTakeoff: 1.25, railsPerPontoon: 2, centerSpine: false, frameLength: 84, frameWidth: 72, beamCount: 4, pontoonSpacing: 47,
+    preset: 'cat2', frameStyle: 'stacked', retention: 'bands', cageStyle: 'cradle', packGap: 0, boxEndGap: 2, boxSideGap: 1, boxTopGap: 0, fittingTakeoff: 1.25, railsPerPontoon: 2, centerSpine: false, frameLength: 84, frameWidth: 72, beamCount: 4, pontoonSpacing: 47,
     drumOffset: 0, drumSpread: 20, bow: true, bowRiser: 12, bowStrut: 18,
     deck: { length: 72, width: 24, thickness: 2.3 }, mastHeight: 30, noodleRail: true,
     crew: { count: 2, weightEach: 175, xOffset: 0, zOffset: 0 }, failedDrum: null,
@@ -295,9 +298,10 @@
   // when the bottoms line up), and the deck sits on the box tops. There is no
   // separate deck frame, and the drums are trapped without straps.
   function boxGeometry(c, drum, drums, r, mixed) {
-    const topY = 2 * r + PIPE_R;                         // top rails just above the tallest drum
+    const topY = 2 * r + PIPE_R + Math.max(0, c.boxTopGap || 0);   // top rails just above the tallest drum
+    const eg = Math.max(0.5, c.boxEndGap ?? 2), sg = Math.max(0.5, c.boxSideGap ?? 1);
     const deckBottom = topY + PIPE_R, deckTop = deckBottom + c.deck.thickness;
-    const boxes = drums.map(d => ({ id: d.id, x0: d.x - d.ex - 2, x1: d.x + d.ex + 2, z0: d.z - d.ez - 1, z1: d.z + d.ez + 1, yb: d.y0 - PIPE_R, attach: [] }));
+    const boxes = drums.map(d => ({ id: d.id, x0: d.x - d.ex - eg, x1: d.x + d.ex + eg, z0: d.z - d.ez - sg, z1: d.z + d.ez + sg, yb: d.y0 - PIPE_R, attach: [] }));
     // join boxes with a minimum spanning tree on centre distance
     const ctr = b => [(b.x0 + b.x1) / 2, (b.z0 + b.z1) / 2];
     const dist = (a, b) => Math.hypot(ctr(a)[0] - ctr(b)[0], ctr(a)[1] - ctr(b)[1]);

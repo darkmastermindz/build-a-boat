@@ -322,3 +322,12 @@ test('current plan: packed triangle in box frames passes the rules and floats le
   assert.ok(a.weights.predicted < 150);
   assert.deepStrictEqual([...a.rules, ...a.recommendations].filter(r => r.level === 'error').map(r => r.title), []);
 });
+
+test('packed triangle: a resized drum moves its box instead of overlapping', () => {
+  const b = clone(current); b.config.drumSpecs = [{ size: 'custom', gallons: 55, dia: 22.5, len: 40, weight: 20 }];
+  b.config.boxSideGap = 3;
+  const g = M.geometry(b.config), [bow, p, s] = g.boxList;
+  assert.ok(Math.abs(bow.x0 - p.x1) < 0.01 && Math.abs(bow.x0 - s.x1) < 0.01, 'bow box butts the pair');
+  assert.deepStrictEqual(g.overlaps, []);
+  g.drums.forEach((d, i) => { const bx = g.boxList[i]; assert.ok(bx.x0 < d.x - d.ex && bx.x1 > d.x + d.ex && bx.z0 < d.z - d.ez && bx.z1 > d.z + d.ez); });
+});

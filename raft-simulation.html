@@ -106,11 +106,17 @@
   .layers button{font:500 12.5px Barlow,sans-serif;border:1.5px solid var(--ink);background:var(--panel);color:var(--ink);padding:5px 11px;border-radius:999px;cursor:pointer}
   .layers button[aria-pressed="false"]{background:transparent;opacity:.5;text-decoration:line-through}
   .layers .measure{margin-left:8px;border-color:var(--accent);color:var(--accent)}
+  .layers .measure[aria-pressed="false"]{background:var(--panel);opacity:1;text-decoration:none}
   .layers .measure[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink);text-decoration:none;opacity:1}
   .tip{position:absolute;z-index:5;pointer-events:none;background:var(--panel);color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:7px 10px;font-size:12.5px;line-height:1.45;box-shadow:0 4px 14px rgba(0,0,0,.18);max-width:260px;transform:translate(14px,14px)}
   .tip b{display:block;font-weight:600;margin-bottom:2px}
   .tip.pinned{pointer-events:auto}
   .tip .x{position:absolute;top:3px;right:5px;font-size:14px}
+  .tip.pinned{max-width:300px;width:300px}
+  .tctl{margin-top:6px;border-top:1px solid var(--line);padding-top:6px}
+  .trow{display:grid;grid-template-columns:1fr 90px 46px;gap:6px;align-items:center;font-size:12px;margin-top:4px}
+  .trow input{width:100%}
+  .trow output{text-align:right;font-variant-numeric:tabular-nums}
   .mlabel{position:absolute;z-index:4;pointer-events:none;transform:translate(-50%,-130%);background:#111;color:#fff;border-radius:6px;padding:4px 8px;font:600 12.5px Barlow,sans-serif;white-space:nowrap;text-align:center}
   .mlabel small{display:block;font-weight:400;opacity:.8;font-size:11px}
   .mhint{position:absolute;top:10px;right:12px;z-index:4;background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:6px 10px;font-size:12.5px;max-width:min(300px,60%)}
@@ -727,11 +733,12 @@ function buildBoat(){
   const g = A.geometry, c = g.config, R = M.PIPE_R, r = g.r, DL = g.drum.len;
   const up = new THREE.Vector3(0,1,0);
   const pipe = (a, b, grp, rad, m) => {
+    const bowPipe = grp === G.bow;
     a = new THREE.Vector3(...a); b = new THREE.Vector3(...b);
     const d = b.clone().sub(a), len = d.length();
     const mesh = new THREE.Mesh(new THREE.CylinderGeometry(rad||R, rad||R, len, 18), m || MAT.pvc);
     mesh.position.copy(a).add(b).multiplyScalar(.5); mesh.quaternion.setFromUnitVectors(up, d.normalize());
-    mesh.userData = { kind: m === MAT.noodle ? 'noodle' : grp === G.deck ? 'mast' : 'pipe', a: a.toArray(), b: b.toArray(), len, rad: rad || R };
+    mesh.userData = { kind: m === MAT.noodle ? 'noodle' : grp === G.deck ? 'mast' : 'pipe', a: a.toArray(), b: b.toArray(), len, rad: rad || R, bow: bowPipe };
     grp.add(mesh); return mesh;
   };
   const joint = p => { const s = new THREE.Mesh(new THREE.SphereGeometry(1.3, 16, 12), MAT.fit); s.position.set(...p); s.userData = { kind: 'fitting', p }; G.frame.add(s); };
@@ -798,12 +805,12 @@ function buildBoat(){
     const head = new THREE.Mesh(new THREE.SphereGeometry(4.6, 16, 12), MAT.helmet); head.position.set(p.x, y0 + 27, p.z); G.crew.add(head);
     torso.userData = legs.userData = head.userData = cu;
   });
-  clearMeasure();
   const s = A.solution;
   boat.position.y = -(s.ok ? s.d : 2*r + 4);
   pivot.rotation.set(s.ok ? -Math.atan(s.p) : 0, 0, s.ok ? Math.atan(s.t) : 0, 'XZY');
   target.set(8, Math.max(4, g.deckTop - (s.ok ? s.d : 0) - 6), 0);
   place();
+  afterBuild();
 }
 let flagTex = null;
 function flagTexture(){
@@ -853,22 +860,25 @@ function loop(t){
   renderer.render(scene, camera); requestAnimationFrame(loop);
 }
 
-// ── Pick and measure ─────────────────────────
-// Hover (or tap) any part to see its size. Measure mode: click two points to
-// get the distance between them; points snap to pipe ends and midpoints,
-// fitting and drum centers, drum ends and deck corners. Measurements are
-// temporary and clear when the design changes. Units are inches, in the
-// boat's own frame (x fore-aft, y up, z side to side).
+// ── Pick, measure and edit ───────────────────
+// Hover (or tap) any part to see its size; click to pin it and get sliders
+// for the settings that drive it. The frame is rebuilt around the drums, so
+// the other pipes follow. Measure mode: click two points to get the distance
+// between them; points snap to pipe ends and midpoints, fitting and drum
+// centers, drum ends and deck corners, and stay attached to those points
+// while you edit. Units are inches in the boat's frame (x fore-aft, y up,
+// z side to side).
 const raycaster = new THREE.Raycaster();
-let measureOn = false, mA = null, mB = null, mGroup = null, hoverSnap = null, pinned = false;
+let measureOn = false, mA = null, mB = null, mGroup = null, hoverSnap = null, pinSel = null;
 const inch = v => `${v.toFixed(1)}"`;
 const ftIn = v => { const f = Math.floor(v / 12 + 1e-9), i = v - f * 12; return f ? `${f}' ${i.toFixed(1)}"` : `${i.toFixed(1)}"`; };
 const dist3 = (a, b) => Math.hypot(a[0] - b[0], a[1] - b[1], a[2] - b[2]);
+const pipeDir = ud => { const dx = Math.abs(ud.a[0] - ud.b[0]), dy = Math.abs(ud.a[1] - ud.b[1]), dz = Math.abs(ud.a[2] - ud.b[2]); return dy > Math.max(dx, dz) ? 'upright' : dx > dz ? 'fore-aft' : 'crosswise'; };
 function partInfo(ud){
   const g = A.geometry, c = g.config, k = c.frameStyle === 'stacked' ? 0 : (c.fittingTakeoff || 0);
   switch (ud.kind) {
-    case 'pipe': { const L = ud.len, dir = Math.abs(ud.a[1] - ud.b[1]) > Math.max(Math.abs(ud.a[0] - ud.b[0]), Math.abs(ud.a[2] - ud.b[2])) ? 'upright' : Math.abs(ud.a[0] - ud.b[0]) > Math.abs(ud.a[2] - ud.b[2]) ? 'fore-aft' : 'crosswise';
-      return { title: `1-1/2" PVC pipe (${dir})`, lines: [`Center to center: ${inch(L)} (${ftIn(L)})`, k ? `Cut length ≈ ${inch(Math.max(0, L - 2 * k))} (minus ${k}" take-off each end)` : 'Cut to this length', 'Outside diameter 1.9"'] }; }
+    case 'pipe': { const L = ud.len;
+      return { title: `1-1/2" PVC pipe (${ud.bow ? 'bow, ' : ''}${pipeDir(ud)})`, lines: [`Center to center: ${inch(L)} (${ftIn(L)})`, k ? `Cut length ≈ ${inch(Math.max(0, L - 2 * k))} (minus ${k}" take-off each end)` : 'Cut to this length', 'Outside diameter 1.9"'] }; }
     case 'mast': return { title: 'Mast (PVC pipe)', lines: [`Above deck: ${inch(ud.len)} (${ftIn(ud.len)})`] };
     case 'noodle': return { title: 'Pool noodle rail', lines: [`Length: ${inch(ud.len)} (${ftIn(ud.len)})`, `Diameter: ${inch(ud.rad * 2)}`] };
     case 'fitting': return { title: 'Fitting (joint)', lines: [`At x ${inch(ud.p[0])}, height ${inch(ud.p[1])}, z ${inch(ud.p[2])}`] };
@@ -894,70 +904,184 @@ function snapPoints(ud){
   }
   return [];
 }
+// a stable name for parts that survive a rebuild; pipes and fittings are found again by position
+const partKey = ud => ud.kind === 'drum' ? 'drum:' + ud.d.id : ud.kind === 'crew' ? 'crew:' + ud.i : ['deck', 'mast', 'flag', 'guard'].includes(ud.kind) ? ud.kind : null;
+const refPoint = ud => { const sp = snapPoints(ud); return sp[ud.kind === 'pipe' || ud.kind === 'noodle' ? 2 : 0] || null; };
+function scenePartList(){
+  const out = new Map();
+  boat.traverse(o => { const ud = o.userData; if (ud && ud.kind && o.isMesh) { if (!out.has(ud)) out.set(ud, []); out.get(ud).push(o); } });
+  return out;
+}
+// find the part a selection or measurement point referred to, after a rebuild
+function resolvePart(ref, parts){
+  if (ref.key) { for (const ud of parts.keys()) if (partKey(ud) === ref.key) return ud; return null; }
+  let best = null;
+  for (const ud of parts.keys()) {
+    if (ud.kind !== ref.kind || (ref.dir && ud.a && pipeDir(ud) !== ref.dir)) continue;
+    const pts = ref.idx >= 0 ? [snapPoints(ud)[ref.idx]] : [refPoint(ud)];
+    pts.forEach(p => { if (!p) return; const d = dist3(p, ref.point); if (d < 30 && (!best || d < best.d)) best = { ud, d }; });
+  }
+  return best && best.ud;
+}
 function visibleChain(o){ for (; o; o = o.parent) if (!o.visible) return false; return true; }
 function pick(e){
   const cv = renderer.domElement, r = cv.getBoundingClientRect();
   const ndc = new THREE.Vector2(((e.clientX - r.left) / r.width) * 2 - 1, -((e.clientY - r.top) / r.height) * 2 + 1);
   raycaster.setFromCamera(ndc, camera);
-  const hit = raycaster.intersectObjects(boat.children, true).find(h => h.object.userData.kind && visibleChain(h.object) && (!mGroup || !mGroup.children.includes(h.object)));
+  const hit = raycaster.intersectObjects(boat.children, true).find(h => h.object.userData.kind && visibleChain(h.object));
   if (!hit) return null;
   const ud = hit.object.userData, local = boat.worldToLocal(hit.point.clone()).toArray();
   // snap to the nearest named point within 22 px on screen, else the surface point
   let best = null;
-  snapPoints(ud).forEach(p => {
+  snapPoints(ud).forEach((p, idx) => {
     const s = boat.localToWorld(new THREE.Vector3(...p)).project(camera);
     const dx = (s.x + 1) / 2 * r.width - (e.clientX - r.left), dy = (1 - s.y) / 2 * r.height - (e.clientY - r.top), dpx = Math.hypot(dx, dy);
-    if (dpx < 22 && (!best || dpx < best.dpx)) best = { p, dpx };
+    if (dpx < 22 && (!best || dpx < best.dpx)) best = { p, idx, dpx };
   });
-  return { ud, point: best ? best.p : local, snapped: !!best, x: e.clientX - r.left, y: e.clientY - r.top };
+  return { ud, point: best ? best.p : local, snapped: !!best, idx: best ? best.idx : -1, x: e.clientX - r.left, y: e.clientY - r.top };
 }
-function showTip(h, pin){
+// a measurement end: where it is, and what it is attached to
+function anchorOf(h){
+  const key = partKey(h.ud), ref = refPoint(h.ud);
+  return { point: h.point, snapped: h.snapped, kind: h.ud.kind, key, idx: h.idx, dir: h.ud.a ? pipeDir(h.ud) : null, off: !h.snapped && ref ? h.point.map((v, i) => v - ref[i]) : null };
+}
+function reanchor(a, parts){
+  if (!a) return null;
+  const ud = resolvePart({ key: a.key, kind: a.kind, idx: a.idx, dir: a.dir, point: a.snapped ? a.point : (a.off ? a.point.map((v, i) => v - a.off[i]) : a.point) }, parts);
+  if (!ud) return a.key ? null : a;                          // a named part that is gone (fewer drums): drop it
+  const ref = refPoint(ud);
+  if (a.snapped && a.idx >= 0) a.point = snapPoints(ud)[a.idx];
+  else if (a.off && ref) a.point = ref.map((v, i) => v + a.off[i]);
+  return a;
+}
+// ── Editing a part ──
+const num = (v, d) => (isFinite(+v) ? +v : d);
+function drumSet(i, k, v){
+  const c = build.config; if (!Array.isArray(c.drumSpecs)) c.drumSpecs = [];
+  const sp = M.drumSpec(c, i);
+  c.drumSpecs[i] = Object.assign({ size: 'custom', gallons: sp.gallons, dia: sp.dia, len: sp.len, weight: sp.weight, weightMeasured: sp.weightMeasured }, c.drumSpecs[i] || {}, { size: 'custom', [k]: v });
+}
+function cfgCtl(path, label, min, max, step, unit){
+  return { label, min, max, step, unit: unit ?? '"', get: () => num(getp(build.config, path) ?? getp(M.DEFAULT_CONFIG, path), min), set: v => setp(build.config, path, v) };
+}
+function controlsFor(ud){
+  const c = build.config, boxes = c.frameStyle === 'boxes', out = [], has = (path, show) => !show || show(c);
+  const fromSL = path => { const d = [...SL, ...CREW].find(x => x[0] === path); return d && has(path, d[6]) ? cfgCtl(d[0], d[1], d[2], d[3], d[4], d[5]) : null; };
+  const add = x => x && out.push(x);
+  switch (ud.kind) {
+    case 'drum': { const i = ud.d.id;
+      [['dia', 'Diameter', 10, 30, .25], ['len', 'Length', 15, 45, .25], ['weight', 'Empty weight', 2, 40, .5, ' lb']].forEach(([k, label, min, max, step, unit]) =>
+        out.push({ label: `${label} (drum ${i + 1})`, min, max, step, unit: unit || '"', get: () => M.drumSpec(c, i)[k], set: v => drumSet(i, k, v) }));
+      ['drumOffset', 'packGap', 'pontoonSpacing', 'drumSpread'].forEach(p => add(fromSL(p)));
+      if (boxes) { add(cfgCtl('boxEndGap', 'Box end clearance', 0.5, 8, .25)); add(cfgCtl('boxSideGap', 'Box side clearance', 0.5, 6, .25)); }
+      break; }
+    case 'pipe': case 'fitting': {
+      const dir = ud.kind === 'pipe' ? pipeDir(ud) : null;
+      if (ud.bow) { add(cfgCtl('bowRiser', 'Bow riser height', 4, 24, 1)); add(cfgCtl('bowStrut', 'Bow reach', 6, 30, 1)); }
+      else if (boxes) {
+        if (!dir || dir === 'fore-aft') add(cfgCtl('boxEndGap', 'Box end clearance (pipe length = drum + 2×)', 0.5, 8, .25));
+        if (!dir || dir === 'crosswise') { add(cfgCtl('boxSideGap', 'Box side clearance (pipe = drum dia + 2×)', 0.5, 6, .25)); add(fromSL('packGap')); }
+        if (!dir || dir === 'upright') add(cfgCtl('boxTopGap', 'Room above the drums', 0, 6, .25));
+      } else {
+        if (!dir || dir === 'fore-aft') add(fromSL('frameLength'));
+        if (!dir || dir === 'crosswise') { add(fromSL('frameWidth')); add(fromSL('pontoonSpacing')); add(fromSL('beamCount')); }
+      }
+      add(fromSL('fittingTakeoff')); break; }
+    case 'deck': case 'noodle': ['deck.length', 'deck.width'].forEach(p => add(fromSL(p))); add(cfgCtl('deck.thickness', 'Deck thickness', 1, 4, .1)); break;
+    case 'mast': case 'flag': add(fromSL('mastHeight')); break;
+    case 'guard': add(cfgCtl('bowRiser', 'Bow riser height', 4, 24, 1)); add(cfgCtl('bowStrut', 'Bow reach', 6, 30, 1)); break;
+    case 'band': add(fromSL('drumOffset')); break;
+    case 'crew': CREW.forEach(d => add(fromSL(d[0]))); break;
+  }
+  return out;
+}
+function ctlRow(ct){
+  const fmt = v => String(+(+v).toFixed(2)) + ct.unit;
+  const out = el('output', {}, fmt(ct.get()));
+  const inp = el('input', { type: 'range', min: ct.min, max: ct.max, step: ct.step, value: ct.get(), 'aria-label': ct.label, oninput: e => { ct.set(+e.target.value); out.textContent = fmt(e.target.value); syncControls(); changed(); } });
+  return el('div', { class: 'trow' }, el('label', {}, ct.label), inp, out);
+}
+const HL = new Map();
+function highlight(m){ if (Array.isArray(m)) return m.map(highlight); if (!HL.has(m)) { const h = m.clone(); if (h.emissive) h.emissive.setHex(0x7a4a00); HL.set(m, h); } return HL.get(m); }
+function pinPart(h){
   const tip = $('tip'), info = h && partInfo(h.ud);
-  if (!info) { if (!pinned || pin) { tip.hidden = true; pinned = false; } return; }
-  tip.replaceChildren(el('b', {}, info.title), ...info.lines.map(t => el('div', {}, t)));
-  if (pin) tip.append(el('button', { class: 'x', 'aria-label': 'Close', onclick: () => { tip.hidden = true; pinned = false; } }, '×'));
-  tip.classList.toggle('pinned', !!pin); pinned = !!pin;
+  if (!info) { closePin(); return; }
+  pinSel = { key: partKey(h.ud), kind: h.ud.kind, idx: -1, dir: h.ud.a ? pipeDir(h.ud) : null, point: refPoint(h.ud), ud: h.ud };
+  const ctls = controlsFor(h.ud);
+  tip.replaceChildren(el('div', { id: 'tipInfo' }), el('button', { class: 'x', 'aria-label': 'Close', onclick: closePin }, '×'));
+  if (ctls.length) tip.append(el('div', { class: 'tctl' }, el('div', { class: 'small muted' }, 'Adjust (the frame follows):'), ...ctls.map(ctlRow)));
+  tip.classList.add('pinned');
+  const st = $('stage');
+  tip.style.left = Math.max(0, Math.min(h.x, st.clientWidth - 300)) + 'px'; tip.style.top = Math.max(0, Math.min(h.y, st.clientHeight - 60 - 34 * ctls.length - 90)) + 'px';
+  tip.hidden = false;
+  refreshPin(scenePartList());
+}
+function closePin(){ pinSel = null; $('tip').hidden = true; $('tip').classList.remove('pinned'); if (boat) refreshPin(scenePartList()); }
+function refreshPin(parts){
+  parts.forEach(meshes => meshes.forEach(o => { if (o.__base) o.material = o.__base; }));
+  if (!pinSel) return;
+  const ud = pinSel.ud && parts.has(pinSel.ud) ? pinSel.ud : resolvePart(pinSel, parts);
+  if (!ud) { closePin(); return; }
+  pinSel.ud = ud; pinSel.point = refPoint(ud);
+  parts.get(ud).forEach(o => { o.__base = o.__base || o.material; o.material = highlight(o.__base); });
+  const info = partInfo(ud), box = $('tipInfo');
+  if (box && info) box.replaceChildren(el('b', {}, info.title), ...info.lines.map(t => el('div', {}, t)));
+}
+function showHover(h){
+  if (pinSel) return;
+  const tip = $('tip'), info = h && partInfo(h.ud);
+  if (!info) { tip.hidden = true; return; }
+  tip.classList.remove('pinned');
+  tip.replaceChildren(el('b', {}, info.title), ...info.lines.map(t => el('div', {}, t)), el('div', { class: 'small muted' }, 'Click to adjust'));
   const st = $('stage');
   tip.style.left = Math.min(h.x, st.clientWidth - 280) + 'px'; tip.style.top = Math.min(h.y, st.clientHeight - 120) + 'px';
   tip.hidden = false;
+}
+// called after every rebuild: keep the pinned part and the measurement attached
+function afterBuild(){
+  const parts = scenePartList();
+  mA = reanchor(mA, parts); mB = mB && mA ? reanchor(mB, parts) : null; hoverSnap = null;
+  drawMeasure(); refreshPin(parts);
 }
 function marker(p, color){
   const m = new THREE.Mesh(new THREE.SphereGeometry(1.4, 14, 10), new THREE.MeshBasicMaterial({ color, depthTest: false }));
   m.position.set(...p); m.renderOrder = 999; return m;
 }
+function measureEnd(){ return mB ? mB.point : (mA && hoverSnap && measureOn ? hoverSnap.point : null); }
 function drawMeasure(){
   if (mGroup) { mGroup.traverse(o => { if (o.geometry) o.geometry.dispose(); if (o.material) o.material.dispose(); }); boat.remove(mGroup); }
   mGroup = new THREE.Group(); boat.add(mGroup);
   if (hoverSnap && measureOn) mGroup.add(marker(hoverSnap.point, hoverSnap.snapped ? 0xF2C230 : 0xffffff));
-  if (mA) mGroup.add(marker(mA, 0xE4572E));
-  const end = mB || (mA && hoverSnap ? hoverSnap.point : null);
+  if (mA) mGroup.add(marker(mA.point, 0xE4572E));
+  const end = measureEnd();
   if (mA && end) {
-    const line = new THREE.Line(new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(...mA), new THREE.Vector3(...end)]), new THREE.LineBasicMaterial({ color: 0xE4572E, depthTest: false }));
+    const line = new THREE.Line(new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(...mA.point), new THREE.Vector3(...end)]), new THREE.LineBasicMaterial({ color: 0xE4572E, depthTest: false }));
     line.renderOrder = 998; mGroup.add(line);
-    if (mB) mGroup.add(marker(mB, 0xE4572E));
+    if (mB) mGroup.add(marker(mB.point, 0xE4572E));
   }
   const lab = $('mlabel');
   if (mA && end) {
-    const d = dist3(mA, end), dx = Math.abs(end[0] - mA[0]), dy = Math.abs(end[1] - mA[1]), dz = Math.abs(end[2] - mA[2]);
+    const d = dist3(mA.point, end), dx = Math.abs(end[0] - mA.point[0]), dy = Math.abs(end[1] - mA.point[1]), dz = Math.abs(end[2] - mA.point[2]);
     lab.replaceChildren(document.createTextNode(`${inch(d)}  (${ftIn(d)})`), el('small', {}, `fore-aft ${inch(dx)} · up ${inch(dy)} · across ${inch(dz)}`));
     lab.hidden = false;
   } else lab.hidden = true;
 }
 function positionMeasureLabel(){
   const lab = $('mlabel'); if (!lab || lab.hidden || !mA) return;
-  const end = mB || (hoverSnap && hoverSnap.point); if (!end) return;
-  const mid = boat.localToWorld(new THREE.Vector3(...mA.map((v, i) => (v + end[i]) / 2))).project(camera), cv = renderer.domElement;
+  const end = measureEnd(); if (!end) return;
+  const mid = boat.localToWorld(new THREE.Vector3(...mA.point.map((v, i) => (v + end[i]) / 2))).project(camera), cv = renderer.domElement;
   lab.style.left = ((mid.x + 1) / 2 * cv.clientWidth) + 'px'; lab.style.top = ((1 - mid.y) / 2 * cv.clientHeight) + 'px';
 }
 function measureHint(){
   const h = $('mhint'); h.hidden = !measureOn;
-  h.textContent = !mA ? 'Measure: click the first point. Points snap to pipe ends, midpoints, centers and corners (yellow).' : !mB ? 'Click the second point.' : 'Click to start a new measurement. Esc or 📏 to exit.';
+  h.textContent = !mA ? 'Measure: click the first point. Points snap to pipe ends, midpoints, centers and corners (yellow).' : !mB ? 'Click the second point.' : 'Click to start a new measurement. Turn 📏 off to keep it while you adjust parts; Esc clears it.';
 }
 function clearMeasure(){ mA = mB = hoverSnap = null; if (renderer) { drawMeasure(); measureHint(); } }
 function setMeasure(on){
   measureOn = on; $('measureBtn').setAttribute('aria-pressed', on);
   renderer.domElement.style.cursor = on ? 'crosshair' : '';
-  $('tip').hidden = true; pinned = false; clearMeasure();
+  closePin(); hoverSnap = null;
+  if (on || !mB) clearMeasure(); else { drawMeasure(); measureHint(); }      // turning it off keeps a finished measurement
 }
 function initPicking(){
   const cv = renderer.domElement;
@@ -967,21 +1091,21 @@ function initPicking(){
     if (pts.size || e.pointerType === 'touch') return;          // dragging to orbit
     const h = pick(e);
     if (measureOn) { hoverSnap = h; drawMeasure(); cv.style.cursor = 'crosshair'; return; }
-    if (!pinned) showTip(h, false);
+    showHover(h);
     cv.style.cursor = h && partInfo(h.ud) ? 'pointer' : '';
   });
-  cv.addEventListener('pointerleave', () => { if (!pinned) $('tip').hidden = true; if (measureOn && hoverSnap) { hoverSnap = null; drawMeasure(); } });
+  cv.addEventListener('pointerleave', () => { if (!pinSel) $('tip').hidden = true; if (measureOn && hoverSnap) { hoverSnap = null; drawMeasure(); } });
   cv.addEventListener('pointerup', e => {
     if (!down || Math.hypot(e.clientX - down[0], e.clientY - down[1]) > 6) return;   // a drag, not a click
     const h = pick(e);
     if (measureOn) {
       if (!h) return;
-      if (!mA || mB) { mA = h.point; mB = null; } else mB = h.point;
+      if (!mA || mB) { mA = anchorOf(h); mB = null; } else mB = anchorOf(h);
       hoverSnap = e.pointerType === 'touch' ? null : h; drawMeasure(); measureHint(); return;
     }
-    showTip(h, true);
+    if (h) pinPart(h); else closePin();
   });
-  addEventListener('keydown', e => { if (e.key === 'Escape') { if (measureOn) setMeasure(false); else { $('tip').hidden = true; pinned = false; } } });
+  addEventListener('keydown', e => { if (e.key === 'Escape') { if (measureOn) setMeasure(false); closePin(); clearMeasure(); } });
 }
 
 // ── Design profiles ──────────────────────────
