@@ -180,6 +180,24 @@ bob/
   - ⏸️ marks a part that isn't on the boat yet.
   - Each part row is colour-coded, and the chips above the list filter by
     status. Parts added from the suggested materials start as 💡 suggested.
+- **Engineering** (top of the Check tab, and in the report):
+  - **🛟 Buoyancy:** total lift, reserve and safety factor; each drum's
+    load, share and depth; what the foam-filled pipe carries; whether the
+    wreck floats on its foam if swamped.
+  - **🌊 Drag:** underwater area from ahead and the side; force and power
+    at 1–3 mph; top speed at about 75 W per paddler; broadside force in a
+    3–8 mph current.
+  - **⚖️ Weight distribution:** centre of gravity, the split forward and
+    aft, its height above the waterline, and weight by group.
+  - **🔩 Structure:** bending stress and safety factor of the box top rails
+    (crew), the box under drum uplift (a drum pushed under), platform cross
+    members (worst span), the bow nose, and deck tie-downs.
+    - Crew loads are doubled for slamming. PVC flexural strength is about
+      14,000 psi; the target safety factor is 2.5.
+- **⚠️ Issues** (button under the 3D view): numbered markers on the boat for
+  every warning and error, placed where each problem is.
+  - Pipes that fail a structural check turn orange or red.
+  - Click a marker or a list entry to see what's wrong and how to fix it.
 - **Parts tab**: the team's actual list. Add parts from the suggested
   materials or as custom parts, and track qty, weight (tick **measured** once
   weighed), cost and status (planned / bought / installed). Changes are saved

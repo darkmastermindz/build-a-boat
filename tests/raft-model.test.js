@@ -424,3 +424,21 @@ test('platform and noodles: PVC grid under the deck, noodles in its bays and aro
   const off = M.requirements(M.geometry(Object.assign({}, current.config, { platform: false, bowNoodle: false })), current.parts);
   assert.ok(off.pipeLength_in < q.pipeLength_in);
 });
+
+test('engineering: buoyancy, drag, weight distribution and structural checks', () => {
+  const a = M.analyze(current, rules, { skipLeak: true }), E = a.engineering;
+  near(E.buoyancy.load, a.solution.W, 1e-9, 'load');
+  near(E.buoyancy.drums.reduce((t, d) => t + d.lb, 0) + E.buoyancy.frameLift, a.solution.W, 1e-6, 'drums and foam-filled pipe carry the boat');
+  assert.ok(E.buoyancy.sf > 1 && E.buoyancy.emergency > 0);
+  assert.ok(E.drag.at[1].lb > E.drag.at[0].lb * 3.9 && E.drag.at[1].lb < E.drag.at[0].lb * 4.1, 'drag goes with speed squared');
+  assert.ok(E.drag.sideArea > E.drag.frontArea, 'broadside shows more area');
+  near(E.weight.groups.reduce((t, g) => t + g.lb, 0), a.solution.W, 1e-6, 'groups add up');
+  assert.ok(E.structure.length >= 3 && E.structure.every(s => isFinite(s.sf) && ['ok', 'warn', 'error'].includes(s.level)));
+  near(M.PVC.S, 0.326, 0.005, 'Sch 40 section modulus');
+  // a longer unsupported platform span lowers the safety factor
+  const wide = M.analyze(Object.assign({}, current, { config: Object.assign({}, current.config, { deck: Object.assign({}, current.config.deck, { width: 40 }) }) }), rules, { skipLeak: true });
+  const sf = r => (r.engineering.structure.find(s => s.id === 'platform') || {}).sf;
+  assert.ok(sf(wide) < sf(a));
+  // every warning has a place on the boat
+  assert.ok(a.issues.length > 0 && a.issues.every(i => Array.isArray(i.at) && i.at.length === 3 && i.at.every(Number.isFinite)));
+});
