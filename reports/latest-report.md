@@ -40,7 +40,7 @@ Generated from `data/build.json` by `scripts/raft-model.js`. Open
 
 | Item | Qty | Est. | Priority | Shop | Why |
 |------|-----|------|----------|------|-----|
-| 1-1/2" x 10 ft PVC Sch 40 DWV pipe (plain end) | 4 | $47.84 | needed | [Home Depot](https://www.homedepot.com/s/1-1%2F2%20in%20x%2010%20ft%20PVC%20Sch%2040%20DWV%20pipe) · [Lowe's](https://www.lowes.com/search?searchTerm=1-1%2F2%20in%20x%2010%20ft%20PVC%20Sch%2040%20DWV%20pipe) | Layout needs 10; 6 bought. |
+| Charlotte Pipe 1-1/2" x 10 ft PVC Sch 40 pipe (plain end) | 4 | $47.84 | needed | [Home Depot](https://www.homedepot.com/s/Charlotte%20Pipe%201-1%2F2%20in%20x%2010%20ft%20PVC%20Sch%2040%20pipe) · [Lowe's](https://www.lowes.com/search?searchTerm=Charlotte%20Pipe%201-1%2F2%20in%20x%2010%20ft%20PVC%20Sch%2040%20pipe) | Layout needs 10; 6 bought. |
 | Corrugated plastic sheet, white, 24 x 36 in | 3 | $35.94 | needed | [Home Depot](https://www.homedepot.com/s/Corrugated%20plastic%20sheet%2C%20white%2C%2024%20x%2036%20in) · [Lowe's](https://www.lowes.com/search?searchTerm=Corrugated%20plastic%20sheet%2C%20white%2C%2024%20x%2036%20in) | Layout needs 1 full 4 x 8 ft sheets; 0.56 bought. |
 | Expanding spray foam, 12 oz (Great Stuff or similar) | 4 | $27.92 (est.) | needed | [Home Depot](https://www.homedepot.com/s/Expanding%20spray%20foam%2C%2012%20oz) · [Lowe's](https://www.lowes.com/search?searchTerm=Expanding%20spray%20foam%2C%2012%20oz) | Layout needs 4; 0 bought. |
 | Pool noodles, yellow | 16 | $57.28 | needed | [Home Depot](https://homedepot.com/p/Pool-Mate-Blue-and-Pink-Swimming-Pool-Water-Noodles-12-Pack-TWLN36-12/304884154) · [Lowe's](https://www.lowes.com/search?searchTerm=Pool%20noodles%2C%20yellow) | Layout needs 16; 0 bought. |
@@ -451,7 +451,7 @@ Sources: [Standard: NEMA cable tie application guide (loop tensile ratings 18, 5
 |---|---|---|---|---|
 | Water weight | 62.4 lb/ft³ | 62.43 lb/ft³ at 4 °C, 62.32 at 20 °C | Lift is about 0.1% high in summer water: negligible. | [Wikipedia](https://en.wikipedia.org/wiki/Properties_of_water), [Wolfram Alpha](https://www.wolframalpha.com/input?i=62.4+lb%2Fft%5E3+in+lb%2Fin%5E3) |
 | Water density for drag | 1.94 slug/ft³ | 1.940 slug/ft³ = 1000 kg/m³ | Matches. | [Wolfram Alpha](https://www.wolframalpha.com/input?i=1.94+slug%2Fft%5E3+in+kg%2Fm%5E3) |
-| 1-1/2" Sch 40 PVC size | OD 1.9", ID 1.61" | OD 1.900", wall 0.145" → ID 1.610" | Matches. | [Wikipedia](https://en.wikipedia.org/wiki/Nominal_Pipe_Size) |
+| 1-1/2" Sch 40 PVC size | OD 1.9", ID 1.61" | OD 1.900", wall 0.145" → ID 1.610" (Charlotte Pipe, the brand bought; ~0.51 lb/ft, 5.1 lb per 10 ft stick) | Matches. | [Wikipedia](https://en.wikipedia.org/wiki/Nominal_Pipe_Size), [Datasheet](https://www.lowes.com/pd/Charlotte-Pipe-1-1-2-in-x-10-ft-330-Sch-40-Solidcore-PVC-DWV-Pipe/3133037) |
 | PVC flexural strength | 14000 psi | 14,450 psi at 73 °F (cell class 12454); about 0.62× that at 100 °F | 3% low (safe side) at 73 °F. Sun-heated pipe is weaker and is not derated here. | [Datasheet](https://www.spearsmfg.com/IP-4/03%20Physical%20Properties%20of%20PVC%20&%20CPVC%20Pipe.pdf), [Standard](https://www.uni-bell.org/portals/0/ResourceFile/pvc-pipe-materials-cell-class-explained.pdf), [Standard](https://www.pipa.com.au/wp-content/uploads/2018/09/tn003.pdf) |
 | Drag coefficient, drum end-on | 0.9 | 1.17 for a flat disc, falling to ~0.81 for length/diameter > 2 (a drum is ~1.5) | Within the range, toward the high (safe) side for speed. | [Book](https://archive.org/details/FluidDynamicDragHoerner1965), [Wikipedia](https://en.wikipedia.org/wiki/Drag_coefficient) |
 | Drag coefficient, broadside | 1.1 | 1.1–1.2 for a smooth cylinder at Re 2×10⁴–10⁵; lower past the drag crisis (Re > 2×10⁵) | The broadside Reynolds number here is ~10⁶, so the real push is probably lower; 1.1 is a high-side estimate for pinning. | [Wikipedia](https://en.wikipedia.org/wiki/Drag_coefficient), [Wikipedia](https://en.wikipedia.org/wiki/Drag_crisis), [Wikipedia](https://en.wikipedia.org/wiki/Reynolds_number) |
@@ -903,8 +903,8 @@ Four drums side by side across a wide frame.
 | Part | Role | Qty | lb ea | Measured | $ ea | Total | Status |
 |------|------|-----|-------|----------|------|-------|--------|
 | Plastic 55-gallon drum (reconditioned) | drum | 4 | 20 |  | $35.00 | $140.00 | bought |
-| 1-1/2" x 10 ft PVC Sch 40 DWV pipe (plain end) | pipe | 5 | 5.1 |  | $11.96 | $59.80 | bought |
-| 1-1/2" x 10 ft Sch 40 PVC pipe | pipe | 1 | 5.1 |  | $11.96 | $11.96 | bought |
+| Charlotte Pipe 1-1/2" x 10 ft PVC Sch 40 pipe (plain end) | pipe | 5 | 5.1 |  | $11.96 | $59.80 | bought |
+| Charlotte Pipe 1-1/2" x 10 ft Sch 40 PVC pipe | pipe | 1 | 5.1 |  | $11.96 | $11.96 | bought |
 | 1-1/2" DWV double sanitary tee (HxHxHxH) | cross | 3 | 0.45 |  | $7.23 | $21.69 | bought |
 | 1-1/2" DWV sanitary tee (HxHxH) | tee | 4 | 0.35 |  | $3.76 | $15.04 | bought |
 | 1-1/2" furniture-grade 4-way side-outlet tee (Zernmiarder, 12-pack) | side-tee | 24 | 0.3 |  | $1.85 | $44.40 | bought |
