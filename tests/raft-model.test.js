@@ -6,7 +6,7 @@ const rules = require('../data/rules.json');
 const clone = o => JSON.parse(JSON.stringify(o));
 // reference boat for the physics tests: the team's parts on the earlier 2-drum spine-frame catamaran
 const build = clone(current);
-Object.assign(build.config, { preset: 'cat2', frameStyle: 'fitted', drumOffset: 0, packGap: 0 });
+Object.assign(build.config, { preset: 'cat2', frameStyle: 'fitted', drumOffset: 0, packGap: 0, boxSideGap: 1, platform: false, bowNoodle: false });
 const near = (a, b, tol, msg) => assert.ok(Math.abs(a - b) <= tol, `${msg}: ${a} vs ${b}`);
 
 test('drum displacement matches cylinder geometry', () => {
@@ -139,7 +139,9 @@ test('shopping list covers what the layout still needs', () => {
 test('no addresses, phone numbers or payment details in data and docs', () => {
   const fs = require('fs'), path = require('path');
   const root = path.join(__dirname, '..');
-  const files = [...fs.readdirSync(path.join(root, 'data')).map(f => 'data/' + f), 'docs/design.md', 'README.md', 'PLAN.md', 'reports/latest-report.md'];
+  const files = [...fs.readdirSync(path.join(root, 'data')).filter(f => f.endsWith('.json')).map(f => 'data/' + f),
+    ...fs.readdirSync(path.join(root, 'data/designs')).filter(f => f.endsWith('.json')).map(f => 'data/designs/' + f),   // designs proposed from the site
+    'docs/design.md', 'README.md', 'PLAN.md', 'reports/latest-report.md'];
   const bad = [
     /"(address|phone)"\s*:/i,
     /\b\d{2,6} [A-Z][a-z]+(?: [A-Z][a-z]+)* (?:St|Ave|Blvd|Dr|Rd|Ct|Pike|Plaza|Hwy)\b/,
@@ -255,6 +257,7 @@ test('cage: a second frame traps the drums, costs pipe and weight, adds a little
 test('cage pushing a heavy layout over the limit is flagged', () => {
   const b = clone(build); Object.assign(b.config, { preset: 'quad4pontoon', retention: 'cage', cageStyle: 'cradle' });
   b.parts.find(p => p.role === 'drum').quantity = 4;
+  b.config.drum = Object.assign({}, b.config.drum, { weight: 22 });   // open-head drums
   const a = M.analyze(b, rules, { skipLeak: true });
   assert.ok(a.weights.total >= 150);
   assert.ok(a.rules.some(r => r.id === 'weight' && r.level === 'error'));
@@ -395,4 +398,29 @@ test('decals: stickers become optional shopping rows; suggested parts are not we
   cushion.status = 'suggested'; const w2 = M.analyze(s, rules, { skipLeak: true }).weights.predicted;
   near(w1 - w2, cushion.quantity * cushion.weight_lb_each, 1e-9, 'suggested parts are not weighed');
   assert.ok(M.isBought({ status: 'ordered' }));
+});
+
+test('chord fit: side rails inside the drum diameter press on it, no stubs, drums never overlap', () => {
+  for (const sg of [-6, -4, -2.6, -1, 0, 1]) for (const gap of [0, 4, 8, 14]) {
+    const cfg = Object.assign({}, current.config, { boxSideGap: sg, packGap: gap });
+    const g = M.geometry(cfg), q = M.requirements(g, current.parts);
+    assert.deepStrictEqual(g.overlaps, [], `sg ${sg} gap ${gap}`);
+    assert.ok(q.cuts.every(c => c.len >= 2), `stub at sg ${sg} gap ${gap}`);
+    if (sg < 0) g.drums.forEach((d, i) => {
+      const b = g.boxList[i], rr = d.r + M.PIPE_R, cy = d.y0 + d.r;
+      // every rail is at or outside the drum surface (it touches, it doesn't cut in)
+      [[b.z0, b.yt], [b.z1, b.yt], [b.z0, b.yb], [b.z1, b.yb]].forEach(([z, y]) => assert.ok(Math.hypot(z - d.z, y - cy) >= rr - 0.05, `rail inside drum ${i}`));
+      assert.ok(b.z1 - b.z0 < 2 * d.r, 'box narrower than the drum');
+    });
+  }
+});
+
+test('platform and noodles: PVC grid under the deck, noodles in its bays and around the bow', () => {
+  const g = M.geometry(current.config), q = M.requirements(g, current.parts);
+  assert.ok(g.platform && g.cagePieces.some(pc => pc.kind === 'platform'));
+  assert.ok(g.deckBottom > g.platform.y, 'deck sits on the platform');
+  assert.ok(g.bowNoodle && g.bowNoodle.len <= 52 + 10);
+  assert.strictEqual(q.items.noodle, q.noodles.platform + q.noodles.bow + q.noodles.rail);
+  const off = M.requirements(M.geometry(Object.assign({}, current.config, { platform: false, bowNoodle: false })), current.parts);
+  assert.ok(off.pipeLength_in < q.pipeLength_in);
 });

@@ -203,6 +203,13 @@
     <button class="btn ghost sm" id="profDelete">Delete</button>
     <button class="btn ghost sm" id="setDefault" title="Open the simulator with this design from now on">Set as default</button>
     <button class="btn ghost sm" id="resetDefault" title="Discard changes and go back to the default design">Reset to default</button>
+    <button class="btn ghost sm" id="exportDesign" title="Download every setting of this design (layout, parts, paint, decals, ties) as JSON">⬇️ Export</button>
+    <button class="btn ghost sm" id="proposeDesign" title="Open a GitHub pull request with this design, as the new default or as a new saved design">⇪ Propose PR</button>
+    <span id="proposeForm" hidden>
+      <select id="proposeMode" aria-label="Propose as"><option value="new">as a new saved design</option><option value="default">as the default design</option></select>
+      <button class="btn sm" id="proposeGo">Open PR</button>
+      <button class="btn ghost sm" id="proposeCancel">Cancel</button>
+    </span>
     <span id="profForm" hidden>
       <input type="text" id="profName" placeholder="Profile name" maxlength="80" aria-label="Profile name">
       <button class="btn sm" id="profConfirm">Save profile</button>
@@ -244,6 +251,8 @@
         <label><input type="checkbox" id="bow"> Bow frame + guard</label>
         <label><input type="checkbox" id="noodleRail"> Noodle rail</label>
         <label title="Corrugated PVC roofing panels around the boxes, bottom rail to top rail"><input type="checkbox" id="sidePanels"> Side panels</label>
+        <label title="A PVC grid on the box tops for the foam deck to sit on; yellow pool noodles fill its gaps"><input type="checkbox" id="platform"> PVC platform + noodles</label>
+        <label title="One yellow pool noodle wrapped around the bow (curved hull)"><input type="checkbox" id="bowNoodle"> Noodle around the bow</label>
         <label id="sideStyleRow"><select id="sideStyle" aria-label="Side panel shape"><option value="hull">curved hull (one piece)</option><option value="boxes">flat on each box face</option></select></label>
       </div>
       <h2>Drums</h2>
@@ -332,6 +341,7 @@
     <div class="mhint" id="mhint" hidden role="status"></div>
     <div class="tools" id="tools" hidden>
       <b>🧰 Tools</b> <span class="small muted">Esc returns to Adjust</span>
+      <div class="row2"><button class="btn ghost sm" id="undoBtn" title="Undo (Ctrl+Z)">↶ Undo</button><button class="btn ghost sm" id="redoBtn" title="Redo (Ctrl+Shift+Z)">↷ Redo</button><span class="small muted" id="histInfo"></span></div>
       <div class="tm" id="toolModes"></div>
       <div id="paintOpts" hidden><div class="small muted">Paint color (from your paint parts). Shift-click paints every part of that kind.</div><div class="sw" id="swatches"></div></div>
       <div id="decalOpts" hidden>
@@ -344,6 +354,7 @@
       </div>
       <div id="tieOpts" hidden class="small muted">Click a pipe, joint or drum to add a zip-tie support there; click a tie to remove it.</div>
       <div id="toolSummary" class="small"></div>
+      <div class="row2"><span class="small"><b>Theme</b></span><button class="btn ghost sm" id="themeOnePiece" title="White hull, red stripe, yellow noodle mane on the bow, straw-hat skulls and flag: uses the paints you bought">🏴‍☠️ One Piece</button><button class="btn ghost sm" id="themePlain" title="Remove the theme's paint and decals">Plain</button></div>
       <div class="row2"><button class="btn ghost sm" id="clearTies">Clear ties</button><button class="btn ghost sm" id="clearPaint">Clear paint + decals</button></div>
     </div>
   </div>
@@ -407,6 +418,7 @@ async function boot(){
     if (v.length === 5 || v.length === 0) { shopZip = v; try { localStorage.setItem('bob-zip', v); } catch (err) {} update(); }
   };
   update();
+  HIST.last = JSON.stringify(build);                            // the starting point for undo
   initDefaultButtons();
   initProfiles();
 }
@@ -425,6 +437,9 @@ const SL = [
   ['deck.width','Deck width',18,48,2,'"'],
   ['mastHeight','Mast above deck',0,40,1,'"'],
   ['hullBow','Hull bow point',0,36,1,'"', c => c.frameStyle === 'boxes' && c.sidePanels && c.sideStyle !== 'boxes'],
+  ['boxSideGap','Side fit (− = rails press on the drum)',-6,6,0.1,'"', c => c.frameStyle === 'boxes'],
+  ['boxEndGap','Box end clearance',0.5,8,0.25,'"', c => c.frameStyle === 'boxes'],
+  ['platformSpacing','Platform cross members every',8,30,1,'"', c => c.frameStyle === 'boxes' && c.platform],
 ];
 const CREW = [
   ['crew.count','People',1,4,1,''],
@@ -485,6 +500,8 @@ function initControls(){
   $('noodleRail').onchange = e => { build.config.noodleRail = e.target.checked; changed(); };
   $('sidePanels').onchange = e => { build.config.sidePanels = e.target.checked; syncControls(); changed(); };
   $('sideStyle').onchange = e => { build.config.sideStyle = e.target.value; changed(); };
+  $('platform').onchange = e => { build.config.platform = e.target.checked; syncControls(); changed(); };
+  $('bowNoodle').onchange = e => { build.config.bowNoodle = e.target.checked; changed(); };
   $('failedDrum').onchange = e => { build.config.failedDrum = e.target.value === '' ? null : +e.target.value; changed(); };
   document.querySelectorAll('.tabs button').forEach(b => b.onclick = () => {
     document.querySelectorAll('.tabs button').forEach(x => x.setAttribute('aria-selected', x === b));
@@ -569,6 +586,9 @@ function syncControls(){
   $('centerSpine').checked = !!c.centerSpine;
   $('bow').checked = !!c.bow; $('noodleRail').checked = !!c.noodleRail; $('sidePanels').checked = !!c.sidePanels;
   $('sidePanels').closest('label').style.display = boxes ? '' : 'none';
+  $('platform').checked = !!c.platform; $('bowNoodle').checked = !!c.bowNoodle;
+  $('platform').closest('label').style.display = boxes ? '' : 'none';
+  $('bowNoodle').closest('label').style.display = boxes && c.sidePanels && c.sideStyle !== 'boxes' ? '' : 'none';
   $('sideStyle').value = c.sideStyle || 'hull'; $('sideStyleRow').style.display = boxes && c.sidePanels ? '' : 'none';
 }
 
@@ -648,7 +668,7 @@ function renderParts(){
 
 // ── Analysis → UI ────────────────────────────
 let pending = false;
-function changed(){ if (!loadingProfile) markDirty(); store.set(build); if (!pending) { pending = true; requestAnimationFrame(() => { pending = false; update(); }); } }
+function changed(){ recordHistory(); if (!loadingProfile) markDirty(); store.set(build); if (!pending) { pending = true; requestAnimationFrame(() => { pending = false; update(); }); } }
 function update(){
   A = M.analyze(build, rules, { catalog, suppliers, zip: shopZip });
   renderStats(); renderCheck(); buildBoat(); renderHud(); renderDrumList();
@@ -775,7 +795,7 @@ function initScene(){
   const sun = new THREE.DirectionalLight(0xffffff, 0.75); sun.position.set(80,160,120); scene.add(sun);
   const mat = (c, o) => new THREE.MeshStandardMaterial(Object.assign({ color:c, roughness:.55, metalness:0 }, o||{}));
   Object.assign(MAT, { pvc: mat(0xF4F3EE), fit: mat(0xFFFFFF), drum: mat(0x1F5FBF), drumDark: mat(0x174a96), failed: mat(0xC0392B, { transparent:true, opacity:.45 }),
-    tie: mat(0x1a1a1a), skin: mat(0xF7F7F5), xps: mat(0xE9A0B4), noodle: mat(0x33B5E5), pfd: mat(0xF07F1E), helmet: mat(0xF2C230), skinTone: mat(0xC99A73),
+    tie: mat(0x1a1a1a), skin: mat(0xF7F7F5), xps: mat(0xE9A0B4), noodle: mat(0xF5CF1D), pfd: mat(0xF07F1E), helmet: mat(0xF2C230), skinTone: mat(0xC99A73),
     guard: new THREE.MeshStandardMaterial({ color:0xF7F7F5, roughness:.7, side:THREE.DoubleSide }),
     panel: new THREE.MeshStandardMaterial({ color:0xD8C8A0, roughness:.6, side:THREE.DoubleSide, transparent:true, opacity:.88 }) });
   pivot = new THREE.Group(); scene.add(pivot);
@@ -791,14 +811,18 @@ function initScene(){
   loop(0);
 }
 // a vertical band following a closed 2-D outline (x, z), pushed `off` inches outward
-function hullBand(outline, y0, y1, off, mat){
-  const n = outline.length, pos = [], idx = [];
+function offsetOutline(outline, off){
+  const n = outline.length;
   const area2 = outline.reduce((t, p, i) => { const q = outline[(i + 1) % n]; return t + p[0] * q[1] - q[0] * p[1]; }, 0), sgn = area2 > 0 ? 1 : -1;   // push outward for either winding
-  const pts = outline.map((p, i) => {
+  return outline.map((p, i) => {
     const a = outline[(i - 1 + n) % n], b = outline[(i + 1) % n];
     let nx = (b[1] - a[1]) * sgn, nz = -(b[0] - a[0]) * sgn; const L = Math.hypot(nx, nz) || 1; nx /= L; nz /= L;
     return [p[0] + nx * off, p[1] + nz * off];
   });
+}
+function hullBand(outline, y0, y1, off, mat){
+  const n = outline.length, pos = [], idx = [];
+  const pts = offsetOutline(outline, off);
   pts.concat([pts[0]]).forEach(([x, z]) => pos.push(x, y0, z, x, y1, z));
   for (let i = 0; i < n; i++) { const k = i * 2; idx.push(k, k + 2, k + 1, k + 1, k + 2, k + 3); }
   const geo = new THREE.BufferGeometry(); geo.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); geo.setIndex(idx); geo.computeVertexNormals();
@@ -839,7 +863,19 @@ function buildBoat(){
       const sp = along(o); span.position.set(sp[0], g.railY + R + .3, sp[2]); G.lash.add(span); });
   });
   // cage: lower cradle rails, end ties and posts up to the deck frame
-  if (g.cage) g.cagePieces.forEach(pc => { pipe(pc.a, pc.b, G.frame); joint(pc.a); joint(pc.b); });
+  if (g.cage) g.cagePieces.forEach(pc => { const m = pipe(pc.a, pc.b, G.frame); m.userData.piece = pc.kind; joint(pc.a); joint(pc.b); });
+  // platform bays filled with pool noodles, laid fore-aft
+  if (g.platform) { const pl = g.platform; for (let k = 0; k < pl.bays; k++) for (let j = 0; j < pl.across; j++) {
+    const z = -pl.W / 2 + R + 1.25 + j * 2.5 + ((pl.W - 2 * R) - pl.across * 2.5) / 2;
+    pipe([pl.xs[k] + R + .2, pl.y + .3, z], [pl.xs[k + 1] - R - .2, pl.y + .3, z], G.deck, 1.25, MAT.noodle); } }
+  // one pool noodle wrapped around the bow along the top of the hull
+  if (g.bowNoodle && g.hull) {
+    const off = offsetOutline(g.hull.outline, R + 1.4), key = p => p[0].toFixed(3) + ',' + p[1].toFixed(3);
+    const idx = new Map(g.hull.outline.map((p, i) => [key(p), i]));
+    const pts = g.bowNoodle.points.map(p => off[idx.get(key(p))]).filter(Boolean).map(([x, z]) => new THREE.Vector3(x, g.bowNoodle.y + .4, z));
+    if (pts.length > 1) { const mesh = new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts), 48, 1.25, 10), MAT.noodle);
+      mesh.userData = { kind: 'noodle', bow: true, len: g.bowNoodle.len, rad: 1.25, a: pts[0].toArray(), b: pts[pts.length - 1].toArray() }; G.deck.add(mesh); }
+  }
   // side panels on the outer box faces, just outside the rails
   (g.sidePanels || []).forEach((sp, i) => {
     if (sp.hull) { const mesh = hullBand(g.hull.outline, sp.y0, sp.y1, R + .15, MAT.panel); mesh.userData = { kind: 'panel', i, sp, c: [(g.hull.xs + g.hull.tip) / 2, (sp.y0 + sp.y1) / 2, 0] }; G.sides.add(mesh); return; }
@@ -881,7 +917,7 @@ function buildBoat(){
     const mx = dk.length/2 - 8;
     pipe([mx, g.deckTop, 0], [mx, g.deckTop + c.mastHeight, 0], G.deck);
     const fh = Math.min(14, c.mastHeight * .45), fw = fh * 1.5;
-    const flag = new THREE.Mesh(new THREE.PlaneGeometry(fw, fh), new THREE.MeshStandardMaterial({ map: flagTexture(), side: THREE.DoubleSide, roughness: .9 }));
+    const flag = new THREE.Mesh(new THREE.PlaneGeometry(fw, fh), new THREE.MeshStandardMaterial({ map: flagTexture(c.flag), side: THREE.DoubleSide, roughness: .9 }));
     flag.position.set(mx - fw/2 - R, g.deckTop + c.mastHeight - fh/2, 0); flag.userData = { kind: 'flag', w: fw, h: fh }; G.deck.add(flag);
   }
   // crew
@@ -899,9 +935,10 @@ function buildBoat(){
   place();
   afterBuild();
 }
-let flagTex = null;
-function flagTexture(){
-  if (flagTex) return flagTex;
+const flagTex = {};
+function flagTexture(kind){
+  kind = kind || 'jolly';
+  if (flagTex[kind]) return flagTex[kind];
   const cv = document.createElement('canvas'); cv.width = 192; cv.height = 128;
   const x = cv.getContext('2d');
   x.fillStyle = '#111'; x.fillRect(0, 0, 192, 128);
@@ -910,7 +947,12 @@ function flagTexture(){
   x.fillStyle = '#eee'; x.beginPath(); x.arc(96, 54, 30, 0, Math.PI*2); x.fill(); x.fillRect(80, 70, 32, 20);
   x.fillStyle = '#111'; x.beginPath(); x.arc(85, 52, 7, 0, Math.PI*2); x.arc(107, 52, 7, 0, Math.PI*2); x.fill();
   x.fillRect(84, 78, 4, 10); x.fillRect(94, 78, 4, 10); x.fillRect(104, 78, 4, 10);
-  flagTex = new THREE.CanvasTexture(cv); return flagTex;
+  if (kind === 'strawhat') {                                   // a straw hat on the skull
+    x.fillStyle = '#f2c230'; x.beginPath(); x.ellipse(96, 32, 44, 9, 0, 0, Math.PI * 2); x.fill();
+    x.beginPath(); x.ellipse(96, 24, 24, 15, 0, Math.PI, 0); x.fill();
+    x.fillStyle = '#c0261f'; x.fillRect(72, 25, 48, 6);
+  }
+  flagTex[kind] = new THREE.CanvasTexture(cv); return flagTex[kind];
 }
 const target = new THREE.Vector3(8, 4, 0);
 let th = -0.75, ph = 1.08, rad = 230;
@@ -965,9 +1007,10 @@ function partInfo(ud){
   const g = A.geometry, c = g.config, k = c.frameStyle === 'stacked' ? 0 : (c.fittingTakeoff || 0);
   switch (ud.kind) {
     case 'pipe': { const L = ud.len;
-      return { title: `1-1/2" PVC pipe (${ud.bow ? 'bow, ' : ''}${pipeDir(ud)})`, lines: [`Center to center: ${inch(L)} (${ftIn(L)})`, k ? `Cut length ≈ ${inch(Math.max(0, L - 2 * k))} (minus ${k}" take-off each end)` : 'Cut to this length', 'Outside diameter 1.9"'] }; }
+      return { title: `1-1/2" PVC pipe (${ud.piece === 'platform' ? 'deck platform, ' : ud.piece === 'nose' ? 'bow nose, ' : ud.bow ? 'bow, ' : ''}${pipeDir(ud)})`, lines: [`Center to center: ${inch(L)} (${ftIn(L)})`, k ? `Cut length ≈ ${inch(Math.max(0, L - 2 * k))} (minus ${k}" take-off each end)` : 'Cut to this length', 'Outside diameter 1.9"'] }; }
     case 'mast': return { title: 'Mast (PVC pipe)', lines: [`Above deck: ${inch(ud.len)} (${ftIn(ud.len)})`] };
-    case 'noodle': return { title: 'Pool noodle rail', lines: [`Length: ${inch(ud.len)} (${ftIn(ud.len)})`, `Diameter: ${inch(ud.rad * 2)}`] };
+    case 'noodle': if (ud.bow) return { title: 'Pool noodle around the bow', lines: [`${inch(ud.len)} along the hull top`, 'One yellow noodle (52")'] };
+      return { title: 'Pool noodle', lines: [`Length: ${inch(ud.len)} (${ftIn(ud.len)})`, `Diameter: ${inch(ud.rad * 2)}`] };
     case 'fitting': return { title: 'Fitting (joint)', lines: [`At x ${inch(ud.p[0])}, height ${inch(ud.p[1])}, z ${inch(ud.p[2])}`] };
     case 'drum': { const d = ud.d, sp = d.spec || g.drum;
       return { title: `Drum ${d.id + 1}${g.mixed ? ' (own size)' : ''}`, lines: [`${sp.gallons} gal · ${inch(d.r * 2)} dia × ${inch(d.len)} long`, `Empty weight ${sp.weight} lb`, `Center at x ${inch(d.x)}, z ${inch(d.z)}`, d.axis === 'z' ? 'Laid crosswise' : 'Laid fore-aft'] }; }
@@ -1073,14 +1116,17 @@ function controlsFor(ud){
       [['dia', 'Diameter', 10, 30, .25], ['len', 'Length', 15, 45, .25], ['weight', 'Empty weight', 2, 40, .5, ' lb']].forEach(([k, label, min, max, step, unit]) =>
         out.push({ label: `${label} (drum ${i + 1})`, min, max, step, unit: unit || '"', get: () => M.drumSpec(c, i)[k], set: v => drumSet(i, k, v) }));
       ['drumOffset', 'packGap', 'pontoonSpacing', 'drumSpread'].forEach(p => add(fromSL(p)));
-      if (boxes) { add(cfgCtl('boxEndGap', 'Box end clearance', 0.5, 8, .25)); add(cfgCtl('boxSideGap', 'Box side clearance', 0.5, 6, .25)); }
+      if (boxes) { add(cfgCtl('boxSideGap', 'Side fit (− = rails press on the drum)', -6, 6, .1)); add(cfgCtl('boxEndGap', 'Box end clearance', 0.5, 8, .25)); }
       break; }
     case 'pipe': case 'fitting': {
       const dir = ud.kind === 'pipe' ? pipeDir(ud) : null;
+      if (ud.piece === 'platform') { add(fromSL('platformSpacing')); ['deck.length', 'deck.width'].forEach(p => add(fromSL(p))); add(fromSL('fittingTakeoff')); break; }
+      if (ud.piece === 'nose') { add(fromSL('hullBow')); add(fromSL('fittingTakeoff')); break; }
       if (ud.bow) { add(cfgCtl('bowRiser', 'Bow riser height', 4, 24, 1)); add(cfgCtl('bowStrut', 'Bow reach', 6, 30, 1)); }
       else if (boxes) {
         if (!dir || dir === 'fore-aft') add(cfgCtl('boxEndGap', 'Box end clearance (pipe length = drum + 2×)', 0.5, 8, .25));
-        if (!dir || dir === 'crosswise') { add(cfgCtl('boxSideGap', 'Box side clearance (pipe = drum dia + 2×)', 0.5, 6, .25)); add(fromSL('packGap')); }
+        if (!dir || dir === 'crosswise' || dir === 'upright') add(cfgCtl('boxSideGap', 'Side fit (− = chord: rails press on the drum)', -6, 6, .1));
+        if (!dir || dir === 'crosswise') add(fromSL('packGap'));
         if (!dir || dir === 'upright') add(cfgCtl('boxTopGap', 'Room above the drums', 0, 6, .25));
       } else {
         if (!dir || dir === 'fore-aft') add(fromSL('frameLength'));
@@ -1092,7 +1138,7 @@ function controlsFor(ud){
     case 'guard': add(cfgCtl('bowRiser', 'Bow riser height', 4, 24, 1)); add(cfgCtl('bowStrut', 'Bow reach', 6, 30, 1)); break;
     case 'band': add(fromSL('drumOffset')); break;
     case 'panel': if (ud.sp.hull) add(cfgCtl('hullBow', 'Bow point (ahead of the boxes)', 0, 36, 1));
-      add(cfgCtl('boxEndGap', 'Box end clearance', 0.5, 8, .25)); add(cfgCtl('boxSideGap', 'Box side clearance', 0.5, 6, .25)); add(cfgCtl('boxTopGap', 'Room above the drums (panel height)', 0, 6, .25)); add(fromSL('packGap')); break;
+      add(cfgCtl('boxEndGap', 'Box end clearance', 0.5, 8, .25)); add(cfgCtl('boxSideGap', 'Side fit (− = rails press on the drum)', -6, 6, .1)); add(fromSL('packGap')); break;
     case 'crew': CREW.forEach(d => add(fromSL(d[0]))); break;
   }
   return out;
@@ -1245,6 +1291,15 @@ function decalTexture(type, color, text){
     x.beginPath(); x.arc(128, 104, 70, 0, Math.PI * 2); x.fill(); x.fillRect(92, 140, 72, 50);
     x.globalCompositeOperation = 'destination-out'; x.beginPath(); x.arc(102, 100, 17, 0, Math.PI * 2); x.arc(154, 100, 17, 0, Math.PI * 2); x.fill();
     [104, 124, 144].forEach(t => x.fillRect(t, 160, 9, 26));
+  } else if (type === 'strawhat') {
+    x.fillStyle = color; x.lineWidth = 18; x.beginPath(); x.moveTo(56, 210); x.lineTo(200, 240); x.moveTo(200, 210); x.lineTo(56, 240); x.stroke();
+    x.beginPath(); x.arc(128, 128, 62, 0, Math.PI * 2); x.fill(); x.fillRect(96, 160, 64, 42);
+    x.globalCompositeOperation = 'destination-out'; x.beginPath(); x.arc(104, 128, 15, 0, Math.PI * 2); x.arc(152, 128, 15, 0, Math.PI * 2); x.fill();
+    [110, 128, 146].forEach(t => x.fillRect(t - 4, 178, 8, 22));
+    x.globalCompositeOperation = 'source-over';
+    x.fillStyle = '#f2c230'; x.beginPath(); x.ellipse(128, 78, 104, 20, 0, 0, Math.PI * 2); x.fill();
+    x.beginPath(); x.ellipse(128, 62, 56, 38, 0, Math.PI, 0); x.fill();
+    x.fillStyle = '#c0261f'; x.fillRect(74, 54, 108, 12);
   } else if (type === 'porthole') {
     x.lineWidth = 26; x.beginPath(); x.arc(128, 128, 100, 0, Math.PI * 2); x.stroke();
     x.fillStyle = 'rgba(120,180,220,.85)'; x.beginPath(); x.arc(128, 128, 86, 0, Math.PI * 2); x.fill();
@@ -1335,7 +1390,105 @@ function toggleTools(force){
   if (!on && (toolMode === 'tie' || toolMode === 'paint')) setTool('select');
   try { localStorage.setItem('bob-tools', on ? '1' : ''); } catch (e) {}
 }
+// ── Undo / redo ──
+// Snapshots of the whole design; quick runs of changes (dragging a slider)
+// fold into one step.
+const HIST = { undo: [], redo: [], last: null, t: 0, quiet: false };
+function recordHistory(){
+  if (HIST.quiet || !build) return;
+  const now = JSON.stringify(build);
+  if (HIST.last === null) { HIST.last = now; return; }
+  if (now === HIST.last) return;
+  if (Date.now() - HIST.t > 700 || !HIST.undo.length) { HIST.undo.push(HIST.last); if (HIST.undo.length > 150) HIST.undo.shift(); }
+  HIST.redo = []; HIST.last = now; HIST.t = Date.now(); renderHistory();
+}
+function restoreSnapshot(snap){
+  HIST.quiet = true;
+  build = JSON.parse(snap); build.config = M.withDefaults(build.config);
+  syncControls(); renderParts(); changed();
+  HIST.last = snap; HIST.t = 0; HIST.quiet = false; renderHistory();
+}
+function undo(){ if (!HIST.undo.length) return; HIST.redo.push(JSON.stringify(build)); restoreSnapshot(HIST.undo.pop()); }
+function redo(){ if (!HIST.redo.length) return; HIST.undo.push(JSON.stringify(build)); restoreSnapshot(HIST.redo.pop()); }
+function renderHistory(){
+  const u = $('undoBtn'), r = $('redoBtn'); if (!u) return;
+  u.disabled = !HIST.undo.length; r.disabled = !HIST.redo.length; u.style.opacity = u.disabled ? .5 : ''; r.style.opacity = r.disabled ? .5 : '';
+  $('histInfo').textContent = HIST.undo.length ? `${HIST.undo.length} step${HIST.undo.length === 1 ? '' : 's'}` : '';
+}
+// ── One Piece theme ──
+// White hull, red stripe under the top edge, the yellow noodle "mane" around
+// the bow, straw-hat skulls on both bow sides, the name on both stern sides,
+// and a straw-hat Jolly Roger. Uses the team's white and red paints.
+function themeOnePiece(){
+  const c = build.config;
+  Object.assign(c, { sidePanels: true, sideStyle: 'hull', bowNoodle: true, flag: 'strawhat', theme: 'onepiece' });
+  c.paint = (c.paint || []).filter(e => !e.theme); c.decals = (c.decals || []).filter(d => !d.theme);
+  const g = M.geometry(c), hl = g.hull; if (!hl) return;
+  const yMid = (hl.y0 + hl.y1) / 2, ref = [(hl.xs + hl.tip) / 2, yMid, 0];
+  const white = build.parts.find(p => p.role === 'paint' && /white/i.test(p.name)), red = build.parts.find(p => p.role === 'paint' && /red/i.test(p.name));
+  // the point on the hull side s (+1 starboard, -1 port) at fore-aft position x, and its outward normal
+  const o = hl.outline, onSide = (x, s) => {
+    for (let i = 0; i < o.length - 1; i++) { const a = o[i], b = o[i + 1];
+      if (Math.sign(a[1] + b[1]) !== s || (x - a[0]) * (x - b[0]) > 0 || a[0] === b[0]) continue;
+      const t = (x - a[0]) / (b[0] - a[0]); let nx = b[1] - a[1], nz = -(b[0] - a[0]); const L = Math.hypot(nx, nz) || 1; nx /= L; nz /= L; if (nz * s < 0) { nx = -nx; nz = -nz; }
+      return { p: [x, a[1] + t * (b[1] - a[1])], n: [nx, 0, nz] }; }
+    return { p: [x, s * hl.half], n: [0, 0, s] }; };
+  const at = (pt) => ({ kind: 'panel', key: 'hull', idx: -1, dir: null, point: pt, snapped: false, off: pt.map((v, i) => v - ref[i]) });
+  const decal = (type, x, s, y, size, color, extra) => { const { p, n } = onSide(x, s), pt = [p[0] + n[0] * (M.PIPE_R + .2), y, p[1] + n[2] * (M.PIPE_R + .2)];
+    c.decals.push(Object.assign({ type, kind: 'sticker', color, size, normal: n, at: at(pt), theme: 'onepiece' }, extra || {})); };
+  c.paint.push({ kind: 'panel', key: 'hull', idx: -1, dir: null, point: ref, color: white ? white.color_hex : '#eeeeea', paint: white ? white.name : 'white', area_sqft: +(hl.perimeter * (hl.y1 - hl.y0) / 144).toFixed(2), theme: 'onepiece' });
+  c.decals.push({ type: 'stripe', kind: 'paint', color: red ? red.color_hex : '#9e1b1b', size: 2.5, y: hl.y1 - 2.5, normal: [0, 0, 1], at: at([hl.xs, hl.y1 - 2.5, hl.half]), theme: 'onepiece' });
+  const xb = hl.xw + (hl.tip - hl.xw) * 0.3, xn = hl.xs + 18;
+  [1, -1].forEach(sd => { decal('strawhat', xb, sd, yMid, 11, '#111111'); decal('name', xn, sd, yMid, 4, '#111111', { text: (build.name && !/pirate raft/i.test(build.name) ? build.name : 'KNOT SO FAST').toUpperCase().slice(0, 24) }); });
+  syncControls(); changed();
+}
+function themePlain(){
+  const c = build.config; c.paint = (c.paint || []).filter(e => !e.theme); c.decals = (c.decals || []).filter(d => !d.theme);
+  delete c.flag; delete c.theme; changed();
+}
+// ── Export and propose ──
+function designName(){ return active ? active.name : (build.name || 'Our raft'); }
+function exportDesign(){
+  const out = Object.assign(clone(build), { name: designName(), updated: new Date().toISOString().slice(0, 10) });
+  const blob = new Blob([JSON.stringify(out, null, 2) + '\n'], { type: 'application/json' });
+  const a = el('a', { href: URL.createObjectURL(blob), download: slug(designName()) + '.json' }); document.body.append(a); a.click(); a.remove();
+  profMsg('Exported ' + slug(designName()) + '.json: every setting of this design');
+}
+async function proposeDesign(mode){
+  const name = designName();
+  profMsg('Opening a pull request…');
+  try {
+    const r = await fetch('/api/propose', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ mode, name, build }) });
+    const ct = r.headers.get('content-type') || '', body = ct.includes('application/json') ? await r.json() : {};
+    if (r.ok && body.url) { profMsg('Pull request opened'); window.open(body.url, '_blank', 'noopener'); return; }
+    throw new Error(body.error || 'The PR service is not available here');
+  } catch (e) {
+    // fallback: download the file and open GitHub where it goes; GitHub offers "Create a new branch and start a pull request"
+    exportDesign();
+    const repo = 'https://github.com/darkmastermindz/bob';
+    if (mode === 'default') {
+      try { await navigator.clipboard.writeText(JSON.stringify(Object.assign(clone(build), { name, updated: new Date().toISOString().slice(0, 10) }), null, 2) + '\n'); } catch (err) {}
+      window.open(repo + '/edit/main/data/build.json', '_blank', 'noopener');
+      profMsg(`${e.message}. Downloaded and copied the design: on GitHub, replace build.json with it and choose "Create a new branch and start a pull request".`, true);
+    } else {
+      window.open(repo + '/upload/main/data/designs', '_blank', 'noopener');
+      profMsg(`${e.message}. Downloaded ${slug(name)}.json: drop it on the GitHub upload page and choose "Create a new branch and start a pull request".`, true);
+    }
+  }
+}
 function initTools(){
+  $('undoBtn').onclick = undo; $('redoBtn').onclick = redo;
+  addEventListener('keydown', e => {
+    if (!(e.ctrlKey || e.metaKey) || /INPUT|SELECT|TEXTAREA/.test(document.activeElement.tagName)) return;
+    const k = e.key.toLowerCase();
+    if (k === 'z' && !e.shiftKey) { e.preventDefault(); undo(); } else if ((k === 'z' && e.shiftKey) || k === 'y') { e.preventDefault(); redo(); }
+  });
+  $('themeOnePiece').onclick = themeOnePiece; $('themePlain').onclick = themePlain;
+  $('exportDesign').onclick = exportDesign;
+  $('proposeDesign').onclick = () => { $('proposeForm').hidden = false; };
+  $('proposeCancel').onclick = () => { $('proposeForm').hidden = true; };
+  $('proposeGo').onclick = () => { $('proposeForm').hidden = true; proposeDesign($('proposeMode').value); };
+  renderHistory();
   $('toolModes').append(...TOOL_MODES.map(([m, label]) => el('button', { 'data-mode': m, 'aria-pressed': m === 'select', onclick: () => setTool(m) }, label)));
   $('clearTies').onclick = () => { build.config.extraTies = []; changed(); };
   $('clearPaint').onclick = () => { build.config.paint = []; build.config.decals = []; syncControls(); changed(); };
@@ -1432,6 +1585,7 @@ async function api(path, opts){
 }
 async function initProfiles(){
   try { profiles.builtin = (await loadJSON('data/profiles.json')).profiles || []; } catch (e) { profiles.builtin = []; }
+  try { profiles.repo = (await loadJSON('data/designs/index.json')).designs || []; } catch (e) { profiles.repo = []; }
   try { profiles.shared = (await api('')).profiles; apiOK = true; }
   catch (e) { apiOK = false; profiles.local = lget(PSTORE, []); }
   active = lget(PACTIVE, null);
@@ -1458,10 +1612,11 @@ function renderProfileSelect(){
     sel.append(og);
   };
   group('Suggested designs', 'builtin', profiles.builtin);
+  group('Saved in the repo', 'repo', profiles.repo || []);
   group(apiOK ? 'Team designs (shared)' : 'Saved on this device', apiOK ? 'shared' : 'local', savedList());
   sel.value = key;
   if (sel.value !== key) sel.value = '';
-  const canWrite = active && active.kind !== 'builtin';
+  const canWrite = active && active.kind !== 'builtin' && active.kind !== 'repo';
   $('profDelete').disabled = !canWrite; $('profDelete').style.opacity = canWrite ? '' : '.5';
 }
 async function loadProfile(val){
@@ -1470,6 +1625,7 @@ async function loadProfile(val){
   let p = null;
   try {
     if (kind === 'builtin') p = profiles.builtin.find(x => x.id === id);
+    else if (kind === 'repo') p = (profiles.repo || []).find(x => x.id === id);
     else if (kind === 'local') p = profiles.local.find(x => x.id === id);
     else p = await api('/' + encodeURIComponent(id));
   } catch (e) { profMsg('Could not load: ' + e.message, true); return; }
