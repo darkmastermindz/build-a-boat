@@ -203,6 +203,15 @@ bob/
   and datasheets. *Assumptions and sources* (bottom of the engineering panel)
   lists each assumed constant next to what the sources say. The tests check
   that each constant stays inside its source's range.
+- **🏷️ IDs** (button under the 3D view): labels every part so you can refer to it.
+  - **Prefixes:** pipes P, joints J, drums D, side panels S, noodles N, deck K,
+    mast M, crew C, extra zip ties T. For example, "J3 is a 4-way fitting joining
+    P2, P6, P7 and P13".
+  - **Numbering:** bow first, then top to bottom, then port to starboard. The
+    same design always gets the same IDs; changing the design renumbers them.
+  - **Find:** type an ID to jump to that part and open its popup.
+  - **Elsewhere:** the cut list and the report use the same IDs, and the report
+    lists every joint with its fitting type and the pipes it joins.
 - **🌊 Whitewater** (button under the 3D view): simulates the U.S. National
   Whitewater Center's Class II and III rapids on the competition (race) or
   wilderness channel.

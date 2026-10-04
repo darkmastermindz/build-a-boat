@@ -459,3 +459,23 @@ test('default build: the short cage pipes (box cross pieces and links) cut to 11
   assert.ok(cross.length >= 8, 'front box cross pieces and the links');
   cross.filter(c => c.len > 10).forEach(c => assert.strictEqual(c.len, 11.5, c.label));
 });
+
+test('part IDs: every pipe, joint and part gets a unique, stable label that matches the cut list and fittings', () => {
+  const g = M.geometry(M.withDefaults(current.config)), L = g.labels, req = M.requirements(g, current.parts);
+  const all = [...L.pipes, ...L.joints, ...L.drums, ...L.panels, ...L.noodles, ...L.others].map(o => o.id);
+  assert.strictEqual(new Set(all).size, all.length, 'IDs are unique');
+  assert.ok(g.cagePieces.every(pc => /^P\d+$/.test(pc.id)), 'every pipe piece has a P number');
+  assert.deepStrictEqual(L.pipes.map(q => q.id), L.pipes.map((_, i) => 'P' + (i + 1)), 'pipes numbered 1..n');
+  assert.strictEqual(L.drums.length, g.drums.length);
+  // the cut list carries the same IDs, each pipe once
+  const cutIds = req.cuts.filter(c => c.cage).map(c => c.id).sort();
+  assert.deepStrictEqual(cutIds, g.cagePieces.map(pc => pc.id).sort());
+  // joint types agree with the fittings count: 3+ way joints are the tees, angled 2-way the elbows
+  assert.strictEqual(L.joints.filter(j => j.ways >= 3).length, req.items.tee);
+  assert.strictEqual(L.joints.filter(j => /elbow/.test(j.type)).length, req.items.elbow);
+  // every joint's pipes really end or pass there
+  L.joints.forEach(j => assert.ok(j.pipes.length >= 1 && j.pipes.every(id => L.pipes.some(q => q.id === id)), j.id));
+  // same design, same labels
+  const again = M.geometry(M.withDefaults(current.config)).labels;
+  assert.deepStrictEqual(again.joints.map(j => [j.id, j.type, j.pipes.join()]), L.joints.map(j => [j.id, j.type, j.pipes.join()]));
+});
