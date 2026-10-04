@@ -106,6 +106,19 @@
   #cmpTable{font-size:12px}
   #cmpTable td,#cmpTable th{padding:5px 3px}
   .x{background:none;border:0;color:var(--muted);cursor:pointer;font-size:16px;line-height:1}
+  .eng h3{font:600 13px Barlow,sans-serif;margin:10px 0 4px}
+  .eng table{width:100%;font-size:12.5px;border-collapse:collapse}
+  .eng td{padding:3px 4px;border-bottom:1px solid var(--line);vertical-align:top}
+  .eng td:last-child{text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
+  .eng td.note{white-space:normal;text-align:left}
+  .eng .bar{height:6px;border-radius:3px;background:var(--line);overflow:hidden;margin-top:3px}
+  .eng .bar i{display:block;height:100%;background:var(--accent)}
+  .sf-ok{color:var(--ok)}.sf-warn{color:var(--warn)}.sf-error{color:var(--err)}
+  .imark{position:absolute;z-index:4;transform:translate(-50%,-50%);width:24px;height:24px;border-radius:50%;border:2px solid #fff;color:#fff;font:700 12px Barlow,sans-serif;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 2px 6px rgba(0,0,0,.35)}
+  .imark.error{background:var(--err)}.imark.warn{background:#d08a14}
+  .ilist{position:absolute;left:12px;bottom:56px;z-index:4;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:8px 10px;width:min(340px,70%);max-height:40%;overflow:auto;font-size:12.5px;box-shadow:0 4px 14px rgba(0,0,0,.12)}
+  .ilist li{list-style:none;padding:4px 0;border-bottom:1px solid var(--line);cursor:pointer}
+  .ilist li b{margin-right:6px}
   .msgs{list-style:none}
   .msgs li{display:grid;grid-template-columns:18px 1fr;gap:8px;padding:7px 0;border-bottom:1px solid var(--line)}
   .msgs .t{font-weight:600}
@@ -303,6 +316,9 @@
     </section>
 
     <section class="pane" id="pane-check">
+      <h2>Engineering</h2>
+      <p class="blurb">Hand calculations from the current design and crew. Show them on the boat with <b>⚠️ Issues</b> under the 3D view.</p>
+      <div id="engBox"></div>
       <h2>Weight</h2>
       <table id="weightTable"></table>
       <h2>Next shopping trip</h2>
@@ -339,6 +355,8 @@
     <div class="tip" id="tip" hidden></div>
     <div class="mlabel" id="mlabel" hidden></div>
     <div class="mhint" id="mhint" hidden role="status"></div>
+    <div id="imarks"></div>
+    <div class="ilist" id="ilist" hidden></div>
     <div class="tools" id="tools" hidden>
       <b>🧰 Tools</b> <span class="small muted">Esc returns to Adjust</span>
       <div class="row2"><button class="btn ghost sm" id="undoBtn" title="Undo (Ctrl+Z)">↶ Undo</button><button class="btn ghost sm" id="redoBtn" title="Redo (Ctrl+Shift+Z)">↷ Redo</button><span class="small muted" id="histInfo"></span></div>
@@ -698,7 +716,39 @@ function msgList(target, items){
   target.replaceChildren(...[...items].sort((a,b) => order[a.level]-order[b.level]).map(m =>
     el('li', {}, el('span', { class: 'dot ' + m.level, title: m.level }), el('div', {}, el('div', { class:'t' }, m.title), m.detail ? el('div', { class:'d' }, m.detail) : ''))));
 }
+function renderEngineering(){
+  const E = A.engineering, box = $('engBox'); if (!box) return;
+  if (!E || !E.buoyancy) { box.replaceChildren(el('p', { class: 'small muted' }, 'No numbers: the boat does not float or balance as configured.')); return; }
+  const row = (k, v, cls) => el('tr', {}, el('td', {}, k), el('td', { class: cls || '' }, v));
+  const B = E.buoyancy, D = E.drag, Wt = E.weight;
+  const bar = f => el('div', { class: 'bar' }, el('i', { style: `width:${Math.min(100, f * 100).toFixed(0)}%` }));
+  box.replaceChildren(el('div', { class: 'eng' },
+    el('h3', {}, '🛟 Buoyancy'), el('table', {},
+      row('Total lift if every drum is pushed under', f0(B.max) + ' lb'),
+      row('Boat + crew', f0(B.load) + ' lb'),
+      row('Reserve (extra load before it sinks)', f0(B.reserve) + ' lb'),
+      row('Buoyancy safety factor', B.sf.toFixed(1) + '×', B.sf >= 2.5 ? 'sf-ok' : B.sf >= 1.5 ? 'sf-warn' : 'sf-error'),
+      ...B.drums.map(d => el('tr', {}, el('td', {}, `Drum ${d.id + 1}: ${f0(d.lb)} of ${f0(d.capacity)} lb (${f0(d.share * 100)}% of the load), ${d.depth.toFixed(1)}" under`, bar(d.used)), el('td', {}, f0(d.used * 100) + '% used'))),
+      row('Carried by submerged foam-filled pipe', f0(B.frameLift) + ' lb'),
+      row('Foam lift if swamped (deck, noodles, foam-filled pipe)', `${f0(B.emergency)} lb vs ${f0(B.structure)} lb of structure`, B.emergency >= B.structure ? 'sf-ok' : 'sf-error')),
+    el('h3', {}, '🌊 Drag'), el('table', {},
+      row('Underwater area from ahead / from the side', `${D.frontArea.toFixed(2)} / ${D.sideArea.toFixed(2)} sq ft`),
+      ...D.at.map(x => row(`Paddling ${x.mph} mph`, `${x.lb.toFixed(1)} lb · ${f0(x.watts)} W`)),
+      row(`Top speed with ${A.geometry.config.crew.count} paddler${A.geometry.config.crew.count > 1 ? 's' : ''} (${D.power} W)`, D.speed.toFixed(1) + ' mph'),
+      ...D.broadside.map(x => row(`Broadside to a ${x.mph} mph current`, f0(x.lb) + ' lb', x.lb > 400 ? 'sf-warn' : '')),
+      el('tr', {}, el('td', { colspan: 2, class: 'small muted note' }, D.note + ' Skin friction is left out; real drag runs a little higher.'))),
+    el('h3', {}, '⚖️ Weight distribution'), el('table', {},
+      row('Centre of gravity (fore-aft, height, across)', `${Wt.cg.x.toFixed(1)}", ${Wt.cg.y.toFixed(1)}", ${Wt.cg.z.toFixed(1)}"`),
+      row('Forward / aft of the middle', `${f0(Wt.forward * 100)}% / ${f0(100 - Wt.forward * 100)}%`),
+      row('Centre of gravity above the waterline', Wt.cgAboveWater.toFixed(1) + '"', Wt.cgAboveWater > 24 ? 'sf-warn' : ''),
+      ...Wt.groups.map(gr => row(gr.name, `${f0(gr.lb)} lb (${f0(gr.lb / Wt.total * 100)}%) at ${gr.x.toFixed(0)}"`))),
+    el('h3', {}, '🔩 Structure (1-1/2" Sch 40 PVC, crew × 2 for slamming)'), el('table', {},
+      ...E.structure.map(sx => el('tr', { title: sx.detail }, el('td', {}, sx.name, el('div', { class: 'small muted' }, sx.detail)),
+        el('td', { class: 'sf-' + sx.level }, (sx.stress ? f0(sx.stress) + ' psi · ' : '') + 'SF ' + (isFinite(sx.sf) ? sx.sf.toFixed(1) : '∞')))),
+      el('tr', {}, el('td', { colspan: 2, class: 'small muted note' }, `PVC flexural strength ~${M.PVC.flex.toLocaleString()} psi; section modulus ${M.PVC.S.toFixed(3)} in³. Target safety factor ${M.SF_OK}+, minimum ${M.SF_MIN}.`)))));
+}
 function renderCheck(){
+  renderEngineering();
   const W = A.weights, max = rules.max_boat_weight_lb || 150;
   $('weightTable').replaceChildren(
     ...[['Predicted final boat', W.predicted, `${f0(max - W.predicted)} lb under the ${max} lb limit`],
@@ -806,6 +856,7 @@ function initScene(){
   const bar = $('layers');
   LAYERS.forEach(k => bar.append(el('button', { 'aria-pressed':'true', onclick: e => { const on = e.target.getAttribute('aria-pressed') !== 'true'; e.target.setAttribute('aria-pressed', on); G[k].visible = on; } }, k[0].toUpperCase() + k.slice(1))));
   bar.append(el('button', { class: 'measure', id: 'measureBtn', 'aria-pressed': 'false', title: 'Measure between two points (snaps to pipe ends, midpoints, centers and corners). Esc to exit.', onclick: () => setMeasure(!measureOn) }, '📏 Measure'));
+  bar.append(el('button', { class: 'measure', id: 'issuesBtn', 'aria-pressed': 'false', title: 'Show the warnings and errors on the boat', onclick: () => toggleIssues() }, '⚠️ Issues'));
   bar.append(el('button', { class: 'measure', id: 'toolsBtn', 'aria-pressed': 'false', 'aria-controls': 'tools', title: 'Show tools: zip-tie supports, paint, measure', onclick: () => toggleTools() }, '🧰 Tools'));
   orbit(); initPicking(); initTools(); resize(); addEventListener('resize', resize);
   loop(0);
@@ -985,7 +1036,7 @@ function loop(t){
     pivot.position.y = Math.sin(t * .0012 - .4) * .35;
     if (!pts.size && t - idle > 6000 && t - idle < 12000) { th += .0018; place(); }
   }
-  positionMeasureLabel();
+  positionMeasureLabel(); positionIssues();
   renderer.render(scene, camera); requestAnimationFrame(loop);
 }
 
@@ -1189,7 +1240,7 @@ function showHover(h){
 function afterBuild(){
   const parts = scenePartList();
   mA = reanchor(mA, parts); mB = mB && mA ? reanchor(mB, parts) : null; hoverSnap = null;
-  drawTies(parts); applyPaint(parts); drawDecals(parts);
+  drawTies(parts); applyPaint(parts); drawDecals(parts); drawIssues();
   drawMeasure(); refreshPin(parts); renderToolSummary();
 }
 // ── Tools: zip-tie supports and paint ──
@@ -1476,7 +1527,57 @@ async function proposeDesign(mode){
     }
   }
 }
+// ── Issues on the model ──
+let issuesOn = false;
+const ISSUE_MAT = { error: new THREE.MeshStandardMaterial({ color: 0xd23c32, emissive: 0x551010 }), warn: new THREE.MeshStandardMaterial({ color: 0xe0961a, emissive: 0x4a2a00 }) };
+function toggleIssues(on){
+  issuesOn = on ?? !issuesOn;
+  $('issuesBtn').setAttribute('aria-pressed', issuesOn); try { localStorage.setItem('bob-issues', issuesOn ? '1' : ''); } catch (e) {}
+  drawIssues();
+}
+function drawIssues(){
+  const box = $('imarks'), list = $('ilist'); if (!box || !A) return;
+  const issues = A.issues || [], nErr = issues.filter(i => i.level === 'error').length;
+  $('issuesBtn').textContent = `⚠️ Issues (${issues.length}${nErr ? `, ${nErr} ❌` : ''})`;
+  if (G.issues) { boat.remove(G.issues); disposeGroup(G.issues); }
+  G.issues = new THREE.Group(); boat.add(G.issues);
+  box.replaceChildren(); list.hidden = !issuesOn || !issues.length;
+  if (!issuesOn) return;
+  issues.forEach((it, i) => {
+    (it.pieces || []).forEach(pc => {                         // the pipes a structural check is about, in red/orange
+      const a = new THREE.Vector3(...pc.a), b = new THREE.Vector3(...pc.b), d = b.clone().sub(a);
+      const m = new THREE.Mesh(new THREE.CylinderGeometry(1.25, 1.25, d.length(), 14), ISSUE_MAT[it.level] || ISSUE_MAT.warn);
+      m.position.copy(a).add(b).multiplyScalar(.5); m.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), d.normalize()); G.issues.add(m);
+    });
+    const mk = el('div', { class: 'imark ' + it.level, title: it.title, role: 'button', tabindex: 0, onclick: () => showIssue(i) }, String(i + 1));
+    const key = JSON.stringify(it.at.map(v => Math.round(v)));
+    mk.dataset.at = JSON.stringify(it.at); mk.dataset.k = issues.slice(0, i).filter(o => JSON.stringify(o.at.map(v => Math.round(v))) === key).length; box.append(mk);
+  });
+  let folded = false; try { folded = localStorage.getItem('bob-issues-fold') === '1'; } catch (e) {}
+  const ul = el('ul', { style: 'padding:0;margin:4px 0 0' + (folded ? ';display:none' : '') });
+  list.replaceChildren(el('div', { style: 'display:flex;justify-content:space-between;align-items:center' }, el('b', {}, `Issues on this design (${issues.length})`),
+    el('button', { class: 'btn ghost sm', 'aria-expanded': !folded, onclick: e => { folded = ul.style.display !== 'none'; ul.style.display = folded ? 'none' : ''; e.target.textContent = folded ? 'Show list' : 'Hide list'; try { localStorage.setItem('bob-issues-fold', folded ? '1' : ''); } catch (err) {} } }, folded ? 'Show list' : 'Hide list')), ul);
+  ul.append(...issues.map((it, i) =>
+    el('li', { onclick: () => showIssue(i) }, el('b', { class: 'sf-' + it.level }, `${i + 1}`), (it.level === 'error' ? '❌ ' : '⚠️ ') + it.title)));
+  positionIssues();
+}
+function showIssue(i){
+  const it = A.issues[i]; if (!it) return;
+  const mk = $('imarks').children[i], tip = $('tip');
+  tip.replaceChildren(el('b', {}, `${it.level === 'error' ? '❌' : '⚠️'} ${i + 1}. ${it.title}`), el('div', {}, it.detail || ''), el('button', { class: 'x', 'aria-label': 'Close', onclick: () => { tip.hidden = true; tip.classList.remove('pinned'); } }, '×'));
+  tip.classList.add('pinned'); tip.style.left = (mk ? parseFloat(mk.style.left) : 40) + 'px'; tip.style.top = (mk ? parseFloat(mk.style.top) : 40) + 'px'; tip.hidden = false;
+}
+function positionIssues(){
+  if (!issuesOn) return;
+  const cv = renderer.domElement;
+  [...$('imarks').children].forEach(mk => {
+    const v = boat.localToWorld(new THREE.Vector3(...JSON.parse(mk.dataset.at))).project(camera);
+    mk.style.left = ((v.x + 1) / 2 * cv.clientWidth + 27 * (+mk.dataset.k || 0)) + 'px'; mk.style.top = ((1 - v.y) / 2 * cv.clientHeight) + 'px';   // markers at the same spot fan out
+    mk.style.display = v.z < 1 ? '' : 'none';
+  });
+}
 function initTools(){
+  try { if (localStorage.getItem('bob-issues') === '1') toggleIssues(true); } catch (e) {}
   $('undoBtn').onclick = undo; $('redoBtn').onclick = redo;
   addEventListener('keydown', e => {
     if (!(e.ctrlKey || e.metaKey) || /INPUT|SELECT|TEXTAREA/.test(document.activeElement.tagName)) return;
