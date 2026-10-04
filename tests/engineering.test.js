@@ -167,7 +167,8 @@ test('structure: Sch 40 section modulus and the beam formulas', () => {
 });
 
 test('structure: platform cross member spans', () => {
-  const b = clone(current), g = M.geometry(b.config), q = M.requirements(g, b.parts);
+  const b = clone(current); b.config.platform = true;   // the platform is optional (off by default)
+  const g = M.geometry(b.config), q = M.requirements(g, b.parts);
   const items = M.massItems(b, g), sol = M.solve(g, items), P = b.config.crew.weightEach * 2;
   const pl = g.platform, E = M.engineering(b, g, sol, items, q), chk = E.structure.find(s => s.id === 'platform');
   // the stern-most cross member hangs past the boxes: nothing under it, so it spans the whole platform width

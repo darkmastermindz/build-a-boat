@@ -198,7 +198,8 @@
   }
 
   // ── Part IDs: a short label on every pipe, joint and part, to reference in conversation ──
-  // P = pipe, J = joint (fitting), D = drum, S = side panel, N = pool noodle, K = deck, M = mast.
+  // P = pipe, J = joint (fitting), L = lashing (platform pipe tied onto a box rail), D = drum,
+  // S = side panel, N = pool noodle, K = deck, M = mast, C = crew.
   // Numbered by position, bow first, then top to bottom, then port to starboard, so the
   // same design always gets the same labels. Changing the design renumbers them.
   const r1 = v => Math.round(v * 10) / 10;
@@ -242,7 +243,11 @@
       for (let k = 0; k < pl.bays; k++) for (let j = 0; j < pl.across; j++) noodles.push({ id: 'N' + (++n), bay: k, row: j, at: [(pl.xs[k] + pl.xs[k + 1]) / 2, pl.y, -pl.W / 2 + PIPE_R + 1.25 + j * 2.5 + ((pl.W - 2 * PIPE_R) - pl.across * 2.5) / 2] }); }
     if (g.bowNoodle) noodles.unshift({ id: 'N0', bow: true, at: [g.hull ? g.hull.tip : 0, g.bowNoodle.y, 0] });
     if (c.noodleRail) [-1, 1].forEach((sd, i) => noodles.push({ id: 'NR' + (i + 1), rail: sd, at: [0, g.deckTop + 1.25, sd * (c.deck.width / 2 - 1.25)] }));
-    g.labels = { pipes, joints, drums, panels, noodles, others };
+    const lashings = ((g.platform && g.platform.lashings) || []).slice().sort((p, q) => byPlace(p.at, q.at)).map((l, i) => {
+      l.id = 'L' + (i + 1);
+      return { id: l.id, at: l.at, joins: [l.platformPiece.id, l.boxPiece.id] };
+    });
+    g.labels = { pipes, joints, drums, panels, noodles, others, lashings };
     return g.labels;
   }
 
@@ -492,6 +497,24 @@
       if (seen.has(k2)) pieces.splice(i, 1); else seen.add(k2);
     }
     pieces.forEach(pc => { pc.len = Math.hypot(pc.b[0] - pc.a[0], pc.b[1] - pc.a[1], pc.b[2] - pc.a[2]); });
+    // How the platform is joined: it rests one pipe diameter above the box top rails, so it
+    // can't share their fittings. Every place a platform pipe crosses a box top rail (or a
+    // top link) it sits on, the two pipes are lashed together with zip ties.
+    if (platform) {
+      const flat = pc => Math.abs(pc.a[1] - pc.b[1]) < 0.1, along = pc => Math.abs(pc.a[0] - pc.b[0]) > Math.abs(pc.a[2] - pc.b[2]) ? 'x' : 'z';
+      const lo = (pc, k) => Math.min(pc.a[k], pc.b[k]), hi = (pc, k) => Math.max(pc.a[k], pc.b[k]);
+      const under = pieces.filter(pc => (pc.kind === 'top' || pc.kind === 'link') && flat(pc) && Math.abs(pc.a[1] + 2 * PIPE_R - platY) < 0.5);
+      platform.lashings = [];
+      pieces.filter(pc => pc.kind === 'platform').forEach(pp => under.forEach(bp => {
+        if (along(pp) === along(bp)) return;   // parallel pipes never cross
+        const [xp, zp] = along(pp) === 'x' ? [null, pp.a[2]] : [pp.a[0], null], [xb, zb] = along(bp) === 'x' ? [null, bp.a[2]] : [bp.a[0], null];
+        const x = xp ?? xb, z = zp ?? zb;
+        if (x < lo(pp, 0) - 0.1 || x > hi(pp, 0) + 0.1 || z < lo(pp, 2) - 0.1 || z > hi(pp, 2) + 0.1) return;
+        if (x < lo(bp, 0) - 0.1 || x > hi(bp, 0) + 0.1 || z < lo(bp, 2) - 0.1 || z > hi(bp, 2) + 0.1) return;
+        if (platform.lashings.some(l => Math.hypot(l.at[0] - x, l.at[2] - z) < 0.5)) return;
+        platform.lashings.push({ at: [x, platY - PIPE_R, z], platformPiece: pp, boxPiece: bp });
+      }));
+    }
     const xsAll = boxes.flatMap(b => [b.x0, b.x1]).concat(hull ? [hull.tip] : []), zsAll = boxes.flatMap(b => [b.z0, b.z1]);
     const L = 2 * Math.max(...xsAll.map(Math.abs)), outerZ = Math.max(...zsAll.map(Math.abs));
     c.frameLength = Math.round(L);                       // used for freeboard corners
@@ -724,6 +747,10 @@
     };
   }
 
+  // A crossing of two 1-1/2" pipes is cross-lashed with two ties in an X. Each tie goes around both
+  // pipes: a loop of about (2 + π)·OD = 9.8" plus ~2" for the head and tail, so it needs a 12" tie or
+  // longer (and at most 18" by the rules, trimmed flush).
+  const PLATFORM_TIES_PER_CROSSING = 2, LASH_TIE_MIN_IN = Math.ceil((2 + Math.PI) * 1.9 + 2);
   function boxRequirements(g) {
     const c = g.config, k = c.fittingTakeoff || 0;
     const cuts = g.cagePieces.map(pc => ({ id: pc.id, label: pc.drum < 0 ? pc.kind : `box ${pc.drum + 1} ${pc.kind}`, len: +(pc.len - 2 * k).toFixed(2), cage: true }));
@@ -746,7 +773,8 @@
     const pipeLen = cuts.reduce((t, x) => t + x.len, 0), cageLen = cuts.filter(x => x.cage).reduce((t, x) => t + x.len, 0);
     const sides = g.sidePanels || [], panels = sides.length ? panelPack(sides) : [];
     const sideTies = sides.reduce((t, sp) => t + 2 * (Math.ceil(sp.len / 18) + 1), 0);   // panel tied to the top and bottom rails about every 18"
-    const ties = 16 + (c.mastHeight > 0 ? 6 : 0) + sideTies;   // deck tie-downs, mast, side panels; drums need no bands
+    const lashings = g.platform ? (g.platform.lashings || []).length : 0, lashTies = PLATFORM_TIES_PER_CROSSING * lashings;
+    const ties = 16 + (c.mastHeight > 0 ? 6 : 0) + sideTies + lashTies;   // deck tie-downs, mast, side panels, platform lashings; drums need no bands
     const layers = Math.max(1, Math.round(c.deck.thickness - 0.3));
     const panelArea = sides.reduce((t, sp) => t + sp.len * sp.height, 0) / 144;
     return {
@@ -761,7 +789,7 @@
         cement: 1,
         ...(sides.length ? { panel: panels.length } : {}),
       },
-      tieCount: ties, tieLength: 17, fourWay: fit.four,
+      tieCount: ties, tieLength: 17, fourWay: fit.four, platformLashings: lashings, platformLashTies: lashTies,
     };
   }
 
@@ -1812,6 +1840,12 @@ ${ww.assumptions.map(x => `| ${x.name} | ${x.used} | ${x.source} | ${x.effect} |
     }
     const decals = decalPlan(g.config, g);
     if (decals) recs.push({ level: 'info', title: `Decals: ${g.config.decals.length} placed in the 3D view`, detail: 'To buy (optional, in Next shopping trip): ' + decals.map(d => `${d.qty} ${d.unit}${d.qty > 1 ? 's' : ''} of ${d.name}`).join('; ') + '. Use waterproof outdoor vinyl, and press it onto clean, dry, scuffed plastic so it stays on in the rapids.' });
+    if (g.platform) {
+      const nL = req.platformLashings || 0, tl = (build.parts || []).filter(p => p.role === 'zip-tie').map(p => +p.length_in || 0), ok = tl.filter(t => t >= LASH_TIE_MIN_IN && t <= 18);
+      if (!nL) recs.push({ level: 'warn', title: 'The platform rests on nothing it can be tied to', detail: 'No platform pipe crosses a box top rail. Move the cross members over the boxes, or the deck will slide off.' });
+      else recs.push({ level: ok.length ? 'info' : 'warn', title: `Platform joins the boxes at ${nL} crossings (${req.platformLashTies} zip ties)`,
+        detail: `The platform sits one pipe diameter above the box top rails, so it can't use their fittings. Cross-lash each crossing with ${PLATFORM_TIES_PER_CROSSING} ties in an X (labels L1–L${nL} in 🏷️ IDs). Each tie must be at least ${LASH_TIE_MIN_IN}" long to go around both pipes, and at most 18" by the rules; trim flush. ${ok.length ? `The ${Math.max(...ok)}" ties on the parts list work.` : `None of the ties on the parts list fit (${[...new Set(tl)].map(t => t + '"').join(', ') || 'none listed'}): buy ${LASH_TIE_MIN_IN}–18" ties.`} Fewer crossings means more sliding; the platform's middle members only hold where they cross a box.` });
+    }
     if (g.config.extraTies && g.config.extraTies.length) recs.push({ level: 'info', title: `${g.config.extraTies.length} extra zip-tie supports added in the 3D view`, detail: 'Counted in the zip-tie total and weight. Keep each tie 18" or less and trim flush.' });
     if (wt.undecided > 0) {
       const max = (rules && rules.max_boat_weight_lb) || 150, all = wt.total + wt.undecided;
@@ -2172,7 +2206,7 @@ ${ww.assumptions.map(x => `| ${x.name} | ${x.used} | ${x.source} | ${x.effect} |
   return {
     WATER, DRUM, DRUM_SIZES, drumSpec, drumLabel, PIPE_R, RAIL_OFFSET, PRESETS, DEFAULT_CONFIG, inventory,
     STATUSES, isBought, engineering, PVC, SF_OK, SF_MIN, CONSUMABLE_SHARE, onBoatShare, paintPlan, decalPlan, DECALS, PAINT_LB_PER_SQFT, withDefaults, geometry, requirements, shoppingList, storeLinks, fitFrame, rankPresets, PRIORITIES, weights, massItems, crewPositions, solve, checkRules, analyze, comparePresets,
-    segArea, segWidth, segCentroidY, drumMaxLb, labelParts, SOURCES, WORK_REFS, ASSUMPTIONS, RHO, NU_WATER, PADDLER_W, DYNAMIC,
+    segArea, segWidth, segCentroidY, drumMaxLb, labelParts, LASH_TIE_MIN_IN, PLATFORM_TIES_PER_CROSSING, SOURCES, WORK_REFS, ASSUMPTIONS, RHO, NU_WATER, PADDLER_W, DYNAMIC,
     whitewater, whitewaterMarkdown, whitewaterArtifact, whitewaterHydraulics, manningDepth, standingWaveK, supercriticalDepth, belanger, WW_CHANNELS, WW_CLASS, WW_DEFAULTS, G_SI,
   };
 });
