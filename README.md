@@ -90,6 +90,17 @@ bob/
 - **Drums**: pick a standard plastic drum size (55, 30 or 15 gal) or enter
   your own gallons, diameter, length and empty weight. Buoyancy, frame height,
   the cut list and the 3D view all follow the drum you enter.
+- **Part sizes and 📏 Measure**:
+  - Hover over any part, or tap it on a phone, to see its size. Pipes show
+    the center-to-center length and the cut length after fitting take-off.
+    Drums show gallons, diameter, length and position. The deck shows its
+    size.
+  - **📏 Measure**, below the 3D view, measures between two clicked points.
+    Points snap to pipe ends and midpoints, fitting and drum centers, drum
+    ends and deck corners (shown yellow).
+  - It gives the straight-line distance plus the fore-aft, up and across
+    parts. Measurements are temporary: Esc clears them, and so does changing
+    the design.
 - **Crew**: 1–4 people, weight each, seat position and lean.
 - **Physics**: solves heave, trim and heel for horizontal drums, then reports
   draft, frame clearance, reserve buoyancy and stability (GM) both ways.
