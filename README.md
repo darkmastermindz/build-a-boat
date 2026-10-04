@@ -194,6 +194,9 @@ bob/
     members (worst span), the bow nose, and deck tie-downs.
     - Crew loads are doubled for slamming. PVC flexural strength is about
       14,000 psi; the target safety factor is 2.5.
+- **Show the work:** click any engineering row to expand its formula, every
+  number plugged in, and the reasoning behind it. Structural issues on the
+  model have a *Show the work* button too, and the report includes all of it.
 - **⚠️ Issues** (button under the 3D view): numbered markers on the boat for
   every warning and error, placed where each problem is.
   - Pipes that fail a structural check turn orange or red.

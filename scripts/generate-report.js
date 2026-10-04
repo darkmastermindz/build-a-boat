@@ -138,7 +138,17 @@ ${Wt.groups.map(gr => `| ${gr.name} | ${f0(gr.lb)} lb at ${f0(gr.x)}" |`).join('
 |---|---|---|---|
 ${E.structure.map(sx => `| ${sx.name} | ${sx.stress ? f0(sx.stress) + ' psi' : '—'} | ${isFinite(sx.sf) ? sx.sf.toFixed(1) : '∞'} | ${icon[sx.level]} |`).join('\n')}
 
-Targets: safety factor ${M.SF_OK}+ (minimum ${M.SF_MIN}). PVC flexural strength ~${M.PVC.flex} psi.`;
+Targets: safety factor ${M.SF_OK}+ (minimum ${M.SF_MIN}). PVC flexural strength ~${M.PVC.flex} psi.
+
+### How each number was worked out
+
+${Object.entries(E.work).map(([id, w]) => `<details><summary><code>${id}</code>: ${w.formula}</summary>
+
+${w.steps.map((t, i) => `${i + 1}. ${t}`).join('\n')}
+
+${w.why}
+
+</details>`).join('\n')}`;
 })()}
 
 ## Competition rules

@@ -442,3 +442,13 @@ test('engineering: buoyancy, drag, weight distribution and structural checks', (
   // every warning has a place on the boat
   assert.ok(a.issues.length > 0 && a.issues.every(i => Array.isArray(i.at) && i.at.length === 3 && i.at.every(Number.isFinite)));
 });
+
+test('engineering: every number shows its work', () => {
+  const E = M.analyze(current, rules, { skipLeak: true }).engineering;
+  ['buoy.max', 'buoy.load', 'buoy.reserve', 'buoy.sf', 'buoy.frame', 'buoy.emergency', 'drag.area', 'drag.force', 'drag.speed', 'drag.broadside', 'wt.cg', 'wt.fwd', 'wt.cgw']
+    .concat(E.buoyancy.drums.map(d => 'buoy.drum' + d.id), E.structure.map(s => 'st.' + s.id))
+    .forEach(id => { const w = E.work[id]; assert.ok(w && w.formula && w.steps.length && w.why, id); assert.ok(w.steps.every(t => !/NaN|undefined/.test(t)), id); });
+  // the shown numbers are the ones used: the platform check's last step ends in its safety factor
+  const pl = E.structure.find(s => s.id === 'platform');
+  assert.ok(E.work['st.platform'].steps.some(t => t.includes('SF = ') && t.includes(pl.sf.toFixed(2))));
+});

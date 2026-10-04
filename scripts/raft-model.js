@@ -1097,9 +1097,12 @@
   const PADDLER_W = 75;                   // sustained watts per paddler
   const TIE_LB = len => (+len || 8) > 14 ? 175 : 50;   // cable tie tensile rating
   function engineering(build, g, sol, items, req) {
-    const c = g.config, out = { buoyancy: null, drag: null, weight: null, structure: [] };
+    const c = g.config, out = { buoyancy: null, drag: null, weight: null, structure: [], work: {} };
     if (!sol || !sol.ok) return out;
     const water = sol.d, crew = c.crew;
+    // "show the work": for each number, the formula, the numbers plugged in, and why
+    const n = (v, d = 1) => (+v).toFixed(d), work = (id, formula, steps, why) => { out.work[id] = { formula, steps, why }; };
+    const WATER_TXT = 'water weighs 62.4 lb/ft³ = 0.0361 lb/in³';
     // buoyancy
     const drums = g.drums.filter(d => !d.failed).map(d => {
       const cap = Math.PI * d.r * d.r * d.len * WATER, pd = sol.perDrum[d.id] || { lb: 0, max: 0 };
@@ -1115,6 +1118,26 @@
       frameLift: Math.max(0, sol.W - drums.reduce((t, d) => t + d.lb, 0)),   // submerged foam-filled pipe carries the rest
       waterline: water, emergency: deckFoam + noodleFoam + pipeFoam, structure: boatW - drumWeight,
     };
+    const B = out.buoyancy, drumCap = drums.reduce((t, d) => t + d.capacity, 0);
+    work('buoy.max', 'Lift = Σ (π r² L × 0.0361) for each drum + foam-filled pipe below the deck',
+      [...g.drums.filter(d => !d.failed).map(d => `Drum ${d.id + 1}: π × ${n(d.r, 2)}² × ${n(d.len, 1)} = ${n(Math.PI * d.r * d.r * d.len, 0)} in³ × 0.0361 = ${n(Math.PI * d.r * d.r * d.len * WATER, 1)} lb`),
+        `Foam-filled pipe that can go under: ${n(sol.maxLb - drumCap, 1)} lb`, `Total = ${n(drumCap, 1)} + ${n(sol.maxLb - drumCap, 1)} = ${n(sol.maxLb, 0)} lb`],
+      `Archimedes: a body pushed under water is lifted by the weight of water it displaces (${WATER_TXT}). This is the most the boat can ever hold up.`);
+    work('buoy.load', 'W = boat parts + drums + crew', [...items.reduce((acc, it) => { const k = it.label === 'cage' ? 'frame' : it.label; const e = acc.find(x => x[0] === k); e ? e[1] += it.w : acc.push([k, it.w]); return acc; }, []).map(([k, w]) => `${k}: ${n(w, 1)} lb`), `Total W = ${n(sol.W, 1)} lb`],
+      'Everything the drums have to hold up: the predicted boat weight from the parts list plus the crew.');
+    work('buoy.reserve', 'Reserve = Lift − W', [`${n(sol.maxLb, 0)} − ${n(sol.W, 0)} = ${n(B.reserve, 0)} lb`], 'How much more weight (water in the boat, a wave pushing down) it can take before it goes under.');
+    work('buoy.sf', 'Safety factor = Lift ÷ W', [`${n(sol.maxLb, 0)} ÷ ${n(sol.W, 0)} = ${n(B.sf, 2)}×`], 'Above 2× is comfortable for rough water; below 1.5× a big wave or a swamped deck can push it under.');
+    drums.forEach(d => { const dd = g.drums.find(x => x.id === d.id);
+      work('buoy.drum' + d.id, 'Submerged slice area A(h) = r² · acos((r − h)/r) − (r − h) · √(2rh − h²); lift = Σ A(h) × slice length × 0.0361',
+        [`r = ${n(dd.r, 2)}", length ${n(dd.len, 1)}", deepest point h = ${n(d.depth, 2)}" (the boat trims, so h varies along the drum)`, `Lift = ${n(d.lb, 1)} lb of a ${n(d.capacity, 1)} lb maximum = ${n(d.used * 100, 0)}% used`, `Share of the load = ${n(d.lb, 1)} ÷ ${n(sol.W, 1)} = ${n(d.share * 100, 0)}%`],
+        'The solver moves the boat up/down and tilts it until the lift equals the weight and the lift is centred under the centre of gravity. Each drum is cut into 12 slices; each slice floats to its own depth.'); });
+    work('buoy.frame', 'Pipe lift = W − Σ drum lift', [`${n(sol.W, 1)} − ${n(drums.reduce((t, d) => t + d.lb, 0), 1)} = ${n(B.frameLift, 1)} lb`], 'The bottom rails of the boxes sit below the waterline; foam-filled pipe floats, so it carries part of the load.');
+    work('buoy.emergency', 'Foam lift = deck XPS + pool noodles + foam-filled pipe', [
+      `Deck: ${c.deck.length} × ${c.deck.width} × (${c.deck.thickness} − 0.3 skins) in³ × 0.0361 = ${n(deckFoam, 0)} lb`,
+      `Noodles: ${req.items.noodle || 0} × π × 1.25² × 52 in³ × 0.0361 = ${n(noodleFoam, 0)} lb`,
+      `Pipe: ${n(req.pipeLength_in, 0)}" × π × 0.95² × 0.0361 × 45% net = ${n(pipeFoam, 0)} lb`,
+      `Total ${n(B.emergency, 0)} lb vs structure without drums ${n(boatW, 0)} − ${n(drumWeight, 0)} = ${n(B.structure, 0)} lb`],
+      'The rules say everything must float even when broken. If every drum leaked, the foam would still have to hold up the frame and deck.');
     // drag: the underwater shape seen from ahead and from the side
     const hull = g.hull, skirt = hull ? Math.max(0, water - hull.y0) : 0;
     const segH = (u, r, h) => { const half = Math.sqrt(Math.max(0, r * r - u * u)); return Math.max(0, Math.min(h, r + half) - (r - half)); };
@@ -1137,8 +1160,22 @@
       frontArea: (frontDrums + frontHull) / 144, sideArea: (sideDrums + sideHull) / 144, CdA, CdAside,
       at: [1, 2, 3].map(mph => ({ mph, lb: force(CdA, mph), watts: force(CdA, mph) * mph * 1.4667 * 1.356 })),
       broadside: [3, 5, 8].map(mph => ({ mph, lb: force(CdAside, mph) })),
-      speed: vMax / 1.4667, power, note: hull ? 'The hull skirt below the waterline adds frontal area; the pointed bow cuts its drag coefficient to about 0.5.' : 'Blunt drum ends (drag coefficient about 0.9).',
+      speed: vMax / 1.4667, power, frontDrums: frontDrums / 144, frontHull: frontHull / 144, sideDrums: sideDrums / 144, sideHull: sideHull / 144, CdDrum, CdHull, CdSide, note: hull ? 'The hull skirt below the waterline adds frontal area; the pointed bow cuts its drag coefficient to about 0.5.' : 'Blunt drum ends (drag coefficient about 0.9).',
     };
+    const Dg = out.drag;
+    work('drag.area', 'Frontal area = drum cross-sections below the waterline (seen from ahead, overlaps counted once) + hull skirt width × depth under water', [
+      `Waterline ${n(water, 1)}" above the drum bottoms${hull ? `; hull skirt bottom at ${n(hull.y0, 1)}", so ${n(skirt, 1)}" of skirt is under water` : ''}`,
+      `Drums below the skirt: ${n(Dg.frontDrums, 2)} ft² (sampled every 0.5" across)`, hull ? `Hull: ${n(2 * hull.half, 1)}" wide × ${n(skirt, 1)}" = ${n(Dg.frontHull, 2)} ft²` : 'No hull skirt',
+      `From the side: drums ${n(Dg.sideDrums, 2)} ft²${hull ? ` + hull ${n(hull.tip - hull.xs, 1)}" × ${n(skirt, 1)}" = ${n(Dg.sideHull, 2)} ft²` : ''}`],
+      'Drag depends on how much the boat pushes against water head-on. Only what is below the waterline counts.');
+    work('drag.force', 'F = ½ · ρ · v² · Cd · A   (ρ = 1.94 slug/ft³, v in ft/s, 1 mph = 1.467 ft/s)', [
+      `Cd·A = ${CdDrum} × ${n(Dg.frontDrums, 2)} (blunt drum ends) + ${CdHull} × ${n(Dg.frontHull, 2)} (${CdHull < 1 ? 'pointed bow' : 'blunt hull'}) = ${n(CdA, 2)} ft²`,
+      ...Dg.at.map(x => `${x.mph} mph: ½ × 1.94 × ${n(x.mph * 1.4667, 2)}² × ${n(CdA, 2)} = ${n(x.lb, 1)} lb; power = F × v = ${n(x.lb, 1)} × ${n(x.mph * 1.4667, 2)} × 1.356 = ${n(x.watts, 0)} W`)],
+      'Water drag grows with the square of speed, and the power to push it with the cube. Skin friction along the sides is left out, so real drag is a little higher.');
+    work('drag.speed', 'P = F · v = ½ ρ Cd A v³  →  v = ∛(P ÷ (½ ρ Cd A))', [`P = ${crew.count} paddlers × ${PADDLER_W} W = ${power} W = ${n(power / 1.356, 0)} ft·lb/s`, `v = ∛(${n(power / 1.356, 0)} ÷ (0.5 × 1.94 × ${n(CdA, 2)})) = ${n(vMax, 2)} ft/s = ${n(vMax / 1.4667, 1)} mph`],
+      'A fit recreational paddler sustains about 75 W. Top speed is where the paddlers\' power equals the drag power.');
+    work('drag.broadside', 'F = ½ · ρ · v² · Cd · A_side   (Cd ≈ 1.1 broadside)', [`Cd·A_side = 1.1 × ${n(Dg.sideArea, 2)} = ${n(CdAside, 2)} ft²`, ...Dg.broadside.map(x => `${x.mph} mph: ½ × 1.94 × ${n(x.mph * 1.4667, 2)}² × ${n(CdAside, 2)} = ${n(x.lb, 0)} lb`)],
+      'Turned sideways in the current, the long side faces the flow. This is the push that pins a boat against a rock, so keep the bow into the rapids.');
     // weight distribution
     const groups = {};
     items.forEach(it => { const k = it.label === 'cage' ? 'frame' : it.label; groups[k] = groups[k] || { w: 0, mx: 0 }; groups[k].w += it.w; groups[k].mx += it.w * it.x; });
@@ -1150,10 +1187,20 @@
       groups: Object.entries(groups).map(([k, v]) => ({ name: k, lb: v.w, x: v.mx / (v.w || 1) })).sort((a, b) => b.lb - a.lb),
       forward: fwdW / sol.W, port: portW / sol.W, starboard: stbdW / sol.W, cgAboveWater: sol.KG - water, KB: sol.KB,
     };
+    work('wt.cg', 'x̄ = Σ wᵢ·xᵢ ÷ Σ wᵢ (same for height and across)', [...items.map(it => `${it.label}: ${n(it.w, 1)} lb at x ${n(it.x, 1)}", height ${n(it.y, 1)}", across ${n(it.z, 1)}"`),
+      `x̄ = ${n(items.reduce((t, it) => t + it.w * it.x, 0), 0)} ÷ ${n(sol.W, 1)} = ${n(sol.xg, 1)}"; height = ${n(sol.KG, 1)}"; across = ${n(sol.zg, 1)}"`],
+      'The centre of gravity is the balance point of everything on board. The drums must float the boat with their combined lift centred right under it, so it decides trim and heel.');
+    work('wt.fwd', 'Forward share = Σ w (x > 0) ÷ W', [`${n(fwdW, 1)} ÷ ${n(sol.W, 1)} = ${n(out.weight.forward * 100, 0)}% forward`], 'Weight forward of the middle pushes the bow down; balance it against where the drums are.');
+    work('wt.cgw', 'CG height above the waterline = KG − waterline', [`${n(sol.KG, 1)} − ${n(water, 1)} = ${n(sol.KG - water, 1)}"`, `Centre of buoyancy KB = ${n(sol.KB, 1)}"; stability GM = I/V + KB − KG (roll ${n(sol.gmRoll, 1)}", pitch ${n(sol.gmPitch, 1)}")`],
+      'The higher the weight sits above the water, the easier it tips. Seated crew are most of it; sitting low on the deck raises stability.');
     // structure: bending of 1-1/2" Sch 40 PVC under the crew (x2 for slamming) and drum uplift
-    const crewP = crew.weightEach * DYNAMIC, chk = (id, name, M, detail, pieces) => {
+    const crewP = crew.weightEach * DYNAMIC, chk = (id, name, M, detail, pieces, how) => {
       const stress = M / PVC.S, sf = stress > 0 ? PVC.flex / stress : Infinity;
       out.structure.push({ id, name, moment: M, stress, sf, level: sf < SF_MIN ? 'error' : sf < SF_OK ? 'warn' : 'ok', detail, pieces: pieces || [] });
+      work('st.' + id, `${how.formula};  σ = M ÷ S;  SF = ${PVC.flex} psi ÷ σ`, [...how.steps,
+        `S = π (D⁴ − d⁴) ÷ (32 D) = π (${PVC.D}⁴ − ${PVC.d}⁴) ÷ (32 × ${PVC.D}) = ${n(PVC.S, 3)} in³ (1-1/2" Sch 40)`,
+        `σ = ${n(M, 0)} in·lb ÷ ${n(PVC.S, 3)} in³ = ${n(stress, 0)} psi`, `SF = ${PVC.flex} ÷ ${n(stress, 0)} = ${n(sf, 2)} (target ${SF_OK}, minimum ${SF_MIN})`],
+        how.why + ` Bending stress in the pipe wall is compared with PVC's flexural strength (about ${PVC.flex} psi).`);
     };
     if (g.boxes) {
       const tops = g.cagePieces.filter(pc => pc.kind === 'top');
@@ -1161,12 +1208,16 @@
       const lenRails = tops.filter(pc => Math.abs(pc.a[2] - pc.b[2]) < 0.1);
       const longest = lenRails.reduce((m, pc) => pc.len > (m ? m.len : 0) ? pc : m, null);
       chk('deck-rail', 'Box top rail under the deck (crew)', (crewP / 2) * (longest ? longest.len : boxLen) / 4,
-        `One crew member (${crew.weightEach} lb × ${DYNAMIC} for slamming) at mid-span, shared by the two top rails of a box, span ${(longest ? longest.len : boxLen).toFixed(1)}".`, longest ? [longest] : []);
+        `One crew member (${crew.weightEach} lb × ${DYNAMIC} for slamming) at mid-span, shared by the two top rails of a box, span ${(longest ? longest.len : boxLen).toFixed(1)}".`, longest ? [longest] : [],
+        { formula: 'Simply supported, centre load: M = (P/2) · L ÷ 4', steps: [`P = ${crew.weightEach} lb × ${DYNAMIC} (slamming) = ${crewP} lb, split over 2 rails = ${crewP / 2} lb`, `L = ${n(longest ? longest.len : boxLen, 1)}" between the corner posts`, `M = ${crewP / 2} × ${n(longest ? longest.len : boxLen, 1)} ÷ 4 = ${n((crewP / 2) * (longest ? longest.len : boxLen) / 4, 0)} in·lb`],
+          why: 'The deck spreads a person over the two top rails of the box below; each rail acts as a beam between its corner posts.' });
       const big = g.drums.reduce((m, d) => d.r > m.r ? d : m, g.drums[0]);
       const uplift = Math.PI * big.r * big.r * big.len * WATER - big.spec.weight, span = big.len + 2 * (c.boxEndGap ?? 2);
       const upRails = lenRails.filter(pc => pc.drum === big.id);
       chk('uplift', 'Drum uplift on its box (drum pushed fully under a wave)', (uplift / 2) * span / 8,
-        `A fully submerged drum pushes up ${uplift.toFixed(0)} lb, spread along its two top rails (span ${span.toFixed(1)}").`, upRails);
+        `A fully submerged drum pushes up ${uplift.toFixed(0)} lb, spread along its two top rails (span ${span.toFixed(1)}").`, upRails,
+        { formula: 'Uniform load over the span: M = (U/2) · L ÷ 8', steps: [`U = π × ${n(big.r, 2)}² × ${n(big.len, 1)} × 0.0361 − ${big.spec.weight} lb drum = ${n(uplift, 0)} lb`, `Per rail U/2 = ${n(uplift / 2, 0)} lb along L = ${n(span, 1)}"`, `M = ${n(uplift / 2, 0)} × ${n(span, 1)} ÷ 8 = ${n((uplift / 2) * span / 8, 0)} in·lb`],
+          why: 'When a wave shoves a drum fully under, its whole lift presses up on the rails that trap it.' });
       if (g.platform) {
         const pl = g.platform; let worst = null;
         pl.xs.forEach(x => {
@@ -1174,21 +1225,25 @@
           const onEnd = g.boxList.some(b => Math.abs(b.x0 - x) < 1 || Math.abs(b.x1 - x) < 1);
           if (onEnd) return;                                   // sits right on a crosswise top rail
           const sup = [...new Set(g.boxList.filter(b => x >= b.x0 && x <= b.x1).flatMap(b => [b.z0, b.z1]).filter(z => Math.abs(z) <= pl.W / 2 + 1))].sort((a, b) => a - b);
-          let M = 0, what = '';
-          if (!sup.length) { M = crewP * pl.W / 4; what = `no rail under it: spans the full ${pl.W.toFixed(1)}"`; }
+          let M = 0, what = '', how = '';
+          if (!sup.length) { M = crewP * pl.W / 4; what = `no rail under it: spans the full ${pl.W.toFixed(1)}"`; how = `M = P · L ÷ 4 = ${crewP} × ${n(pl.W, 1)} ÷ 4`; }
           else {
-            for (let i = 0; i < sup.length - 1; i++) { const L = sup[i + 1] - sup[i]; if (crewP * L / 4 > M) { M = crewP * L / 4; what = `${L.toFixed(1)}" between box rails`; } }
+            for (let i = 0; i < sup.length - 1; i++) { const L = sup[i + 1] - sup[i]; if (crewP * L / 4 > M) { M = crewP * L / 4; what = `${L.toFixed(1)}" between box rails`; how = `M = P · L ÷ 4 = ${crewP} × ${n(L, 1)} ÷ 4`; } }
             const over = Math.max(sup[0] + pl.W / 2, pl.W / 2 - sup[sup.length - 1]);
-            if (over > 0 && crewP * over / 2 > M) { M = crewP * over / 2; what = `${over.toFixed(1)}" overhang past the last rail`; }
+            if (over > 0 && crewP * over / 2 > M) { M = crewP * over / 2; what = `${over.toFixed(1)}" overhang past the last rail`; how = `Cantilever, load spread: M = P · a ÷ 2 = ${crewP} × ${n(over, 1)} ÷ 2`; }
           }
-          if (!worst || M > worst.M) worst = { M, what, cross };
+          if (!worst || M > worst.M) worst = { M, what, cross, x, how };
         });
-        if (worst) chk('platform', 'Platform cross member (crew)', worst.M, `Worst cross member: ${worst.what}. One crew member (${crew.weightEach} lb × ${DYNAMIC}) on it.`, worst.cross ? [worst.cross] : []);
+        if (worst) chk('platform', 'Platform cross member (crew)', worst.M, `Worst cross member: ${worst.what}. One crew member (${crew.weightEach} lb × ${DYNAMIC}) on it.`, worst.cross ? [worst.cross] : [],
+          { formula: 'Worst platform cross member: centre load M = P · L ÷ 4, or overhang M = P · a ÷ 2', steps: [`P = ${crew.weightEach} × ${DYNAMIC} = ${crewP} lb (one person, slamming)`, `Worst member at x = ${n(worst.x, 1)}": ${worst.what}`, `${worst.how} = ${n(worst.M, 0)} in·lb`],
+            why: 'Each cross member under the foam rests on the box top rails it crosses; the longest gap between rails (or past the last one) bends the most.' });
       }
       if (g.hull && g.hull.tip > g.hull.xf + 3) {
         const nose = g.cagePieces.filter(pc => pc.kind === 'nose' && Math.abs(pc.a[1] - pc.b[1]) < 0.1);
         const L = nose.length ? Math.max(...nose.map(pc => pc.len)) : 0;
-        chk('nose', 'Bow nose chords (a 100 lb wave hit on the point)', (100 * DYNAMIC / 2) * L / 4, `A 100 lb hit (× ${DYNAMIC}) on the bow point, carried by the top and bottom chord pairs as beams (conservative: they also act as a truss).`, nose);
+        chk('nose', 'Bow nose chords (a 100 lb wave hit on the point)', (100 * DYNAMIC / 2) * L / 4, `A 100 lb hit (× ${DYNAMIC}) on the bow point, carried by the top and bottom chord pairs as beams (conservative: they also act as a truss).`, nose,
+          { formula: 'M = (P/2) · L ÷ 4 per chord pair', steps: [`P = 100 lb wave hit × ${DYNAMIC} = ${100 * DYNAMIC} lb, split top/bottom = ${100 * DYNAMIC / 2} lb`, `L = ${n(L, 1)}" (longest chord)`, `M = ${100 * DYNAMIC / 2} × ${n(L, 1)} ÷ 4 = ${n((100 * DYNAMIC / 2) * L / 4, 0)} in·lb`],
+            why: 'The nose points take the first hit from waves and rocks. Treating the chords as beams is conservative; as a triangle they mostly carry the push along their length.' });
       }
     }
     // deck tie-downs: XPS lifting off when swamped vs the ties holding it
@@ -1196,6 +1251,8 @@
     const deckTies = 16, deckLift = deckFoam;
     out.structure.push({ id: 'deck-ties', name: 'Deck tie-downs vs foam lift when swamped', moment: 0, stress: 0, sf: (deckTies * tieR) / Math.max(1, deckLift), level: (deckTies * tieR) / Math.max(1, deckLift) < SF_OK ? 'warn' : 'ok',
       detail: `${deckTies} ties × ${tieR} lb rating against ${deckLift.toFixed(0)} lb of XPS lift.`, pieces: [] });
+    work('st.deck-ties', 'SF = ties × rating ÷ foam lift', [`Foam lift = ${c.deck.length} × ${c.deck.width} × (${c.deck.thickness} − 0.3) × 0.0361 = ${n(deckLift, 0)} lb`, `Hold = ${deckTies} ties × ${tieR} lb = ${deckTies * tieR} lb`, `SF = ${deckTies * tieR} ÷ ${n(deckLift, 0)} = ${n((deckTies * tieR) / Math.max(1, deckLift), 1)}`],
+      'If the boat swamps, the foam deck wants to float off. The tie-downs hold it; their rating comes from the weakest tie on the parts list (8" ties ≈ 50 lb, heavy 36" ties ≈ 175 lb).');
     return out;
   }
 
@@ -1223,7 +1280,7 @@
       .forEach(r => out.push(Object.assign({ level: r.level, title: r.title, detail: r.detail || '' }, place(r))));
     (a.engineering.structure || []).filter(s => s.level !== 'ok').forEach(s => {
       const pc = s.pieces[0];
-      out.push({ level: s.level, title: `Structure: ${s.name} (safety factor ${s.sf.toFixed(1)})`, detail: s.detail, at: pc ? pc.a.map((v, i) => (v + pc.b[i]) / 2) : [0, top, 0], pieces: s.pieces.map(p => ({ a: p.a, b: p.b })) });
+      out.push({ level: s.level, title: `Structure: ${s.name} (safety factor ${s.sf.toFixed(1)})`, detail: s.detail, work: 'st.' + s.id, at: pc ? pc.a.map((v, i) => (v + pc.b[i]) / 2) : [0, top, 0], pieces: s.pieces.map(p => ({ a: p.a, b: p.b })) });
     });
     return out;
   }
