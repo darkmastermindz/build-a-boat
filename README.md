@@ -77,6 +77,19 @@ bob/
   catamaran** and **Packed triangle** layouts from the team's Onshape
   sketches. Boxes that touch share walls and crossbars, and their 4-pipe
   corners are counted as 4-way fittings.
+- **Side panels** (box frames): the corrugated PVC roofing panels.
+  - **Curved hull (default):** one boat-shaped piece around all the boxes,
+    with a square transom and a pointed bow. The **Hull bow point** slider
+    sets how far the point sits ahead of the boxes. A small pipe nose (top
+    and bottom chords and a post) holds the point.
+  - **Flat:** a panel on each outer box face. Shared walls stay open.
+  - Panels run from the bottom rail to the top rail.
+  - The cut list packs the pieces into 26" × 8 ft panels. The current plan
+    uses 3 of the 4 bought.
+  - Only the area used is weighed. Ties to the rails, about every 18", are
+    added to the zip-tie count.
+  - Panels have their own **Sides** layer and can be painted or clicked for
+    sizes.
 - **Drum retention**: zip-tie bands, or **caged** between two PVC frames
   (a lower cradle or a single rail under each drum, with posts up to the deck
   frame). Caging adds pipe, fittings and weight, and is shown for every
@@ -119,8 +132,14 @@ bob/
     - The panel shows the painted area and cans needed per color (one coat,
       ~15 sq ft a can) against cans on the list.
     - Painted area replaces the paint cans in the weight.
+  - 🏴‍☠️ Decals: stripe (wraps the hull at the clicked height), skull and
+    crossbones, porthole, nautical star, flames and the boat name.
+    - Pick a size and colour, and choose a vinyl sticker (to buy) or
+      painted (stencil). Erase removes a decal.
+    - Stickers show up as optional items in the Next shopping trip, with
+      Home Depot, Lowe's and Amazon links.
   - 📏 Measure.
-  - Ties and paint are saved with the design and follow parts when you
+  - Ties, paint and decals are saved with the design and follow parts when you
     resize them.
 - **Crew**: 1–4 people, weight each, seat position and lean.
 - **Physics**: solves heave, trim and heel for horizontal drums, then reports
@@ -135,6 +154,15 @@ bob/
   - Leftovers count as spares, not boat weight.
   - Parts ticked "not on the boat yet" (bought, use undecided) are left out
     of the total, and the Check tab shows what they'd add.
+- **Part status**:
+  - 💡 suggested: an idea, not weighed, optional on the shopping list.
+  - 📝 planned: will buy.
+  - 🚚 ordered: paid, on the way. Counts as bought.
+  - ✅ bought.
+  - 🔧 installed.
+  - ⏸️ marks a part that isn't on the boat yet.
+  - Each part row is colour-coded, and the chips above the list filter by
+    status. Parts added from the suggested materials start as 💡 suggested.
 - **Parts tab**: the team's actual list. Add parts from the suggested
   materials or as custom parts, and track qty, weight (tick **measured** once
   weighed), cost and status (planned / bought / installed). Changes are saved
