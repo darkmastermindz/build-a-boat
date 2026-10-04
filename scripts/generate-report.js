@@ -148,7 +148,15 @@ ${w.steps.map((t, i) => `${i + 1}. ${t}`).join('\n')}
 
 ${w.why}
 
-</details>`).join('\n')}`;
+Sources: ${w.refs.map(r => `[${r.kind}: ${r.title}](${r.url})`).join(' · ')}
+
+</details>`).join('\n')}
+
+### Assumptions and sources
+
+| Assumption | Used | Sources say | Effect | Sources |
+|---|---|---|---|---|
+${E.assumptions.map(x => `| ${x.name} | ${x.used} | ${x.source} | ${x.effect} | ${x.refs.map(r => `[${r.kind}](${r.url})`).join(', ')} |`).join('\n')}`;
 })()}
 
 ## Competition rules

@@ -202,3 +202,57 @@ test('hydrostatics: trim from a fore-aft load on a stable 4-drum pontoon matches
   rel(Math.abs(Math.tan(moved.pitchDeg * Math.PI / 180)), 2 / level.gmPitch, 0.02, 'small-angle trim');
   assert.ok(moved.t < 0 && moved.pitchDeg < 0, 'bow goes down when the load moves forward (water line y = d − x·t is deeper at +x)');
 });
+
+test('every shown calculation links to sources, with at least one educational reference', () => {
+  const E = M.analyze(current, rules).engineering;
+  const allowed = /^https:\/\/(en\.wikipedia\.org|(en\.|www\.)?khanacademy\.org|brilliant\.org|www\.wolframalpha\.com|mathworld\.wolfram\.com|doi\.org|www\.sciencedirect\.com|www\.ncbi\.nlm\.nih\.gov|archive\.org|www\.spearsmfg\.com|www\.uni-bell\.org|www\.pipa\.com\.au|www\.roymech\.co\.uk|www\.advancedcableties\.com)\//;
+  const educational = new Set(['Wikipedia', 'Khan Academy', 'Brilliant', 'Wolfram Alpha', 'Wolfram MathWorld']);
+  const used = new Set();
+  for (const [id, w] of Object.entries(E.work)) {
+    assert.ok(w.refs && w.refs.length, `${id} has sources`);
+    assert.ok(w.refs.some(r => educational.has(r.kind)), `${id} has an educational source`);
+    w.refs.forEach(r => { assert.match(r.url, allowed, `${id}: ${r.url}`); used.add(r.id); });
+  }
+  E.assumptions.forEach(a => { assert.ok(a.refs.length, a.name); a.refs.forEach(r => { assert.match(r.url, allowed); used.add(r.id); }); });
+  for (const k of Object.keys(M.SOURCES)) assert.ok(used.has(k), `source ${k} is cited somewhere`);
+});
+
+test('assumed constants sit inside the ranges their sources give', () => {
+  // Nominal Pipe Size, 1-1/2": OD 1.900", Sch 40 wall 0.145"
+  near(M.PVC.D, 1.900, 1e-9, 'OD'); near(M.PVC.d, 1.900 - 2 * 0.145, 1e-9, 'ID');
+  // water: 62.43 lb/ft³ at 4 °C, 62.32 at 20 °C (998.2 kg/m³ × 0.062428)
+  const waterLbFt3 = M.WATER * 1728;
+  assert.ok(waterLbFt3 >= 62.32 && waterLbFt3 <= 62.43, `water ${waterLbFt3}`);
+  // 1 slug/ft³ = 515.379 kg/m³, so 1.94 slug/ft³ ≈ 1000 kg/m³
+  rel(M.RHO * 515.379, 1000, 0.002, 'ρ in kg/m³');
+  // Spears, PVC cell class 12454: flexural strength 14,450 psi at 73 °F; the model must not exceed it
+  assert.ok(M.PVC.flex <= 14450);
+  // Hoerner: flat-faced cylinder end-on, Cd 1.17 (l/d = 0) to ~0.81 (l/d > 2)
+  const E = M.analyze(current, rules).engineering;
+  assert.ok(E.drag.CdDrum >= 0.81 && E.drag.CdDrum <= 1.17);
+  // smooth cylinder broadside: 1.1–1.2 below the drag crisis
+  assert.ok(E.drag.CdSide >= 1.1 && E.drag.CdSide <= 1.2);
+  // human power: ~75 W all day for a non-athlete (the conservative end)
+  assert.ok(M.PADDLER_W <= 75);
+  // a suddenly applied load (drop height h = 0): factor 1 + √(1 + 2h/δ) = 2
+  near(M.DYNAMIC, 1 + Math.sqrt(1 + 0), 1e-12, 'sudden-load factor');
+});
+
+test('Reynolds number for the broadside drag regime: Re = v · D ÷ ν', () => {
+  const a = M.analyze(current, rules), D = a.engineering.drag;
+  const dFt = 2 * Math.max(...a.geometry.drums.map(d => d.r)) / 12;
+  const nuFt2s = 1.0e-6 / 0.3048 ** 2;            // 1.0 cSt in ft²/s (1 ft = 0.3048 m)
+  D.broadside.forEach(x => rel(x.Re, x.mph * 5280 / 3600 * dFt / nuFt2s, 1e-4, `Re at ${x.mph} mph`));
+  // a 55 gal drum at 3–8 mph is past the cylinder drag crisis (Re > 2×10⁵), so Cd 1.1 is a high-side estimate
+  assert.ok(D.broadside.every(x => x.Re > 2e5));
+});
+
+test('segment centroid matches the MathWorld closed form ȳ = 4R sin³(θ/2) ÷ 3(θ − sin θ)', () => {
+  const r = 11.25;
+  for (const h of [0.5, 3, 8, 11.25, 15, 20, 22]) {
+    const theta = 2 * Math.acos((r - h) / r);                       // central angle of the submerged segment
+    const fromCentre = 4 * r * Math.sin(theta / 2) ** 3 / (3 * (theta - Math.sin(theta)));
+    rel(M.segCentroidY(h, r), r - fromCentre, 1e-9, `h=${h}`);
+    rel(M.segArea(h, r), r * r / 2 * (theta - Math.sin(theta)), 1e-9, `area h=${h}`);   // a = ½R²(θ − sin θ)
+  }
+});

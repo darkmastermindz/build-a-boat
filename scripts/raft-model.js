@@ -1109,12 +1109,100 @@
   const SF_OK = 2.5, SF_MIN = 1.5;        // target and minimum safety factors
   const PADDLER_W = 75;                   // sustained watts per paddler
   const TIE_LB = len => (+len || 8) > 14 ? 175 : 50;   // cable tie tensile rating
+  const NU_WATER = 1.0e-6 * 10.7639;         // kinematic viscosity of water at 20 °C: 1.0 cSt = 1.0e-6 m²/s, in ft²/s
+
+  // ── Sources: where each formula and constant comes from ──
+  // Educational references first (Wikipedia, Khan Academy, Brilliant, Wolfram), then
+  // papers, standards and manufacturer data for the numbers a textbook doesn't give.
+  const SOURCES = {
+    archimedes: { kind: 'Wikipedia', title: "Archimedes' principle", url: 'https://en.wikipedia.org/wiki/Archimedes%27_principle' },
+    khanBuoyancy: { kind: 'Khan Academy', title: 'Buoyant force and Archimedes\' principle', url: 'https://en.khanacademy.org/science/in-in-class9th-physics-india/in-in-gravity/in-in-pressure-in-liquids-archimedes-principle/a/buoyant-force-and-archimedes-principle-article' },
+    brilliantFluids: { kind: 'Brilliant', title: 'Fluid mechanics (buoyant force F = ρVg)', url: 'https://brilliant.org/wiki/fluid-mechanics/' },
+    waterProps: { kind: 'Wikipedia', title: 'Properties of water (density 62.43 lb/ft³ at 4 °C; 998 kg/m³ at 20 °C)', url: 'https://en.wikipedia.org/wiki/Properties_of_water' },
+    wolframWater: { kind: 'Wolfram Alpha', title: '62.4 lb/ft³ in lb/in³', url: 'https://www.wolframalpha.com/input?i=62.4+lb%2Fft%5E3+in+lb%2Fin%5E3' },
+    wolframSlug: { kind: 'Wolfram Alpha', title: '1.94 slug/ft³ in kg/m³', url: 'https://www.wolframalpha.com/input?i=1.94+slug%2Fft%5E3+in+kg%2Fm%5E3' },
+    circSeg: { kind: 'Wikipedia', title: 'Circular segment (area, chord)', url: 'https://en.wikipedia.org/wiki/Circular_segment' },
+    circSegMW: { kind: 'Wolfram MathWorld', title: 'Circular segment (area, centroid ȳ = 4R sin³(θ/2) ÷ 3(θ − sin θ))', url: 'https://mathworld.wolfram.com/CircularSegment.html' },
+    centroids: { kind: 'Wikipedia', title: 'List of centroids', url: 'https://en.wikipedia.org/wiki/List_of_centroids' },
+    metacentric: { kind: 'Wikipedia', title: 'Metacentric height (GM = KB + BM − KG, BM = I/V)', url: 'https://en.wikipedia.org/wiki/Metacentric_height' },
+    secondMoment: { kind: 'Wikipedia', title: 'Second moment of area', url: 'https://en.wikipedia.org/wiki/Second_moment_of_area' },
+    parallelAxis: { kind: 'Wikipedia', title: 'Parallel axis theorem (I = I꜀ + A d²)', url: 'https://en.wikipedia.org/wiki/Parallel_axis_theorem' },
+    brilliantInertia: { kind: 'Brilliant', title: 'Moment of inertia', url: 'https://brilliant.org/wiki/calculating-moment-of-inertia-of-point-masses/' },
+    capsizing: { kind: 'Wikipedia', title: 'Capsizing (righting arm GZ beyond small angles)', url: 'https://en.wikipedia.org/wiki/Capsizing' },
+    floatingCylinder: { kind: 'Paper', title: 'Stability of a floating cylinder, Int. J. Mech. Sci. (2003)', url: 'https://www.sciencedirect.com/science/article/abs/pii/S0020722503002374' },
+    catamaranTrials: { kind: 'Paper', title: 'Stability Assessment of a Catamaran Using Sea Trials, J. Mar. Sci. Eng. 12 (2024) 1436: wider hull spacing, larger righting arm', url: 'https://doi.org/10.3390/jmse12081436' },
+    khanCOM: { kind: 'Khan Academy', title: 'What is center of mass?', url: 'https://www.khanacademy.org/science/physics/linear-momentum/center-of-mass/a/what-is-center-of-mass' },
+    khanTorque: { kind: 'Khan Academy', title: 'Torque and equilibrium', url: 'https://en.khanacademy.org/science/ap-physics-1/ap-torque-angular-momentum/torque-and-equilibrium-ap/a/torque-and-equilibrium' },
+    dragEq: { kind: 'Wikipedia', title: 'Drag equation (F = ½ ρ v² C_d A)', url: 'https://en.wikipedia.org/wiki/Drag_equation' },
+    dragCoef: { kind: 'Wikipedia', title: 'Drag coefficient (table of shapes; cylinder 1.1–1.2 at Re 2×10⁴–10⁵)', url: 'https://en.wikipedia.org/wiki/Drag_coefficient' },
+    hoerner: { kind: 'Book', title: 'Hoerner, Fluid-Dynamic Drag (1965): flat-faced cylinder end-on, C_d 1.17 at l/d = 0 falling to ~0.81 for l/d > 2', url: 'https://archive.org/details/FluidDynamicDragHoerner1965' },
+    dragCrisis: { kind: 'Wikipedia', title: 'Drag crisis (cylinder C_d drops for Re ≈ 2×10⁵–5×10⁵)', url: 'https://en.wikipedia.org/wiki/Drag_crisis' },
+    reynolds: { kind: 'Wikipedia', title: 'Reynolds number (Re = v D ÷ ν)', url: 'https://en.wikipedia.org/wiki/Reynolds_number' },
+    viscosity: { kind: 'Wikipedia', title: 'Viscosity (water ≈ 1 cSt at 20 °C)', url: 'https://en.wikipedia.org/wiki/Viscosity' },
+    wolframMph: { kind: 'Wolfram Alpha', title: '1 mph in ft/s', url: 'https://www.wolframalpha.com/input?i=1+mph+in+ft%2Fs' },
+    wolframPower: { kind: 'Wolfram Alpha', title: '1 ft·lbf/s in watts', url: 'https://www.wolframalpha.com/input?i=1+ft+lbf%2Fs+in+W' },
+    humanPower: { kind: 'Wikipedia', title: 'Human power (~75 W all day for a non-athlete; 100–150 W for an hour)', url: 'https://en.wikipedia.org/wiki/Human_power' },
+    kayakPower: { kind: 'Paper', title: 'Prediction of simulated 1000 m kayak ergometer performance in young athletes (≈130 W over 1000 m)', url: 'https://www.ncbi.nlm.nih.gov/pmc/articles/PMC7855298/' },
+    sectionModulus: { kind: 'Wikipedia', title: 'Section modulus (hollow circle S = π(D⁴ − d⁴) ÷ 32D; σ = M ÷ S)', url: 'https://en.wikipedia.org/wiki/Section_modulus' },
+    nps: { kind: 'Wikipedia', title: 'Nominal Pipe Size (1-1/2": OD 1.900", Sch 40 wall 0.145")', url: 'https://en.wikipedia.org/wiki/Nominal_Pipe_Size' },
+    bendingMoment: { kind: 'Wikipedia', title: 'Bending moment', url: 'https://en.wikipedia.org/wiki/Bending_moment' },
+    shearMoment: { kind: 'Wikipedia', title: 'Shear and moment diagram (simply supported beams)', url: 'https://en.wikipedia.org/wiki/Shear_and_moment_diagram' },
+    eulerBernoulli: { kind: 'Wikipedia', title: 'Euler–Bernoulli beam theory', url: 'https://en.wikipedia.org/wiki/Euler%E2%80%93Bernoulli_beam_theory' },
+    pvcSpears: { kind: 'Datasheet', title: 'Spears: physical properties of PVC pipe, cell class 12454 (flexural strength 14,450 psi at 73 °F)', url: 'https://www.spearsmfg.com/IP-4/03%20Physical%20Properties%20of%20PVC%20&%20CPVC%20Pipe.pdf' },
+    pvcCellClass: { kind: 'Standard', title: 'Uni-Bell: PVC pipe materials, cell class explained (ASTM D1784)', url: 'https://www.uni-bell.org/portals/0/ResourceFile/pvc-pipe-materials-cell-class-explained.pdf' },
+    pvcDerate: { kind: 'Standard', title: 'PIPA TN003: temperature derating of PVC (0.62 at 100 °F / 38 °C)', url: 'https://www.pipa.com.au/wp-content/uploads/2018/09/tn003.pdf' },
+    suddenLoad: { kind: 'Reference', title: 'RoyMech: impact loading (a suddenly applied load gives twice the static stress)', url: 'https://www.roymech.co.uk/Useful_Tables/Fatigue/Mechanics_Impact.html' },
+    safetyFactor: { kind: 'Wikipedia', title: 'Factor of safety', url: 'https://en.wikipedia.org/wiki/Factor_of_safety' },
+    cableTies: { kind: 'Standard', title: 'NEMA cable tie application guide (loop tensile ratings 18, 50, 120, 175 lb)', url: 'https://www.advancedcableties.com/cable-management-solutions/act-proud-member-nema/nema-application-guide-mechanical-properties/' },
+  };
+  // Which sources back each "show the work" entry (exact id, or the id with its trailing number removed).
+  const WORK_REFS = {
+    'buoy.max': ['archimedes', 'khanBuoyancy', 'brilliantFluids', 'waterProps', 'wolframWater'],
+    'buoy.load': ['khanCOM', 'archimedes'],
+    'buoy.reserve': ['archimedes', 'khanBuoyancy'],
+    'buoy.sf': ['safetyFactor', 'archimedes'],
+    'buoy.drum': ['circSeg', 'circSegMW', 'archimedes', 'khanTorque'],
+    'buoy.frame': ['archimedes', 'brilliantFluids'],
+    'buoy.emergency': ['archimedes', 'khanBuoyancy', 'waterProps'],
+    'drag.area': ['dragEq', 'circSeg'],
+    'drag.force': ['dragEq', 'dragCoef', 'hoerner', 'wolframSlug', 'wolframMph'],
+    'drag.speed': ['dragEq', 'humanPower', 'kayakPower', 'wolframPower'],
+    'drag.broadside': ['dragEq', 'dragCoef', 'dragCrisis', 'reynolds', 'viscosity'],
+    'wt.cg': ['khanCOM', 'khanTorque'],
+    'wt.fwd': ['khanCOM'],
+    'wt.cgw': ['metacentric', 'secondMoment', 'parallelAxis', 'brilliantInertia', 'centroids', 'capsizing', 'floatingCylinder', 'catamaranTrials'],
+    'st.deck-rail': ['shearMoment', 'bendingMoment', 'sectionModulus', 'nps', 'pvcSpears', 'suddenLoad', 'safetyFactor'],
+    'st.uplift': ['shearMoment', 'eulerBernoulli', 'sectionModulus', 'nps', 'pvcSpears', 'archimedes', 'safetyFactor'],
+    'st.platform': ['shearMoment', 'bendingMoment', 'sectionModulus', 'nps', 'pvcSpears', 'suddenLoad', 'safetyFactor'],
+    'st.nose': ['shearMoment', 'bendingMoment', 'sectionModulus', 'nps', 'pvcSpears', 'suddenLoad', 'safetyFactor'],
+    'st.deck-ties': ['cableTies', 'archimedes', 'safetyFactor'],
+  };
+  const refsFor = id => {
+    const ids = WORK_REFS[id] || WORK_REFS[id.replace(/\d+$/, '')];
+    if (!ids) throw new Error(`No sources listed for the work entry "${id}"`);   // every number shown must say where it comes from
+    return ids.map(k => { if (!SOURCES[k]) throw new Error(`Unknown source "${k}" for "${id}"`); return Object.assign({ id: k }, SOURCES[k]); });
+  };
+  // The numbers the model assumes, next to what the sources say and how the choice leans.
+  const ASSUMPTIONS = [
+    { name: 'Water weight', used: '62.4 lb/ft³', source: '62.43 lb/ft³ at 4 °C, 62.32 at 20 °C', effect: 'Lift is about 0.1% high in summer water: negligible.', refs: ['waterProps', 'wolframWater'] },
+    { name: 'Water density for drag', used: `${RHO} slug/ft³`, source: '1.940 slug/ft³ = 1000 kg/m³', effect: 'Matches.', refs: ['wolframSlug'] },
+    { name: '1-1/2" Sch 40 PVC size', used: `OD ${PVC.D}", ID ${PVC.d}"`, source: 'OD 1.900", wall 0.145" → ID 1.610"', effect: 'Matches.', refs: ['nps'] },
+    { name: 'PVC flexural strength', used: `${PVC.flex} psi`, source: '14,450 psi at 73 °F (cell class 12454); about 0.62× that at 100 °F', effect: '3% low (safe side) at 73 °F. Sun-heated pipe is weaker and is not derated here.', refs: ['pvcSpears', 'pvcCellClass', 'pvcDerate'] },
+    { name: 'Drag coefficient, drum end-on', used: '0.9', source: '1.17 for a flat disc, falling to ~0.81 for length/diameter > 2 (a drum is ~1.5)', effect: 'Within the range, toward the high (safe) side for speed.', refs: ['hoerner', 'dragCoef'] },
+    { name: 'Drag coefficient, broadside', used: '1.1', source: '1.1–1.2 for a smooth cylinder at Re 2×10⁴–10⁵; lower past the drag crisis (Re > 2×10⁵)', effect: 'The broadside Reynolds number here is ~10⁶, so the real push is probably lower; 1.1 is a high-side estimate for pinning.', refs: ['dragCoef', 'dragCrisis', 'reynolds'] },
+    { name: 'Drag coefficient, pointed hull', used: '0.5', source: 'No direct source: a streamlined bow is well below a flat face (1.17) and above a streamlined body', effect: 'Engineering estimate; wave-making and skin friction are left out.', refs: ['dragCoef'] },
+    { name: 'Paddler power', used: `${PADDLER_W} W each`, source: '~75 W all day (non-athlete); 100–150 W for an hour; ~130 W for young athletes over 1000 m', effect: 'Low (safe side) for a short race: real top speed is likely a little higher.', refs: ['humanPower', 'kayakPower'] },
+    { name: 'Slamming load factor', used: `× ${DYNAMIC}`, source: 'A load applied suddenly (no drop) gives 2× the static stress; a drop from a height gives more: 1 + √(1 + 2h/δ)', effect: 'Covers sitting down hard, not jumping onto the deck.', refs: ['suddenLoad'] },
+    { name: 'Safety factor targets', used: `${SF_OK} target, ${SF_MIN} minimum`, source: 'No universal value: chosen by the designer for the uncertainty in loads and materials', effect: 'A judgement call for a one-off amateur build.', refs: ['safetyFactor'] },
+    { name: 'Cable tie strength', used: '50 lb (8"), 175 lb (heavy 36")', source: 'Standard loop tensile ratings 18, 50, 120, 175 lb', effect: 'Matches the standard classes.', refs: ['cableTies'] },
+    { name: 'Water viscosity (Reynolds number)', used: '1.0 cSt', source: '≈ 1 cSt at 20 °C', effect: 'Used only to say which drag regime applies.', refs: ['viscosity', 'reynolds'] },
+  ].map(a => Object.assign({}, a, { refs: a.refs.map(k => { if (!SOURCES[k]) throw new Error(`Unknown source "${k}"`); return Object.assign({ id: k }, SOURCES[k]); }) }));
   function engineering(build, g, sol, items, req) {
-    const c = g.config, out = { buoyancy: null, drag: null, weight: null, structure: [], work: {} };
+    const c = g.config, out = { buoyancy: null, drag: null, weight: null, structure: [], work: {}, assumptions: ASSUMPTIONS };
     if (!sol || !sol.ok) return out;
     const water = sol.d, crew = c.crew;
     // "show the work": for each number, the formula, the numbers plugged in, and why
-    const n = (v, d = 1) => (+v).toFixed(d), work = (id, formula, steps, why) => { out.work[id] = { formula, steps, why }; };
+    const n = (v, d = 1) => (+v).toFixed(d), work = (id, formula, steps, why) => { out.work[id] = { formula, steps, why, refs: refsFor(id) }; };
     const WATER_TXT = 'water weighs 62.4 lb/ft³ = 0.0361 lb/in³';
     // buoyancy
     const drums = g.drums.filter(d => !d.failed).map(d => {
@@ -1168,11 +1256,13 @@
     const CdDrum = 0.9, CdHull = hull && hull.tip - hull.xf > 6 ? 0.5 : 1.0, CdSide = 1.1;
     const CdA = (CdDrum * frontDrums + CdHull * frontHull) / 144, CdAside = CdSide * (sideDrums + sideHull) / 144;   // ft²
     const MPH = 5280 / 3600, force = (CdAft, mph) => { const v = mph * MPH; return 0.5 * RHO * v * v * CdAft; };   // lbf
+    const reynoldsD = 2 * Math.max(...g.drums.filter(d => !d.failed).map(d => d.r)) / 12;   // ft: drum diameter, the cylinder's size across the flow
     const power = crew.count * PADDLER_W, vMax = Math.cbrt(power / 1.35582 / (0.5 * RHO * Math.max(1e-6, CdA)));   // ft/s
     out.drag = {
       frontArea: (frontDrums + frontHull) / 144, sideArea: (sideDrums + sideHull) / 144, CdA, CdAside,
       at: [1, 2, 3].map(mph => ({ mph, lb: force(CdA, mph), watts: force(CdA, mph) * mph * MPH * 1.35582 })),
-      broadside: [3, 5, 8].map(mph => ({ mph, lb: force(CdAside, mph) })),
+      broadside: [3, 5, 8].map(mph => ({ mph, lb: force(CdAside, mph), Re: mph * MPH * reynoldsD / NU_WATER })),
+      reynoldsD, nu: NU_WATER,
       speed: vMax / MPH, power, frontDrums: frontDrums / 144, frontHull: frontHull / 144, sideDrums: sideDrums / 144, sideHull: sideHull / 144, CdDrum, CdHull, CdSide, note: hull ? 'The hull skirt below the waterline adds frontal area; the pointed bow cuts its drag coefficient to about 0.5.' : 'Blunt drum ends (drag coefficient about 0.9).',
     };
     const Dg = out.drag;
@@ -1187,8 +1277,9 @@
       'Water drag grows with the square of speed, and the power to push it with the cube. Skin friction along the sides is left out, so real drag is a little higher.');
     work('drag.speed', 'P = F · v = ½ ρ Cd A v³  →  v = ∛(P ÷ (½ ρ Cd A))', [`P = ${crew.count} paddlers × ${PADDLER_W} W = ${power} W = ${n(power / 1.35582, 0)} ft·lb/s`, `v = ∛(${n(power / 1.35582, 0)} ÷ (0.5 × 1.94 × ${n(CdA, 2)})) = ${n(vMax, 2)} ft/s = ${n(vMax / MPH, 1)} mph`],
       'A fit recreational paddler sustains about 75 W. Top speed is where the paddlers\' power equals the drag power.');
-    work('drag.broadside', 'F = ½ · ρ · v² · Cd · A_side   (Cd ≈ 1.1 broadside)', [`Cd·A_side = 1.1 × ${n(Dg.sideArea, 2)} = ${n(CdAside, 2)} ft²`, ...Dg.broadside.map(x => `${x.mph} mph: ½ × 1.94 × ${n(x.mph * MPH, 2)}² × ${n(CdAside, 2)} = ${n(x.lb, 0)} lb`)],
-      'Turned sideways in the current, the long side faces the flow. This is the push that pins a boat against a rock, so keep the bow into the rapids.');
+    work('drag.broadside', 'F = ½ · ρ · v² · Cd · A_side   (Cd ≈ 1.1 broadside);  Re = v · D ÷ ν', [`Cd·A_side = 1.1 × ${n(Dg.sideArea, 2)} = ${n(CdAside, 2)} ft²`, ...Dg.broadside.map(x => `${x.mph} mph: ½ × 1.94 × ${n(x.mph * MPH, 2)}² × ${n(CdAside, 2)} = ${n(x.lb, 0)} lb`),
+      ...Dg.broadside.map(x => `Re at ${x.mph} mph = ${n(x.mph * MPH, 2)} ft/s × ${n(reynoldsD, 3)} ft ÷ ${NU_WATER.toExponential(3)} ft²/s = ${x.Re.toExponential(1)}${x.Re > 2e5 ? ' (past the drag crisis: a smooth drum would see less drag)' : ''}`)],
+      'Turned sideways in the current, the long side faces the flow. This is the push that pins a boat against a rock, so keep the bow into the rapids. Cd 1.1 is the textbook value for a cylinder below the drag crisis; at these Reynolds numbers the ribbed drums probably see less, so the push shown is on the high side.');
     // weight distribution
     const groups = {};
     items.forEach(it => { const k = it.label === 'cage' ? 'frame' : it.label; groups[k] = groups[k] || { w: 0, mx: 0 }; groups[k].w += it.w; groups[k].mx += it.w * it.x; });
@@ -1691,6 +1782,6 @@
   return {
     WATER, DRUM, DRUM_SIZES, drumSpec, drumLabel, PIPE_R, RAIL_OFFSET, PRESETS, DEFAULT_CONFIG, inventory,
     STATUSES, isBought, engineering, PVC, SF_OK, SF_MIN, CONSUMABLE_SHARE, onBoatShare, paintPlan, decalPlan, DECALS, PAINT_LB_PER_SQFT, withDefaults, geometry, requirements, shoppingList, storeLinks, fitFrame, rankPresets, PRIORITIES, weights, massItems, crewPositions, solve, checkRules, analyze, comparePresets,
-    segArea, segWidth, segCentroidY, drumMaxLb,
+    segArea, segWidth, segCentroidY, drumMaxLb, SOURCES, WORK_REFS, ASSUMPTIONS, RHO, NU_WATER, PADDLER_W, DYNAMIC,
   };
 });

@@ -198,6 +198,11 @@ bob/
 - **Show the work:** click any engineering row to expand its formula, every
   number plugged in, and the reasoning behind it. Structural issues on the
   model have a *Show the work* button too, and the report includes all of it.
+- **Sources:** every worked calculation links to where its formula comes from:
+  Wikipedia, Khan Academy, Brilliant and Wolfram first, then papers, standards
+  and datasheets. *Assumptions and sources* (bottom of the engineering panel)
+  lists each assumed constant next to what the sources say. The tests check
+  that each constant stays inside its source's range.
 - **⚠️ Issues** (button under the 3D view): numbered markers on the boat for
   every warning and error, placed where each problem is.
   - Pipes that fail a structural check turn orange or red.
