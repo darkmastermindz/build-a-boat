@@ -54,7 +54,7 @@ test('more drums means shallower draft for the same load', () => {
 
 test('rules: metal, weight, thick wood and long rope are flagged', () => {
   const b = clone(build);
-  b.parts.push({ name: 'Galvanized carriage bolts', role: 'other', category: 'frame', material: 'metal', quantity: 1, weight_lb_each: 60 });
+  b.parts.push({ name: 'Galvanized carriage bolts', role: 'other', category: 'frame', material: 'metal', quantity: 1, weight_lb_each: 80 });
   b.parts.push({ name: 'Wood dowel 1 in', role: 'mast', category: 'decor', material: 'wood', thickness_in: 1, quantity: 1, weight_lb_each: 1 });
   b.parts.push({ name: 'Long rope', role: 'rope', category: 'rigging', material: 'polypropylene', max_piece_length_in: 50, quantity: 1, weight_lb_each: 1 });
   const errs = M.analyze(b, rules, { skipLeak: true }).rules.filter(r => r.level === 'error').map(r => r.id);
@@ -367,4 +367,32 @@ test('side panels: outer box faces only, packed into 26" x 8 ft panels, weighed 
   const a = M.analyze(current, rules, { skipLeak: true });
   const listed = current.parts.find(p => p.role === 'panel');
   assert.ok(a.weights.byRole.panel > 0 && a.weights.byRole.panel < listed.quantity * listed.weight_lb_each, 'only the area used');
+});
+
+test('curved hull: one piece around every box with a pointed bow, held by a pipe nose', () => {
+  const g = M.geometry(current.config), q = M.requirements(g, current.parts), hl = g.hull;
+  assert.ok(hl && g.sidePanels.length === 1 && g.sidePanels[0].hull);
+  assert.ok(hl.tip >= hl.xf + current.config.hullBow - 1e-9, 'bow point ahead of the boxes');
+  // the outline contains every box corner
+  const inside = ([x, z]) => { let c = false; const o = hl.outline; for (let i = 0, j = o.length - 1; i < o.length; j = i++) { const [xi, zi] = o[i], [xj, zj] = o[j]; if ((zi > z) !== (zj > z) && x < (xj - xi) * (z - zi) / (zj - zi) + xi) c = !c; } return c; };
+  g.boxList.forEach(b => [[b.x0 + .1, b.z0 + .1], [b.x1 - .1, b.z1 - .1], [b.x1 - .1, b.z0 + .1]].forEach(pt => assert.ok(inside(pt), JSON.stringify(pt))));
+  assert.ok(g.cagePieces.some(pc => pc.kind === 'nose'), 'nose pipes');
+  assert.ok(q.items.panel <= 4 && q.panels.every(p => p.cuts.every(c => c <= 96)));
+  assert.ok(g.overall.length / 12 <= 10, 'still under 10 ft');
+});
+
+test('decals: stickers become optional shopping rows; suggested parts are not weighed', () => {
+  const b = clone(current);
+  b.parts = b.parts.filter(p => p.role !== 'decal');
+  b.config.decals = [{ type: 'skull', kind: 'sticker' }, { type: 'porthole' }, { type: 'porthole' }, { type: 'stripe' }, { type: 'star', kind: 'paint' }];
+  const a = M.analyze(b, rules, { skipLeak: true });
+  const rows = a.shopping.rows.filter(r => r.role === 'decal');
+  assert.ok(rows.every(r => r.priority === 'optional' && r.links.some(l => l.label === 'Amazon')));
+  assert.strictEqual(rows.find(r => /Porthole/.test(r.name)).qty, 1, 'two portholes fit in one set of 4');
+  assert.ok(rows.some(r => /stencil/i.test(r.name)), 'painted decals need a stencil');
+  const s = clone(current); const cushion = s.parts.find(p => p.role === 'cushion');
+  cushion.status = 'planned'; const w1 = M.analyze(s, rules, { skipLeak: true }).weights.predicted;
+  cushion.status = 'suggested'; const w2 = M.analyze(s, rules, { skipLeak: true }).weights.predicted;
+  near(w1 - w2, cushion.quantity * cushion.weight_lb_each, 1e-9, 'suggested parts are not weighed');
+  assert.ok(M.isBought({ status: 'ordered' }));
 });

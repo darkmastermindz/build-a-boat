@@ -155,7 +155,7 @@
   };
 
   const DEFAULT_CONFIG = {
-    preset: 'cat2', frameStyle: 'stacked', retention: 'bands', cageStyle: 'cradle', sidePanels: false, packGap: 0, boxEndGap: 2, boxSideGap: 1, boxTopGap: 0, fittingTakeoff: 1.25, railsPerPontoon: 2, centerSpine: false, frameLength: 84, frameWidth: 72, beamCount: 4, pontoonSpacing: 47,
+    preset: 'cat2', frameStyle: 'stacked', retention: 'bands', cageStyle: 'cradle', sidePanels: false, sideStyle: 'hull', hullBow: 18, packGap: 0, boxEndGap: 2, boxSideGap: 1, boxTopGap: 0, fittingTakeoff: 1.25, railsPerPontoon: 2, centerSpine: false, frameLength: 84, frameWidth: 72, beamCount: 4, pontoonSpacing: 47,
     drumOffset: 0, drumSpread: 20, bow: true, bowRiser: 12, bowStrut: 18,
     deck: { length: 72, width: 24, thickness: 2.3 }, mastHeight: 30, noodleRail: true,
     crew: { count: 2, weightEach: 175, xOffset: 0, zOffset: 0 }, failedDrum: null,
@@ -365,6 +365,14 @@
       });
       if (level === 'bottom') [[b.x0, b.z0], [b.x0, b.z1], [b.x1, b.z0], [b.x1, b.z1]].forEach(([x, z]) => add('post', [x, b.yb, z], [x, topY, z], b.id));
     }));
+    // curved hull: the side panels wrap the boxes as one boat-shaped skin; a
+    // small pipe nose (two chords top and bottom, and a post) holds the point
+    const hull = c.sidePanels && c.sideStyle !== 'boxes' ? hullShape(boxes, Math.max(0, c.hullBow ?? 18)) : null;
+    if (hull && hull.tip > hull.xf + 3) {
+      const bowBox = boxes.reduce((m, b) => b.x1 > m.x1 ? b : m, boxes[0]), yb = Math.min(...boxes.map(b => b.yb));
+      [yb, topY].forEach(y => [bowBox.z0, bowBox.z1].forEach(z => add('nose', [bowBox.x1, y, z], [hull.tip, y, 0], bowBox.id)));
+      add('nose', [hull.tip, yb, 0], [hull.tip, topY, 0], bowBox.id);
+    }
     // a corner that lands partway along another box's edge splits that edge
     // (e.g. a box butted against the middle of a wider pair of boxes)
     const corners = pieces.flatMap(pc => [pc.a, pc.b]);
@@ -388,7 +396,7 @@
       if (seen.has(k2)) pieces.splice(i, 1); else seen.add(k2);
     }
     pieces.forEach(pc => { pc.len = Math.hypot(pc.b[0] - pc.a[0], pc.b[1] - pc.a[1], pc.b[2] - pc.a[2]); });
-    const xsAll = boxes.flatMap(b => [b.x0, b.x1]), zsAll = boxes.flatMap(b => [b.z0, b.z1]);
+    const xsAll = boxes.flatMap(b => [b.x0, b.x1]).concat(hull ? [hull.tip] : []), zsAll = boxes.flatMap(b => [b.z0, b.z1]);
     const L = 2 * Math.max(...xsAll.map(Math.abs)), outerZ = Math.max(...zsAll.map(Math.abs));
     c.frameLength = Math.round(L);                       // used for freeboard corners
     const mastTop = c.mastHeight > 0 ? deckTop + c.mastHeight : deckTop;
@@ -399,7 +407,8 @@
       if (Math.abs(a.z - b.z) < a.ez + b.ez && Math.abs(a.x - b.x) < a.ex + b.ex) overlaps.push([i, j]);
     }
     return {
-      sidePanels: c.sidePanels ? boxOutline(boxes, topY) : [],
+      sidePanels: !c.sidePanels ? [] : hull ? [hullPanel(hull, Math.min(...boxes.map(b => b.yb)), topY)] : boxOutline(boxes, topY),
+      hull: hull ? Object.assign(hull, { y0: Math.min(...boxes.map(b => b.yb)), y1: topY }) : null,
       config: c, drum, r, mixed, fitted: false, boxes: true, boxList: boxes, boxContacts: contacts, frameWidth: 2 * outerZ, railOffset: 0,
       cage: true, cagePieces: pieces, lowestY: Math.min(...boxes.map(b => b.yb)) - PIPE_R, cageUnsupported: false,
       drums, lines: [], rails: [], beams: [], railY: topY, beamY: topY, deckBottom, deckTop, bow: null, outerZ,
@@ -433,10 +442,44 @@
     });
     return out;
   }
+  // Curved hull outline (x fore-aft, z across): a square transom at the stern,
+  // straight sides along the widest boxes, then a curve to a point hullBow
+  // ahead of the bow box. The curve is made fuller until it clears every box
+  // corner by 1". Returns a closed polyline and its length.
+  function hullShape(boxes, bow) {
+    const xs = Math.min(...boxes.map(b => b.x0)), xf = Math.max(...boxes.map(b => b.x1));
+    const h = Math.max(...boxes.map(b => Math.max(Math.abs(b.z0), Math.abs(b.z1))));
+    const xw = Math.max(...boxes.filter(b => Math.max(Math.abs(b.z0), Math.abs(b.z1)) >= h - 1).map(b => b.x1));
+    const corners = boxes.flatMap(b => [[b.x0, b.z0], [b.x0, b.z1], [b.x1, b.z0], [b.x1, b.z1]]);
+    let tip = xf + bow, f = 0.5, curve;
+    const make = () => {
+      const P = [[xw, h], [xw + (tip - xw) * 0.5, h], [tip - (tip - xw) * 0.15, h * f], [tip, 0]], out = [];
+      for (let i = 0; i <= 24; i++) {
+        const t = i / 24, u = 1 - t, w = [u * u * u, 3 * u * u * t, 3 * u * t * t, t * t * t];
+        out.push([0, 1].map(k => w.reduce((s2, wi, j) => s2 + wi * P[j][k], 0)));
+      }
+      return out;
+    };
+    const half = (pts, x) => { if (x <= xw) return h; for (let i = 1; i < pts.length; i++) if (pts[i][0] >= x) { const [a, b] = [pts[i - 1], pts[i]], t = (x - a[0]) / ((b[0] - a[0]) || 1); return a[1] + t * (b[1] - a[1]); } return 0; };
+    for (let n = 0; n < 40; n++) {
+      curve = make();
+      const bad = corners.some(([x, z]) => x > xw && half(curve, x) < Math.abs(z) + 1);
+      if (!bad) break;
+      if (f < 1) f = Math.min(1, f + 0.05); else tip += 2;
+    }
+    const side = [[xs, h], ...curve];                       // stern corner, along the side, round to the tip
+    const outline = [...side, ...side.slice(0, -1).reverse().map(([x, z]) => [x, -z])];   // back down the other side to the stern
+    let len = 0; for (let i = 0; i < outline.length; i++) { const a = outline[i], b = outline[(i + 1) % outline.length]; len += Math.hypot(b[0] - a[0], b[1] - a[1]); }
+    return { outline, perimeter: len, xs, xw, xf, tip, half: h };
+  }
+  function hullPanel(hull, y0, y1) {
+    return { hull: true, a: [hull.xs, 0, -hull.half], b: [hull.xs, 0, hull.half], y0, y1, len: hull.perimeter, height: y1 - y0, face: 'hull (one piece around the boat)', box: 0, n: 0 };
+  }
   // corrugated panels are 26" x 8 ft: pack the side pieces into whole panels
   const PANEL = { w: 26, l: 96 };
   function panelPack(sides) {
-    const pieces = sides.flatMap(sp => { const n = Math.ceil(sp.len / PANEL.l - 1e-9); return Array.from({ length: n }, () => sp.len / n); }).sort((a, b) => b - a);
+    // a hull is one strip: whole panels joined with a 4" overlap at each seam
+    const pieces = sides.flatMap(sp => { const n = sp.hull ? Math.ceil((sp.len - 4) / (PANEL.l - 4) - 1e-9) : Math.ceil(sp.len / PANEL.l - 1e-9); return Array.from({ length: n }, () => sp.hull ? Math.min(PANEL.l, sp.len / n + 4) : sp.len / n); }).sort((a, b) => b - a);
     const bins = [];
     pieces.forEach(len => { const bin = bins.find(b => b.left >= len + KERF); if (bin) { bin.cuts.push(len); bin.left -= len + KERF; } else bins.push({ cuts: [len], left: PANEL.l - len }); });
     return bins;
@@ -616,7 +659,7 @@
   const FRAME_ROLES = new Set(['pipe', 'pipe-large', 'elbow', 'elbow45', 'coupling', 'tee', 'side-tee', 'five-way', 'cross', 'wye', 'cleanout-tee', 'cap', 'spray-foam', 'zip-tie', 'cement', 'epoxy', 'sealant', 'rope', 'mast']);
   const DECK_ROLES = new Set(['xps', 'coroplast', 'plywood']);
   // tools, and parts marked on_boat: false (bought, use not decided), are not weighed
-  const boatParts = parts => (parts || []).filter(p => p.role !== 'tool' && p.category !== 'tools' && p.on_boat !== false);
+  const boatParts = parts => (parts || []).filter(p => p.role !== 'tool' && p.category !== 'tools' && p.on_boat !== false && p.status !== 'suggested');
 
   // Pipe, fittings and zip ties the layout derives are weighed by what it
   // actually uses (spares and offcuts stay on the list but off the boat).
@@ -657,6 +700,31 @@
     return rows;
   }
 
+  // Decals placed in the 3D view: config.decals = [{ type, kind: 'sticker' |
+  // 'paint', color, size, text, at, normal, y }]. Stickers become optional
+  // shopping rows (what to buy); painted ones need a stencil and paint.
+  const DECALS = {
+    stripe: { label: 'Stripe', buy: 'Waterproof vinyl pinstripe tape, 1 in x 150 ft', price: 9.98, per: 150, unit: 'roll', stencil: null },
+    skull: { label: 'Skull and crossbones', buy: 'Skull and crossbones vinyl decal, waterproof, 6-12 in', price: 7.99, per: 1, unit: 'decal', stencil: 'Skull and crossbones stencil, reusable plastic, 8-12 in' },
+    porthole: { label: 'Porthole window', buy: 'Porthole window vinyl decals, waterproof, set of 4', price: 11.99, per: 4, unit: 'set', stencil: 'Circle stencil set (portholes)' },
+    star: { label: 'Nautical star', buy: 'Nautical star vinyl decal, waterproof', price: 5.99, per: 1, unit: 'decal', stencil: 'Nautical star stencil' },
+    flames: { label: 'Flames', buy: 'Flame vinyl decals, waterproof, pair', price: 11.99, per: 2, unit: 'pair', stencil: 'Flame stencil set' },
+    name: { label: 'Boat name', buy: 'Waterproof vinyl letters, 3 in, black (letters and numbers set)', price: 7.98, per: 1, unit: 'pack', stencil: 'Letter stencil set, 3-4 in' },
+  };
+  function decalPlan(c, g) {
+    const list = Array.isArray(c && c.decals) ? c.decals.filter(d => DECALS[d.type]) : [];
+    if (!list.length) return null;
+    const rows = {}, add = (name, n, def, why) => { (rows[name] = rows[name] || { name, n: 0, price: def.price, per: def.per, unit: def.unit, why: [] }); rows[name].n += n; rows[name].why.push(why); };
+    list.forEach(d => {
+      const def = DECALS[d.type];
+      if (d.kind === 'paint') { if (def.stencil) add(def.stencil, 1, { price: 8.98, per: 99, unit: 'stencil' }, `${def.label} (painted)`); return; }
+      if (d.type === 'stripe') { const ft = (g && g.hull ? g.hull.perimeter : 48) / 12; add(def.buy, ft, def, `${ft.toFixed(0)} ft stripe`); }
+      else if (d.type === 'name') add(def.buy, Math.max(1, Math.ceil(String(d.text || '').replace(/\s/g, '').length / 30)), def, `name "${d.text || ''}"`);
+      else add(def.buy, 1, def, def.label);
+    });
+    return Object.values(rows).map(r => Object.assign(r, { qty: Math.ceil(r.n / r.per - 1e-9) }));
+  }
+
   // Paint applied in the 3D view: config.paint = [{ paint: part name, color, area_sqft }].
   // Dried spray paint weighs about 0.02 lb per sq ft per coat; a 12 oz can covers
   // about 15 sq ft (a part's coverage_sqft overrides it).
@@ -674,7 +742,10 @@
     return { area: colors.reduce((t, b) => t + b.area, 0), colors };
   }
 
-  const isBought = p => p.status === 'bought' || p.status === 'installed';
+  // Part states: suggested (an idea, not weighed), planned (will buy), ordered
+  // (paid, on the way), bought, installed. Ordered counts as bought.
+  const STATUSES = ['suggested', 'planned', 'ordered', 'bought', 'installed'];
+  const isBought = p => p.status === 'bought' || p.status === 'installed' || p.status === 'ordered';
 
   // predicted: the finished boat as configured (all listed parts, pipe and
   //   fittings counted by what the layout uses, drums by the layout's count).
@@ -697,7 +768,7 @@
       if (isBought(p)) { onHand += w; boughtListed += (+p.quantity || 0) * (+p.weight_lb_each || 0); }
     });
     const usedBought = onHand - drumsBoughtW;
-    const undecided = (build.parts || []).filter(p => p.on_boat === false);
+    const undecided = (build.parts || []).filter(p => (p.on_boat === false || p.status === 'suggested') && p.role !== 'tool' && p.category !== 'tools');
     return {
       total, predicted: total, measured, drumEach, byRole, onHand,
       undecided: undecided.reduce((t, p) => t + (+p.quantity || 0) * (+p.weight_lb_each || 0), 0), undecidedParts: undecided.map(p => p.name),
@@ -980,7 +1051,7 @@
     const rulesOut = checkRules(build, g, rules || {}, wt);
     const parts = build.parts || [];
     const cost = parts.reduce((s, p) => s + (+p.quantity || 0) * (+p.unit_cost_usd || 0), 0);
-    const spent = parts.filter(p => p.status === 'bought' || p.status === 'installed').reduce((s, p) => s + (+p.quantity || 0) * (+p.unit_cost_usd || 0), 0);
+    const spent = parts.filter(isBought).reduce((s, p) => s + (+p.quantity || 0) * (+p.unit_cost_usd || 0), 0);
     const recs = recommend({ build, g, req, wt, sol, fwd, side, leaks, rulesOut, crewW });
     if (g.cageUnsupported) recs.push({ level: 'warn', title: 'The cage is only modeled for lengthwise drums', detail: 'Crosswise drums use zip-tie bands here. Switch to a lengthwise layout to compare a caged build.' });
     const plan = paintPlan(g.config, build.parts);
@@ -989,11 +1060,13 @@
       recs.push({ level: short.length ? 'warn' : 'info', title: `Paint plan: ${plan.area.toFixed(1)} sq ft painted (~${(plan.area * PAINT_LB_PER_SQFT).toFixed(1)} lb)`,
         detail: plan.colors.map(b => `${b.paint || b.color}: ${b.area.toFixed(1)} sq ft on ${b.parts} part${b.parts > 1 ? 's' : ''}, ~${b.cans} can${b.cans > 1 ? 's' : ''} for one coat (${b.have} on the list)`).join('; ') + '.' + (short.length ? ' Buy more of: ' + short.map(b => b.paint || b.color).join(', ') + '.' : '') });
     }
+    const decals = decalPlan(g.config, g);
+    if (decals) recs.push({ level: 'info', title: `Decals: ${g.config.decals.length} placed in the 3D view`, detail: 'To buy (optional, in Next shopping trip): ' + decals.map(d => `${d.qty} ${d.unit}${d.qty > 1 ? 's' : ''} of ${d.name}`).join('; ') + '. Use waterproof outdoor vinyl, and press it onto clean, dry, scuffed plastic so it stays on in the rapids.' });
     if (g.config.extraTies && g.config.extraTies.length) recs.push({ level: 'info', title: `${g.config.extraTies.length} extra zip-tie supports added in the 3D view`, detail: 'Counted in the zip-tie total and weight. Keep each tie 18" or less and trim flush.' });
     if (wt.undecided > 0) {
       const max = (rules && rules.max_boat_weight_lb) || 150, all = wt.total + wt.undecided;
-      recs.push({ level: all >= max ? 'warn' : 'info', title: `Not counted yet: ${wt.undecided.toFixed(1)} lb of parts whose use isn't decided`,
-        detail: `${wt.undecidedParts.join('; ')}. Using all of it would bring the boat to ${all.toFixed(1)} lb${all >= max ? `, over the ${max} lb limit` : ''}. Untick "not on the boat yet" in Parts once you decide to use a part.` });
+      recs.push({ level: all >= max ? 'warn' : 'info', title: `Not counted yet: ${wt.undecided.toFixed(1)} lb of suggested or undecided parts`,
+        detail: `${wt.undecidedParts.join('; ')}. Using all of it would bring the boat to ${all.toFixed(1)} lb${all >= max ? `, over the ${max} lb limit` : ''}. Set a suggested part to planned, or untick "not on the boat yet", once you decide to use it.` });
     }
     if (g.sidePanels && g.sidePanels.length) recs.push({ level: 'info', title: `Side panels: ${req.items.panel} of the 26" × 8 ft panels, ${req.panelArea_sqft.toFixed(1)} sq ft`,
       detail: `Cut each panel to ${g.sidePanels[0].height.toFixed(1)}" tall (rail to rail) and to these lengths: ` + req.panels.map((pn, i) => `panel ${i + 1}: ${pn.cuts.map(x => x.toFixed(1) + '"').join(' + ')} (${pn.left.toFixed(1)}" left)`).join('; ') + `. Zip-tie them to the top and bottom rails about every 18" (${req.sideTies} ties). Solid PVC sheet sinks if it breaks loose: back it with foam or keep scraps from washing away.` });
@@ -1019,7 +1092,7 @@
       }).join('; ');
       recs.push({ level: 'warn', title: 'Moving a drum would float the boat more level', detail: `Put ${list}. Trim + heel drops from ${placement.current.toFixed(1)}° to ${placement.best.toFixed(1)}°. Use "Apply suggested placement" under Drums.` });
     }
-    const shopping = shoppingList(build, req, opts.catalog, rules, { zip: opts.zip, suppliers: opts.suppliers });
+    const shopping = shoppingList(build, req, opts.catalog, rules, { zip: opts.zip, suppliers: opts.suppliers, geometry: g });
     return { placement, shopping, geometry: g, requirements: req, weights: wt, solution: sol, scenarios: { crewForward: fwd, crewSide: side, leaks }, rules: rulesOut, recommendations: recs, cost, spent, crewWeight: crewW };
   }
 
@@ -1169,6 +1242,11 @@
       const priority = p.category === 'tools' ? 'needed' : ['comfort', 'decor', 'finish'].includes(p.category) ? 'optional' : 'needed';
       rows.push({ catalog_id: p.catalog_id || p.id, url: p.url, role: p.role, name: p.name, qty: +p.quantity, unit: p.unit || 'each', unitCost: +p.unit_cost_usd || 0, estimate: !!p.estimate, source: p.source || '', priority, why });
     });
+    parts.filter(p => p.status === 'suggested' && (+p.quantity || 0) > 0).forEach(p => rows.push({ catalog_id: p.catalog_id, url: p.url, role: p.role, name: p.name, qty: +p.quantity, unit: p.unit || 'each', unitCost: +p.unit_cost_usd || 0, estimate: !!p.estimate, source: p.source || '', priority: 'optional', why: 'Suggested, not on the plan yet.' }));
+    (decalPlan(build.config, linkOpts && linkOpts.geometry) || []).forEach(d => {
+      if (parts.some(p => p.name === d.name)) return;          // already on the list (its own row covers it)
+      rows.push({ role: 'decal', name: d.name, qty: d.qty, unit: d.unit, unitCost: d.price, estimate: true, source: '', priority: 'optional', why: `For the decals placed in the 3D view: ${[...new Set(d.why)].join(', ')}.` });
+    });
     rows.forEach(r => { r.cost = r.qty * r.unitCost; r.links = storeLinks(r, linkOpts); });
     const order = { needed: 0, spare: 1, optional: 2 };
     rows.sort((a, b) => order[a.priority] - order[b.priority]);
@@ -1199,6 +1277,7 @@
       { label: 'Home Depot', url: /homedepot\.com\/p\//.test(url) ? url : `https://www.homedepot.com/s/${encodeURIComponent(q)}` },
       { label: "Lowe's", url: /lowes\.com\/pd\//.test(url) ? url : `https://www.lowes.com/search?searchTerm=${encodeURIComponent(q)}` },
     ];
+    if (item.role === 'decal') links.push({ label: 'Amazon', url: `https://www.amazon.com/s?k=${encodeURIComponent(q)}` });
     if (zip) {
       links.push({ label: `Home Depot near ${zip}`, url: maps(`Home Depot near ${zip}`), kind: 'store' });
       links.push({ label: `Lowe's near ${zip}`, url: maps(`Lowe's near ${zip}`), kind: 'store' });
@@ -1337,7 +1416,7 @@
 
   return {
     WATER, DRUM, DRUM_SIZES, drumSpec, drumLabel, PIPE_R, RAIL_OFFSET, PRESETS, DEFAULT_CONFIG, inventory,
-    CONSUMABLE_SHARE, onBoatShare, paintPlan, PAINT_LB_PER_SQFT, withDefaults, geometry, requirements, shoppingList, storeLinks, fitFrame, rankPresets, PRIORITIES, weights, massItems, crewPositions, solve, checkRules, analyze, comparePresets,
+    STATUSES, isBought, CONSUMABLE_SHARE, onBoatShare, paintPlan, decalPlan, DECALS, PAINT_LB_PER_SQFT, withDefaults, geometry, requirements, shoppingList, storeLinks, fitFrame, rankPresets, PRIORITIES, weights, massItems, crewPositions, solve, checkRules, analyze, comparePresets,
     segArea, drumMaxLb,
   };
 });
