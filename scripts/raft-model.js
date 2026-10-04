@@ -155,7 +155,7 @@
   };
 
   const DEFAULT_CONFIG = {
-    preset: 'cat2', frameStyle: 'stacked', retention: 'bands', cageStyle: 'cradle', packGap: 0, boxEndGap: 2, boxSideGap: 1, boxTopGap: 0, fittingTakeoff: 1.25, railsPerPontoon: 2, centerSpine: false, frameLength: 84, frameWidth: 72, beamCount: 4, pontoonSpacing: 47,
+    preset: 'cat2', frameStyle: 'stacked', retention: 'bands', cageStyle: 'cradle', sidePanels: false, packGap: 0, boxEndGap: 2, boxSideGap: 1, boxTopGap: 0, fittingTakeoff: 1.25, railsPerPontoon: 2, centerSpine: false, frameLength: 84, frameWidth: 72, beamCount: 4, pontoonSpacing: 47,
     drumOffset: 0, drumSpread: 20, bow: true, bowRiser: 12, bowStrut: 18,
     deck: { length: 72, width: 24, thickness: 2.3 }, mastHeight: 30, noodleRail: true,
     crew: { count: 2, weightEach: 175, xOffset: 0, zOffset: 0 }, failedDrum: null,
@@ -399,6 +399,7 @@
       if (Math.abs(a.z - b.z) < a.ez + b.ez && Math.abs(a.x - b.x) < a.ex + b.ex) overlaps.push([i, j]);
     }
     return {
+      sidePanels: c.sidePanels ? boxOutline(boxes, topY) : [],
       config: c, drum, r, mixed, fitted: false, boxes: true, boxList: boxes, boxContacts: contacts, frameWidth: 2 * outerZ, railOffset: 0,
       cage: true, cagePieces: pieces, lowestY: Math.min(...boxes.map(b => b.yb)) - PIPE_R, cageUnsupported: false,
       drums, lines: [], rails: [], beams: [], railY: topY, beamY: topY, deckBottom, deckTop, bow: null, outerZ,
@@ -406,6 +407,39 @@
       overall: { length: Math.max(...xsAll) - Math.min(...xsAll), width: Math.max(...zsAll) - Math.min(...zsAll), height: Math.max(mastTop, wallTop) },
       overlaps, beamsTooShort: false, drumsOffFrame: false,
     };
+  }
+
+  // Side panels: every outer face of the boxes (faces two boxes share stay
+  // open), from the bottom rail to the top rail. Each panel is
+  // { a, b, y0, y1, len, face } with a/b the ends along the face.
+  function boxOutline(boxes, topY) {
+    const faces = [];
+    boxes.forEach(b => {
+      faces.push({ axis: 'z', fixed: b.x0, lo: b.z0, hi: b.z1, out: -1, b }, { axis: 'z', fixed: b.x1, lo: b.z0, hi: b.z1, out: 1, b },
+        { axis: 'x', fixed: b.z0, lo: b.x0, hi: b.x1, out: -1, b }, { axis: 'x', fixed: b.z1, lo: b.x0, hi: b.x1, out: 1, b });
+    });
+    const out = [];
+    faces.forEach(f => {
+      // parts of this face covered by another box's face on the same line, facing the other way
+      const cover = faces.filter(o => o.b !== f.b && o.axis === f.axis && o.out === -f.out && Math.abs(o.fixed - f.fixed) < 0.5).map(o => [o.lo, o.hi]);
+      let segs = [[f.lo, f.hi]];
+      cover.forEach(([l, h]) => { segs = segs.flatMap(([a, b2]) => (h <= a || l >= b2) ? [[a, b2]] : [[a, Math.max(a, l)], [Math.min(b2, h), b2]].filter(([u, v]) => v - u > 0.5)); });
+      segs.filter(([a, b2]) => b2 - a > 0.5).forEach(([a, b2]) => {
+        const y0 = f.b.yb, y1 = topY;
+        const pt = t => f.axis === 'z' ? [f.fixed, 0, t] : [t, 0, f.fixed];
+        const face = f.axis === 'z' ? (f.out > 0 ? 'bow end' : 'stern end') : (f.out > 0 ? 'starboard side' : 'port side');
+        out.push({ a: pt(a), b: pt(b2), y0, y1, len: b2 - a, height: y1 - y0, face, box: f.b.id, n: out.filter(o => o.box === f.b.id && o.face === face).length });
+      });
+    });
+    return out;
+  }
+  // corrugated panels are 26" x 8 ft: pack the side pieces into whole panels
+  const PANEL = { w: 26, l: 96 };
+  function panelPack(sides) {
+    const pieces = sides.flatMap(sp => { const n = Math.ceil(sp.len / PANEL.l - 1e-9); return Array.from({ length: n }, () => sp.len / n); }).sort((a, b) => b - a);
+    const bins = [];
+    pieces.forEach(len => { const bin = bins.find(b => b.left >= len + KERF); if (bin) { bin.cuts.push(len); bin.left -= len + KERF; } else bins.push({ cuts: [len], left: PANEL.l - len }); });
+    return bins;
   }
 
   // ── Material requirements derived from geometry ──
@@ -557,9 +591,13 @@
     });
     const sticks = binPack(cuts);
     const pipeLen = cuts.reduce((t, x) => t + x.len, 0), cageLen = cuts.filter(x => x.cage).reduce((t, x) => t + x.len, 0);
-    const ties = 16 + (c.mastHeight > 0 ? 6 : 0);              // deck tie-downs and mast; drums need no bands
+    const sides = g.sidePanels || [], panels = sides.length ? panelPack(sides) : [];
+    const sideTies = sides.reduce((t, sp) => t + 2 * (Math.ceil(sp.len / 18) + 1), 0);   // panel tied to the top and bottom rails about every 18"
+    const ties = 16 + (c.mastHeight > 0 ? 6 : 0) + sideTies;   // deck tie-downs, mast, side panels; drums need no bands
     const layers = Math.max(1, Math.round(c.deck.thickness - 0.3));
+    const panelArea = sides.reduce((t, sp) => t + sp.len * sp.height, 0) / 144;
     return {
+      panels, panelArea_sqft: panelArea, sideTies,
       cuts, sticks, pipeLength_in: pipeLen, cageLength_in: cageLen,
       items: {
         drum: g.drums.length, pipe: sticks.length, elbow: fit.elbow, tee: fit.tee, cross: 0, coupling: fit.coupling,
@@ -568,6 +606,7 @@
         coroplast: Math.ceil(2 * c.deck.length * c.deck.width * 1.15 / (SHEET.w * SHEET.l)),
         'spray-foam': Math.ceil(pipeLen * PIPE_ID_AREA / FOAM_IN3_PER_CAN),
         cement: 1,
+        ...(sides.length ? { panel: panels.length } : {}),
       },
       tieCount: ties, tieLength: 17, fourWay: fit.four,
     };
@@ -584,7 +623,7 @@
   // Consumables (paint, glue, sealant, tape, twine) are weighed by the share
   // of each container that ends up on the boat: the part's on_boat_share, or
   // a default per role. Everything else is weighed as listed.
-  const USED_ROLES = { pipe: 'pipe', elbow: 'elbow', tee: 'tee', 'side-tee': 'tee', 'five-way': 'tee', 'cleanout-tee': 'tee', cross: 'cross', coupling: 'coupling', 'zip-tie': 'zip-tie', xps: 'xps', coroplast: 'coroplast' };
+  const USED_ROLES = { pipe: 'pipe', elbow: 'elbow', tee: 'tee', 'side-tee': 'tee', 'five-way': 'tee', 'cleanout-tee': 'tee', cross: 'cross', coupling: 'coupling', 'zip-tie': 'zip-tie', xps: 'xps', coroplast: 'coroplast', panel: 'panel' };
   const CONSUMABLE_SHARE = { paint: 0.5, glue: 0.5, sealant: 0.5, epoxy: 0.75, cement: 0.25, tape: 0.25, rope: 0.25 };
   const onBoatShare = p => (p.on_boat_share != null && isFinite(+p.on_boat_share) ? Math.min(1, Math.max(0, +p.on_boat_share)) : CONSUMABLE_SHARE[p.role] ?? 1);
   function partWeights(build, g) {
@@ -596,6 +635,7 @@
     const c = g.config, deckSheets = c.deck.length * c.deck.width / (SHEET.w * SHEET.l);
     used.xps = deckSheets * Math.max(1, Math.round(c.deck.thickness - 0.3));
     used.coroplast = deckSheets * 2;                         // top and bottom skins
+    used.panel = (req.panelArea_sqft || 0) / (PANEL.w * PANEL.l / 144);   // side panels: the area cut, in whole panels
     const pool = {};
     parts.forEach(p => { const k = USED_ROLES[p.role]; if (k) pool[k] = (pool[k] || 0) + (inventory([p])[k] || 0); });
     const plan = paintPlan(c, parts);
@@ -605,7 +645,7 @@
       return { part: p, w: q * share * (+p.weight_lb_each || 0) };
     });
     // the layout needs more pipe or fittings than listed: weigh the shortfall too
-    const DEFAULT_EACH = { pipe: 5.1, elbow: 0.2, tee: 0.35, cross: 0.45, coupling: 0.15, xps: 3, coroplast: 6 };
+    const DEFAULT_EACH = { pipe: 5.1, elbow: 0.2, tee: 0.35, cross: 0.45, coupling: 0.15, xps: 3, coroplast: 6, panel: 3 };
     Object.keys(DEFAULT_EACH).forEach(k => {
       const short = used[k] - (pool[k] || 0);
       if (short <= 1e-9) return;
@@ -955,6 +995,8 @@
       recs.push({ level: all >= max ? 'warn' : 'info', title: `Not counted yet: ${wt.undecided.toFixed(1)} lb of parts whose use isn't decided`,
         detail: `${wt.undecidedParts.join('; ')}. Using all of it would bring the boat to ${all.toFixed(1)} lb${all >= max ? `, over the ${max} lb limit` : ''}. Untick "not on the boat yet" in Parts once you decide to use a part.` });
     }
+    if (g.sidePanels && g.sidePanels.length) recs.push({ level: 'info', title: `Side panels: ${req.items.panel} of the 26" × 8 ft panels, ${req.panelArea_sqft.toFixed(1)} sq ft`,
+      detail: `Cut each panel to ${g.sidePanels[0].height.toFixed(1)}" tall (rail to rail) and to these lengths: ` + req.panels.map((pn, i) => `panel ${i + 1}: ${pn.cuts.map(x => x.toFixed(1) + '"').join(' + ')} (${pn.left.toFixed(1)}" left)`).join('; ') + `. Zip-tie them to the top and bottom rails about every 18" (${req.sideTies} ties). Solid PVC sheet sinks if it breaks loose: back it with foam or keep scraps from washing away.` });
     if (g.boxes) recs.push({ level: 'info', title: `Box frames: each drum sits in its own box of pipe (${(req.cageLength_in / 12).toFixed(0)} ft of pipe)`,
       detail: 'Drums are trapped without straps and the deck sits on the box tops, so there is no separate deck frame. The bottom rails sit just under the drums and can catch rocks in shallow water. Every box corner joins 3 pipes, so use side-outlet tees (3-way corners) there.' + (req.fourWay ? ` Where boxes share a wall or butt against another box's crossbar, ${req.fourWay} of the ${req.items.tee} joints take 4 pipes: use 4-way side-outlet tees or 5-way fittings there.` : '') + (g.boxContacts.length ? ` Boxes ${g.boxContacts.map(([a2, b2]) => `${a2 + 1} and ${b2 + 1}`).join(', ')} meet corner to corner: join them where their end rails meet (a 4-way fitting where the corners touch, short ties otherwise).` : '') });
     if (!opts.noVariant && !g.boxes && g.drums.every(d => d.axis === 'x')) {
@@ -1027,7 +1069,7 @@
     else if (leaks.length) add('ok', 'Survives losing any one drum', '');
     // parts list vs geometry
     const have = inventory(build.parts);
-    const names = { drum: 'drums', pipe: '10 ft pipe sticks', elbow: 'elbows', cross: 'double sani tees (4-way)', tee: 'side-outlet fittings and tees (3-, 4- and 5-way)', coupling: 'couplings', 'zip-tie': 'zip ties', xps: 'XPS sheets (4 x 8 ft, 1" layers)', coroplast: 'Coroplast sheets (4 x 8 ft)', 'spray-foam': 'spray-foam cans', cement: 'PVC cement kits' };
+    const names = { drum: 'drums', pipe: '10 ft pipe sticks', elbow: 'elbows', cross: 'double sani tees (4-way)', tee: 'side-outlet fittings and tees (3-, 4- and 5-way)', coupling: 'couplings', 'zip-tie': 'zip ties', xps: 'XPS sheets (4 x 8 ft, 1" layers)', coroplast: 'Coroplast sheets (4 x 8 ft)', panel: 'side panels (26" x 8 ft)', 'spray-foam': 'spray-foam cans', cement: 'PVC cement kits' };
     Object.entries(req.items).forEach(([role, need]) => {
       const h = have[role] || 0;
       if (need > h && role === 'pipe') {
@@ -1082,7 +1124,7 @@
   // What still has to be bought for the configured layout, given what's
   // already marked bought/installed, plus planned extras and a spare stick
   // when the cut list has little margin.
-  const DERIVED = ['drum', 'pipe', 'cross', 'tee', 'elbow', 'coupling', 'zip-tie', 'xps', 'coroplast', 'spray-foam', 'cement'];
+  const DERIVED = ['drum', 'pipe', 'cross', 'tee', 'elbow', 'coupling', 'zip-tie', 'xps', 'coroplast', 'spray-foam', 'cement', 'panel'];
   function shoppingList(build, req, catalog, rules, linkOpts) {
     const parts = build.parts || [];
     const bought = inventory(parts.filter(isBought));

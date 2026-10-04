@@ -39,7 +39,8 @@
       "weight": 20,
       "weightMeasured": false
     },
-    "packGap": 4
+    "packGap": 4,
+    "sidePanels": true
   },
   "parts": [
     {
@@ -577,7 +578,7 @@
       "pack_count": 100
     },
     {
-      "name": "Corrugated PVC panel 26 in x 8 ft, beige (PVCLite)",
+      "name": "Corrugated PVC roofing panel 26 in x 8 ft, beige (PVCLite): boat side panels",
       "role": "panel",
       "category": "deck",
       "material": "pvc-sheet",
@@ -586,8 +587,7 @@
       "weight_measured": false,
       "unit_cost_usd": 18.48,
       "status": "bought",
-      "notes": "Lowe's 2026-10-03. Use not decided yet (hull sides or bow guard?), so not counted in the weight: untick \"not on the boat yet\" once you use them. Weight is an estimate: weigh one. Solid PVC sheet sinks: foam behind it or bucket-test.",
-      "on_boat": false
+      "notes": "Lowe's 2026-10-03. Side panels on the box frames, cut to length and zip-tied to the top and bottom rails. Only the area used is weighed. Weight is an estimate: weigh one. Solid PVC sheet sinks: back it with foam or bucket-test a scrap."
     },
     {
       "name": "1-1/2 in x 8 ft cap (item BRCAP18)",

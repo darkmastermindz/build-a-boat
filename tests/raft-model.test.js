@@ -348,7 +348,23 @@ test('tools: extra zip-tie supports add ties; painted area replaces paint can we
 test('weights: consumables and sheet goods count only what ends up on the boat', () => {
   const a = M.analyze(current, rules, { skipLeak: true }), w = a.weights;
   assert.ok(w.byRole.xps < 8 && w.byRole.xps > 0, 'XPS cut to the deck');
-  assert.ok(w.byRole['zip-tie'] < 1, 'only the ties the layout uses');
+  const tieW = current.parts.filter(p => p.role === 'zip-tie').reduce((t, p) => t + p.quantity * p.weight_lb_each, 0);
+  assert.ok(w.byRole['zip-tie'] < tieW, 'only the ties the layout uses');
   assert.ok(w.undecided > 0 && w.predicted < 150);
   assert.ok(a.recommendations.some(r => /^Not counted yet/.test(r.title)));
+});
+
+test('side panels: outer box faces only, packed into 26" x 8 ft panels, weighed by area', () => {
+  const g = M.geometry(current.config), q = M.requirements(g, current.parts);
+  assert.ok(g.sidePanels.length > 0);
+  // the pair's shared middle wall and the bow box's butted end get no panel
+  assert.ok(!g.sidePanels.some(sp => Math.abs(sp.a[2]) < 0.5 && Math.abs(sp.b[2]) < 0.5 && sp.a[0] !== sp.b[0]), 'no panel on the shared wall');
+  const outerLen = g.sidePanels.reduce((t, sp) => t + sp.len, 0);
+  const g2 = M.geometry(Object.assign({}, current.config, { sidePanels: false }));
+  assert.strictEqual(g2.sidePanels.length, 0);
+  assert.ok(q.items.panel >= Math.ceil(outerLen / 96) && q.items.panel <= 4);
+  near(q.panelArea_sqft, g.sidePanels.reduce((t, sp) => t + sp.len * sp.height, 0) / 144, 1e-9, 'area');
+  const a = M.analyze(current, rules, { skipLeak: true });
+  const listed = current.parts.find(p => p.role === 'panel');
+  assert.ok(a.weights.byRole.panel > 0 && a.weights.byRole.panel < listed.quantity * listed.weight_lb_each, 'only the area used');
 });

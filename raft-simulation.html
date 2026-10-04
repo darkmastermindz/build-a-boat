@@ -232,6 +232,7 @@
       <div class="toggles">
         <label><input type="checkbox" id="bow"> Bow frame + guard</label>
         <label><input type="checkbox" id="noodleRail"> Noodle rail</label>
+        <label title="Corrugated PVC roofing panels on the outer box faces, bottom rail to top rail"><input type="checkbox" id="sidePanels"> Side panels</label>
       </div>
       <h2>Drums</h2>
       <div class="row"><label for="drumSize">Default drum</label><select id="drumSize" style="grid-column:span 2"></select></div>
@@ -460,6 +461,7 @@ function initControls(){
   };
   $('bow').onchange = e => { build.config.bow = e.target.checked; changed(); };
   $('noodleRail').onchange = e => { build.config.noodleRail = e.target.checked; changed(); };
+  $('sidePanels').onchange = e => { build.config.sidePanels = e.target.checked; changed(); };
   $('failedDrum').onchange = e => { build.config.failedDrum = e.target.value === '' ? null : +e.target.value; changed(); };
   document.querySelectorAll('.tabs button').forEach(b => b.onclick = () => {
     document.querySelectorAll('.tabs button').forEach(x => x.setAttribute('aria-selected', x === b));
@@ -542,7 +544,8 @@ function syncControls(){
   $('railsPerPontoon').value = String(c.railsPerPontoon || 2);
   $('retention').value = c.retention === 'cage' ? 'cage:' + (c.cageStyle === 'single' ? 'single' : 'cradle') : 'bands';
   $('centerSpine').checked = !!c.centerSpine;
-  $('bow').checked = !!c.bow; $('noodleRail').checked = !!c.noodleRail;
+  $('bow').checked = !!c.bow; $('noodleRail').checked = !!c.noodleRail; $('sidePanels').checked = !!c.sidePanels;
+  $('sidePanels').closest('label').style.display = boxes ? '' : 'none';
 }
 
 // ── Parts ────────────────────────────────────
@@ -727,7 +730,7 @@ function renderHud(){
 
 // ── 3D scene ─────────────────────────────────
 let renderer, scene, camera, pivot, boat, water, G = {};
-const LAYERS = ['drums','frame','deck','bow','lash','crew','water'];
+const LAYERS = ['drums','frame','sides','deck','bow','lash','crew','water'];
 const MAT = {};
 function initScene(){
   const stage = $('stage');
@@ -741,7 +744,8 @@ function initScene(){
   const mat = (c, o) => new THREE.MeshStandardMaterial(Object.assign({ color:c, roughness:.55, metalness:0 }, o||{}));
   Object.assign(MAT, { pvc: mat(0xF4F3EE), fit: mat(0xFFFFFF), drum: mat(0x1F5FBF), drumDark: mat(0x174a96), failed: mat(0xC0392B, { transparent:true, opacity:.45 }),
     tie: mat(0x1a1a1a), skin: mat(0xF7F7F5), xps: mat(0xE9A0B4), noodle: mat(0x33B5E5), pfd: mat(0xF07F1E), helmet: mat(0xF2C230), skinTone: mat(0xC99A73),
-    guard: new THREE.MeshStandardMaterial({ color:0xF7F7F5, roughness:.7, side:THREE.DoubleSide }) });
+    guard: new THREE.MeshStandardMaterial({ color:0xF7F7F5, roughness:.7, side:THREE.DoubleSide }),
+    panel: new THREE.MeshStandardMaterial({ color:0xD8C8A0, roughness:.6, side:THREE.DoubleSide, transparent:true, opacity:.88 }) });
   pivot = new THREE.Group(); scene.add(pivot);
   boat = new THREE.Group(); pivot.add(boat);
   water = new THREE.Mesh(new THREE.PlaneGeometry(900, 900), new THREE.MeshStandardMaterial({ color:0x2F6B78, transparent:true, opacity:.42, roughness:.25 }));
@@ -790,6 +794,15 @@ function buildBoat(){
   });
   // cage: lower cradle rails, end ties and posts up to the deck frame
   if (g.cage) g.cagePieces.forEach(pc => { pipe(pc.a, pc.b, G.frame); joint(pc.a); joint(pc.b); });
+  // side panels on the outer box faces, just outside the rails
+  (g.sidePanels || []).forEach((sp, i) => {
+    const mesh = new THREE.Mesh(new THREE.PlaneGeometry(sp.len, sp.height), MAT.panel);
+    const out = /bow/.test(sp.face) ? [1, 0] : /stern/.test(sp.face) ? [-1, 0] : /starboard/.test(sp.face) ? [0, 1] : [0, -1];
+    mesh.position.set((sp.a[0] + sp.b[0]) / 2 + out[0] * (R + .1), (sp.y0 + sp.y1) / 2, (sp.a[2] + sp.b[2]) / 2 + out[1] * (R + .1));
+    if (sp.a[0] === sp.b[0]) mesh.rotation.y = Math.PI / 2;
+    mesh.userData = { kind: 'panel', i, sp, c: mesh.position.toArray() };
+    G.sides.add(mesh);
+  });
   // rails + beams + ties
   g.rails.forEach(rl => pipe([rl.x0, g.railY, rl.z], [rl.x1, g.railY, rl.z], G.frame));
   g.beams.forEach(x => {
@@ -915,6 +928,8 @@ function partInfo(ud){
     case 'deck': return { title: 'Deck (XPS sandwich)', lines: [`${inch(ud.size[0])} × ${inch(ud.size[2])} × ${inch(ud.size[1])} thick`, `Top at ${inch(ud.c[1] + ud.size[1] / 2)} above the drum bottoms`] };
     case 'guard': return { title: 'Bow guard (Coroplast)', lines: [`Top at ${inch(g.bow.topY)}`] };
     case 'flag': return { title: 'Jolly Roger', lines: [`${inch(ud.w)} × ${inch(ud.h)}`] };
+    case 'panel': { const sp = ud.sp, q = A.requirements;
+      return { title: `Side panel (${sp.face}, box ${sp.box + 1})`, lines: [`Cut to ${inch(sp.len)} long × ${inch(sp.height)} tall`, `${(sp.len * sp.height / 144).toFixed(1)} sq ft · ${q.panelArea_sqft.toFixed(1)} sq ft on the boat`, `${q.items.panel} of the 26" × 8 ft panels used`, 'Zip-tie to the top and bottom rails'] }; }
     case 'tie': return { title: 'Zip-tie support', lines: ['Added in the 3D view', 'Remove it with 🔗 Zip tie in 🧰 Tools'] };
     case 'crew': return { title: `Crew ${ud.i + 1}`, lines: [`${c.crew.weightEach} lb, seated`, `Head ≈ ${inch(ud.top - g.deckTop)} above the deck`] };
   }
@@ -929,11 +944,13 @@ function snapPoints(ud){
     case 'deck': { const [cx, cy, cz] = ud.c, [l, t, w] = ud.size, out = [[cx, cy + t / 2, cz]];
       [-1, 1].forEach(a => [-1, 1].forEach(b => [-1, 1].forEach(e => out.push([cx + a * l / 2, cy + b * t / 2, cz + e * w / 2])))); return out; }
     case 'crew': return [[ud.p[0], ud.top, ud.p[2]], ud.p];
+    case 'panel': { const [cx, cy, cz] = ud.c, sp = ud.sp, alongX = sp.a[0] !== sp.b[0], hl = sp.len / 2, hh = sp.height / 2, out = [ud.c];
+      [-1, 1].forEach(a => [-1, 1].forEach(b => out.push(alongX ? [cx + a * hl, cy + b * hh, cz] : [cx, cy + b * hh, cz + a * hl]))); return out; }
   }
   return [];
 }
 // a stable name for parts that survive a rebuild; pipes and fittings are found again by position
-const partKey = ud => ud.kind === 'drum' ? 'drum:' + ud.d.id : ud.kind === 'crew' ? 'crew:' + ud.i : ['deck', 'mast', 'flag', 'guard'].includes(ud.kind) ? ud.kind : null;
+const partKey = ud => ud.kind === 'panel' ? `panel:${ud.sp.box}:${ud.sp.face}:${ud.sp.n}` : ud.kind === 'drum' ? 'drum:' + ud.d.id : ud.kind === 'crew' ? 'crew:' + ud.i : ['deck', 'mast', 'flag', 'guard'].includes(ud.kind) ? ud.kind : null;
 const refPoint = ud => { const sp = snapPoints(ud); return sp[ud.kind === 'pipe' || ud.kind === 'noodle' ? 2 : 0] || null; };
 function scenePartList(){
   const out = new Map();
@@ -1019,6 +1036,7 @@ function controlsFor(ud){
     case 'mast': case 'flag': add(fromSL('mastHeight')); break;
     case 'guard': add(cfgCtl('bowRiser', 'Bow riser height', 4, 24, 1)); add(cfgCtl('bowStrut', 'Bow reach', 6, 30, 1)); break;
     case 'band': add(fromSL('drumOffset')); break;
+    case 'panel': add(cfgCtl('boxEndGap', 'Box end clearance', 0.5, 8, .25)); add(cfgCtl('boxSideGap', 'Box side clearance', 0.5, 6, .25)); add(cfgCtl('boxTopGap', 'Room above the drums (panel height)', 0, 6, .25)); add(fromSL('packGap')); break;
     case 'crew': CREW.forEach(d => add(fromSL(d[0]))); break;
   }
   return out;
@@ -1089,6 +1107,7 @@ function partArea(ud){                                        // paintable outsi
     case 'fitting': return 0.15;
     case 'guard': return g.bow ? 2 * (g.outerZ + M.PIPE_R) * (g.config.bowStrut + g.config.bowRiser) * 1.3 / 144 : 0;
     case 'flag': return ud.w * ud.h * 2 / 144;
+    case 'panel': return ud.sp.len * ud.sp.height / 144;
   }
   return 0;
 }
