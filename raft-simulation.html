@@ -79,8 +79,19 @@
   th,td{padding:5px 4px;border-bottom:1px solid var(--line);text-align:left;vertical-align:middle}
   th{font-weight:600;color:var(--muted);font-size:11.5px;text-transform:uppercase;letter-spacing:.3px}
   td.num,th.num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
-  .part{border-bottom:1px solid var(--line);padding:8px 0}
-  .part .ph{display:grid;grid-template-columns:1fr 24px;gap:6px;align-items:center}
+  .part{border-bottom:1px solid var(--line);padding:8px 8px 8px 10px;border-left:4px solid var(--line);margin:4px 0;border-radius:4px}
+  .part .sticon{font-size:15px;width:22px;text-align:center}
+  .part.st-suggested{border-left-color:#8e63c7;background:color-mix(in srgb,#8e63c7 7%,transparent)}
+  .part.st-planned{border-left-color:#d08a14;background:color-mix(in srgb,#d08a14 7%,transparent)}
+  .part.st-ordered{border-left-color:#2f7fd1;background:color-mix(in srgb,#2f7fd1 7%,transparent)}
+  .part.st-bought{border-left-color:#2e9d5b}
+  .part.st-installed{border-left-color:#1d6b3e;background:color-mix(in srgb,#2e9d5b 9%,transparent)}
+  .part.off{opacity:.75;border-left-style:dashed}
+  .tag.st-suggested{color:#6d43a8}.tag.st-planned{color:#9a6200}.tag.st-ordered{color:#1f62a8}.tag.st-bought,.tag.st-installed{color:#1d7a45}
+  .pfilter{display:flex;flex-wrap:wrap;gap:5px;margin:8px 0}
+  .pfilter .chip{font:500 12px Barlow,sans-serif;border:1.5px solid var(--line);background:var(--panel);color:var(--ink);padding:3px 9px;border-radius:999px;cursor:pointer}
+  .pfilter .chip[aria-pressed="true"]{border-color:var(--accent);background:var(--accent);color:var(--accent-ink)}
+  .part .ph{display:grid;grid-template-columns:22px 1fr 24px;gap:6px;align-items:center}
   .part .ph input{font-weight:600;padding:4px 6px}
   .part .meta{margin:3px 0 6px}
   .part .pc{display:grid;grid-template-columns:52px 60px 28px 72px 1fr;gap:6px;align-items:end}
@@ -232,6 +243,8 @@
       <div class="toggles">
         <label><input type="checkbox" id="bow"> Bow frame + guard</label>
         <label><input type="checkbox" id="noodleRail"> Noodle rail</label>
+        <label title="Corrugated PVC roofing panels around the boxes, bottom rail to top rail"><input type="checkbox" id="sidePanels"> Side panels</label>
+        <label id="sideStyleRow"><select id="sideStyle" aria-label="Side panel shape"><option value="hull">curved hull (one piece)</option><option value="boxes">flat on each box face</option></select></label>
       </div>
       <h2>Drums</h2>
       <div class="row"><label for="drumSize">Default drum</label><select id="drumSize" style="grid-column:span 2"></select></div>
@@ -267,6 +280,7 @@
         <button class="btn" id="addCatalog">Add</button>
         <button class="btn ghost" id="addCustom">Custom part</button>
       </div>
+      <div class="pfilter" id="partsFilter" role="group" aria-label="Show parts by status"></div>
       <div id="partsTable"></div>
       <p class="small muted" id="partsTotals" style="margin-top:8px"></p>
       <div class="btns">
@@ -320,9 +334,17 @@
       <b>🧰 Tools</b> <span class="small muted">Esc returns to Adjust</span>
       <div class="tm" id="toolModes"></div>
       <div id="paintOpts" hidden><div class="small muted">Paint color (from your paint parts). Shift-click paints every part of that kind.</div><div class="sw" id="swatches"></div></div>
+      <div id="decalOpts" hidden>
+        <div class="sw" id="decalTypes"></div>
+        <div class="trow" id="decalNameRow"><label for="decalText">Name</label><input type="text" id="decalText" maxlength="24" value="KNOT SO FAST" style="grid-column:span 2"></div>
+        <div class="trow"><label for="decalSize">Size</label><input type="range" id="decalSize" min="3" max="30" step="1" value="10"><output id="decalSizeO">10"</output></div>
+        <div class="trow"><label for="decalKind">As</label><select id="decalKind" style="grid-column:span 2"><option value="sticker">vinyl sticker (buy)</option><option value="paint">painted (stencil)</option></select></div>
+        <div class="sw" id="decalColors"></div>
+        <div class="small muted">Click the hull, a drum or the deck to place it. Stripes wrap the hull at the height you click. Pick Erase, then click a decal to remove it.</div>
+      </div>
       <div id="tieOpts" hidden class="small muted">Click a pipe, joint or drum to add a zip-tie support there; click a tie to remove it.</div>
       <div id="toolSummary" class="small"></div>
-      <div class="row2"><button class="btn ghost sm" id="clearTies">Clear ties</button><button class="btn ghost sm" id="clearPaint">Clear paint</button></div>
+      <div class="row2"><button class="btn ghost sm" id="clearTies">Clear ties</button><button class="btn ghost sm" id="clearPaint">Clear paint + decals</button></div>
     </div>
   </div>
 </main>
@@ -402,6 +424,7 @@ const SL = [
   ['deck.length','Deck length',36,96,6,'"'],
   ['deck.width','Deck width',18,48,2,'"'],
   ['mastHeight','Mast above deck',0,40,1,'"'],
+  ['hullBow','Hull bow point',0,36,1,'"', c => c.frameStyle === 'boxes' && c.sidePanels && c.sideStyle !== 'boxes'],
 ];
 const CREW = [
   ['crew.count','People',1,4,1,''],
@@ -460,6 +483,8 @@ function initControls(){
   };
   $('bow').onchange = e => { build.config.bow = e.target.checked; changed(); };
   $('noodleRail').onchange = e => { build.config.noodleRail = e.target.checked; changed(); };
+  $('sidePanels').onchange = e => { build.config.sidePanels = e.target.checked; syncControls(); changed(); };
+  $('sideStyle').onchange = e => { build.config.sideStyle = e.target.value; changed(); };
   $('failedDrum').onchange = e => { build.config.failedDrum = e.target.value === '' ? null : +e.target.value; changed(); };
   document.querySelectorAll('.tabs button').forEach(b => b.onclick = () => {
     document.querySelectorAll('.tabs button').forEach(x => x.setAttribute('aria-selected', x === b));
@@ -542,11 +567,16 @@ function syncControls(){
   $('railsPerPontoon').value = String(c.railsPerPontoon || 2);
   $('retention').value = c.retention === 'cage' ? 'cage:' + (c.cageStyle === 'single' ? 'single' : 'cradle') : 'bands';
   $('centerSpine').checked = !!c.centerSpine;
-  $('bow').checked = !!c.bow; $('noodleRail').checked = !!c.noodleRail;
+  $('bow').checked = !!c.bow; $('noodleRail').checked = !!c.noodleRail; $('sidePanels').checked = !!c.sidePanels;
+  $('sidePanels').closest('label').style.display = boxes ? '' : 'none';
+  $('sideStyle').value = c.sideStyle || 'hull'; $('sideStyleRow').style.display = boxes && c.sidePanels ? '' : 'none';
 }
 
 // ── Parts ────────────────────────────────────
-const STATUSES = ['planned','bought','installed'];
+const STATUSES = M.STATUSES;
+const STATUS_ICON = { suggested: '💡', planned: '📝', ordered: '🚚', bought: '✅', installed: '🔧' };
+const STATUS_HELP = { suggested: 'an idea from the suggestions, not weighed', planned: 'will buy', ordered: 'paid, on the way', bought: 'have it', installed: 'on the boat' };
+let partsFilter = 'all';
 function initParts(){
   const pick = $('catalogPick');
   const groups = {};
@@ -560,7 +590,7 @@ function initParts(){
   $('addCatalog').onclick = () => {
     const it = catalog.items.find(x => x.id === pick.value); if (!it) return;
     const p = { catalog_id: it.id, name: it.name, role: it.role, category: it.category, material: it.material, quantity: Math.max(1, it.suggested_quantity || 1),
-      weight_lb_each: it.weight_lb_each || 0, weight_measured: false, unit_cost_usd: it.unit_cost_usd, status: 'planned', notes: '' };
+      weight_lb_each: it.weight_lb_each || 0, weight_measured: false, unit_cost_usd: it.unit_cost_usd, status: 'suggested', notes: '' };
     ['foam_filled','max_piece_length_in','thickness_in'].forEach(k => { if (k in it) p[k] = it[k]; });
     build.parts.push(p); renderParts(); changed();
   };
@@ -591,14 +621,19 @@ function initParts(){
 }
 function renderParts(){
   const t = $('partsTable'); t.replaceChildren();
+  const count = st => build.parts.filter(p => st === 'all' ? true : st === 'off' ? p.on_boat === false : p.status === st).length;
+  $('partsFilter').replaceChildren(...[['all', '🗂️ All'], ...STATUSES.map(st => [st, `${STATUS_ICON[st]} ${st}`]), ['off', '⏸️ not on boat']].filter(([st]) => st === 'all' || count(st))
+    .map(([st, label]) => el('button', { class: 'chip st-' + st, 'aria-pressed': partsFilter === st, title: STATUS_HELP[st] || '', onclick: () => { partsFilter = st; renderParts(); } }, `${label} (${count(st)})`)));
   build.parts.forEach((p, i) => {
+    if (partsFilter !== 'all' && (partsFilter === 'off' ? p.on_boat !== false : p.status !== partsFilter)) return;
     const num = (k, step, label) => el('label', {}, label, el('input', { type:'number', min:0, step, value: p[k] ?? 0, onchange: e => { p[k] = +e.target.value; changed(); } }));
-    const status = el('label', {}, 'Status', el('select', { onchange: e => { p.status = e.target.value; changed(); } }, STATUSES.map(s => el('option', { value:s, selected: p.status === s }, s))));
-    t.append(el('div', { class:'part' },
+    const status = el('label', {}, 'Status', el('select', { onchange: e => { p.status = e.target.value; renderParts(); changed(); } }, STATUSES.map(s => el('option', { value:s, selected: p.status === s }, `${STATUS_ICON[s]} ${s}`))));
+    t.append(el('div', { class:'part st-' + (p.status || 'planned') + (p.on_boat === false ? ' off' : ''), title: `${STATUS_ICON[p.status] || ''} ${p.status}: ${STATUS_HELP[p.status] || ''}` },
       el('div', { class:'ph' },
+        el('span', { class:'sticon', 'aria-hidden':'true' }, (p.on_boat === false ? '⏸️' : '') + (STATUS_ICON[p.status] || '•')),
         el('input', { type:'text', value: p.name, 'aria-label':'Part name', onchange: e => { p.name = e.target.value; changed(); } }),
         el('button', { class:'x', title:'Remove', 'aria-label':'Remove ' + p.name, onclick: () => { build.parts.splice(i,1); renderParts(); changed(); } }, '×')),
-      el('div', { class:'meta small muted' }, `${p.role} · ${p.material || '?'}`, p.foam_filled ? el('span', { class:'tag' }, 'foam-filled') : '', p.max_piece_length_in ? el('span', { class:'tag' }, `≤${p.max_piece_length_in}" pieces`) : '', p.thickness_in ? el('span', { class:'tag' }, `${p.thickness_in}" thick`) : '', p.length_in ? el('span', { class:'tag' }, `${p.length_in}" long`) : '', p.pack_count ? el('span', { class:'tag' }, `${p.pack_count}/pack`) : '', p.status === 'bought' ? el('span', { class:'tag' }, 'bought') : ''),
+      el('div', { class:'meta small muted' }, `${p.role} · ${p.material || '?'}`, p.foam_filled ? el('span', { class:'tag' }, 'foam-filled') : '', p.max_piece_length_in ? el('span', { class:'tag' }, `≤${p.max_piece_length_in}" pieces`) : '', p.thickness_in ? el('span', { class:'tag' }, `${p.thickness_in}" thick`) : '', p.length_in ? el('span', { class:'tag' }, `${p.length_in}" long`) : '', p.pack_count ? el('span', { class:'tag' }, `${p.pack_count}/pack`) : '', el('span', { class:'tag st-' + p.status }, `${STATUS_ICON[p.status] || ''} ${p.status}`), p.on_boat === false ? el('span', { class:'tag' }, '⏸️ not on boat yet') : ''),
       el('div', { class:'pc' },
         num('quantity', 1, 'Qty'), num('weight_lb_each', 0.1, 'lb ea'),
         el('label', { title:'Weighed?' }, '⚖', el('input', { type:'checkbox', checked: !!p.weight_measured, 'aria-label':'Weight measured', onchange: e => { p.weight_measured = e.target.checked; changed(); } })),
@@ -727,7 +762,7 @@ function renderHud(){
 
 // ── 3D scene ─────────────────────────────────
 let renderer, scene, camera, pivot, boat, water, G = {};
-const LAYERS = ['drums','frame','deck','bow','lash','crew','water'];
+const LAYERS = ['drums','frame','sides','deck','bow','lash','crew','water'];
 const MAT = {};
 function initScene(){
   const stage = $('stage');
@@ -741,7 +776,8 @@ function initScene(){
   const mat = (c, o) => new THREE.MeshStandardMaterial(Object.assign({ color:c, roughness:.55, metalness:0 }, o||{}));
   Object.assign(MAT, { pvc: mat(0xF4F3EE), fit: mat(0xFFFFFF), drum: mat(0x1F5FBF), drumDark: mat(0x174a96), failed: mat(0xC0392B, { transparent:true, opacity:.45 }),
     tie: mat(0x1a1a1a), skin: mat(0xF7F7F5), xps: mat(0xE9A0B4), noodle: mat(0x33B5E5), pfd: mat(0xF07F1E), helmet: mat(0xF2C230), skinTone: mat(0xC99A73),
-    guard: new THREE.MeshStandardMaterial({ color:0xF7F7F5, roughness:.7, side:THREE.DoubleSide }) });
+    guard: new THREE.MeshStandardMaterial({ color:0xF7F7F5, roughness:.7, side:THREE.DoubleSide }),
+    panel: new THREE.MeshStandardMaterial({ color:0xD8C8A0, roughness:.6, side:THREE.DoubleSide, transparent:true, opacity:.88 }) });
   pivot = new THREE.Group(); scene.add(pivot);
   boat = new THREE.Group(); pivot.add(boat);
   water = new THREE.Mesh(new THREE.PlaneGeometry(900, 900), new THREE.MeshStandardMaterial({ color:0x2F6B78, transparent:true, opacity:.42, roughness:.25 }));
@@ -753,6 +789,20 @@ function initScene(){
   bar.append(el('button', { class: 'measure', id: 'toolsBtn', 'aria-pressed': 'false', 'aria-controls': 'tools', title: 'Show tools: zip-tie supports, paint, measure', onclick: () => toggleTools() }, '🧰 Tools'));
   orbit(); initPicking(); initTools(); resize(); addEventListener('resize', resize);
   loop(0);
+}
+// a vertical band following a closed 2-D outline (x, z), pushed `off` inches outward
+function hullBand(outline, y0, y1, off, mat){
+  const n = outline.length, pos = [], idx = [];
+  const area2 = outline.reduce((t, p, i) => { const q = outline[(i + 1) % n]; return t + p[0] * q[1] - q[0] * p[1]; }, 0), sgn = area2 > 0 ? 1 : -1;   // push outward for either winding
+  const pts = outline.map((p, i) => {
+    const a = outline[(i - 1 + n) % n], b = outline[(i + 1) % n];
+    let nx = (b[1] - a[1]) * sgn, nz = -(b[0] - a[0]) * sgn; const L = Math.hypot(nx, nz) || 1; nx /= L; nz /= L;
+    return [p[0] + nx * off, p[1] + nz * off];
+  });
+  pts.concat([pts[0]]).forEach(([x, z]) => pos.push(x, y0, z, x, y1, z));
+  for (let i = 0; i < n; i++) { const k = i * 2; idx.push(k, k + 2, k + 1, k + 1, k + 2, k + 3); }
+  const geo = new THREE.BufferGeometry(); geo.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); geo.setIndex(idx); geo.computeVertexNormals();
+  return new THREE.Mesh(geo, mat);
 }
 function disposeGroup(g){ g.traverse(o => { if (o.geometry) o.geometry.dispose(); }); }
 function buildBoat(){
@@ -790,6 +840,16 @@ function buildBoat(){
   });
   // cage: lower cradle rails, end ties and posts up to the deck frame
   if (g.cage) g.cagePieces.forEach(pc => { pipe(pc.a, pc.b, G.frame); joint(pc.a); joint(pc.b); });
+  // side panels on the outer box faces, just outside the rails
+  (g.sidePanels || []).forEach((sp, i) => {
+    if (sp.hull) { const mesh = hullBand(g.hull.outline, sp.y0, sp.y1, R + .15, MAT.panel); mesh.userData = { kind: 'panel', i, sp, c: [(g.hull.xs + g.hull.tip) / 2, (sp.y0 + sp.y1) / 2, 0] }; G.sides.add(mesh); return; }
+    const mesh = new THREE.Mesh(new THREE.PlaneGeometry(sp.len, sp.height), MAT.panel);
+    const out = /bow/.test(sp.face) ? [1, 0] : /stern/.test(sp.face) ? [-1, 0] : /starboard/.test(sp.face) ? [0, 1] : [0, -1];
+    mesh.position.set((sp.a[0] + sp.b[0]) / 2 + out[0] * (R + .1), (sp.y0 + sp.y1) / 2, (sp.a[2] + sp.b[2]) / 2 + out[1] * (R + .1));
+    if (sp.a[0] === sp.b[0]) mesh.rotation.y = Math.PI / 2;
+    mesh.userData = { kind: 'panel', i, sp, c: mesh.position.toArray() };
+    G.sides.add(mesh);
+  });
   // rails + beams + ties
   g.rails.forEach(rl => pipe([rl.x0, g.railY, rl.z], [rl.x1, g.railY, rl.z], G.frame));
   g.beams.forEach(x => {
@@ -915,6 +975,11 @@ function partInfo(ud){
     case 'deck': return { title: 'Deck (XPS sandwich)', lines: [`${inch(ud.size[0])} × ${inch(ud.size[2])} × ${inch(ud.size[1])} thick`, `Top at ${inch(ud.c[1] + ud.size[1] / 2)} above the drum bottoms`] };
     case 'guard': return { title: 'Bow guard (Coroplast)', lines: [`Top at ${inch(g.bow.topY)}`] };
     case 'flag': return { title: 'Jolly Roger', lines: [`${inch(ud.w)} × ${inch(ud.h)}`] };
+    case 'panel': { const sp = ud.sp, q = A.requirements;
+      if (sp.hull) return { title: 'Hull side (one piece of corrugated PVC panels)', lines: [`${inch(sp.len)} around (${ftIn(sp.len)}) × ${inch(sp.height)} tall`, `${q.panelArea_sqft.toFixed(1)} sq ft · ${q.items.panel} panels joined with 4" overlaps`, `Bow point ${inch(A.geometry.hull.tip - A.geometry.hull.xf)} ahead of the bow box, on a pipe nose`, 'Bend the panels around the frame; corrugations run up and down'] };
+      return { title: `Side panel (${sp.face}, box ${sp.box + 1})`, lines: [`Cut to ${inch(sp.len)} long × ${inch(sp.height)} tall`, `${(sp.len * sp.height / 144).toFixed(1)} sq ft · ${q.panelArea_sqft.toFixed(1)} sq ft on the boat`, `${q.items.panel} of the 26" × 8 ft panels used`, 'Zip-tie to the top and bottom rails'] }; }
+    case 'decal': { const d = build.config.decals[ud.i] || {};
+      return { title: `Decal: ${(M.DECALS[d.type] || {}).label || d.type}${d.type === 'name' ? ` "${d.text}"` : ''}`, lines: [d.kind === 'paint' ? 'Painted with a stencil' : 'Vinyl sticker', d.type === 'stripe' ? `${d.size}" wide stripe around the hull` : `${d.size}" across`, 'Remove it with 🏴‍☠️ Decals → Erase'] }; }
     case 'tie': return { title: 'Zip-tie support', lines: ['Added in the 3D view', 'Remove it with 🔗 Zip tie in 🧰 Tools'] };
     case 'crew': return { title: `Crew ${ud.i + 1}`, lines: [`${c.crew.weightEach} lb, seated`, `Head ≈ ${inch(ud.top - g.deckTop)} above the deck`] };
   }
@@ -929,11 +994,14 @@ function snapPoints(ud){
     case 'deck': { const [cx, cy, cz] = ud.c, [l, t, w] = ud.size, out = [[cx, cy + t / 2, cz]];
       [-1, 1].forEach(a => [-1, 1].forEach(b => [-1, 1].forEach(e => out.push([cx + a * l / 2, cy + b * t / 2, cz + e * w / 2])))); return out; }
     case 'crew': return [[ud.p[0], ud.top, ud.p[2]], ud.p];
+    case 'panel': if (ud.sp.hull) { const hl = A.geometry.hull, sp = ud.sp; return [ud.c, [hl.tip, sp.y1, 0], [hl.tip, sp.y0, 0], [hl.xs, sp.y1, -hl.half], [hl.xs, sp.y1, hl.half], [hl.xs, sp.y0, -hl.half], [hl.xs, sp.y0, hl.half]]; }
+    { const [cx, cy, cz] = ud.c, sp = ud.sp, alongX = sp.a[0] !== sp.b[0], hl = sp.len / 2, hh = sp.height / 2, out = [ud.c];
+      [-1, 1].forEach(a => [-1, 1].forEach(b => out.push(alongX ? [cx + a * hl, cy + b * hh, cz] : [cx, cy + b * hh, cz + a * hl]))); return out; }
   }
   return [];
 }
 // a stable name for parts that survive a rebuild; pipes and fittings are found again by position
-const partKey = ud => ud.kind === 'drum' ? 'drum:' + ud.d.id : ud.kind === 'crew' ? 'crew:' + ud.i : ['deck', 'mast', 'flag', 'guard'].includes(ud.kind) ? ud.kind : null;
+const partKey = ud => ud.kind === 'panel' && ud.sp.hull ? 'hull' : ud.kind === 'panel' ? `panel:${ud.sp.box}:${ud.sp.face}:${ud.sp.n}` : ud.kind === 'drum' ? 'drum:' + ud.d.id : ud.kind === 'crew' ? 'crew:' + ud.i : ['deck', 'mast', 'flag', 'guard'].includes(ud.kind) ? ud.kind : null;
 const refPoint = ud => { const sp = snapPoints(ud); return sp[ud.kind === 'pipe' || ud.kind === 'noodle' ? 2 : 0] || null; };
 function scenePartList(){
   const out = new Map();
@@ -966,7 +1034,11 @@ function pick(e){
     const dx = (s.x + 1) / 2 * r.width - (e.clientX - r.left), dy = (1 - s.y) / 2 * r.height - (e.clientY - r.top), dpx = Math.hypot(dx, dy);
     if (dpx < 22 && (!best || dpx < best.dpx)) best = { p, idx, dpx };
   });
-  return { ud, point: best ? best.p : local, snapped: !!best, idx: best ? best.idx : -1, x: e.clientX - r.left, y: e.clientY - r.top };
+  let normal = [0, 1, 0];
+  if (hit.face) { const nw = hit.face.normal.clone().transformDirection(hit.object.matrixWorld), inv = new THREE.Matrix4().copy(boat.matrixWorld).invert(); normal = nw.transformDirection(inv).toArray(); }
+  const toCam = boat.worldToLocal(camera.position.clone()).sub(new THREE.Vector3(...local));
+  if (new THREE.Vector3(...normal).dot(toCam) < 0) normal = normal.map(v => -v);   // double-sided faces: face the viewer
+  return { ud, point: best ? best.p : local, surface: local, normal, snapped: !!best, idx: best ? best.idx : -1, x: e.clientX - r.left, y: e.clientY - r.top };
 }
 // a measurement end: where it is, and what it is attached to
 function anchorOf(h){
@@ -1019,6 +1091,8 @@ function controlsFor(ud){
     case 'mast': case 'flag': add(fromSL('mastHeight')); break;
     case 'guard': add(cfgCtl('bowRiser', 'Bow riser height', 4, 24, 1)); add(cfgCtl('bowStrut', 'Bow reach', 6, 30, 1)); break;
     case 'band': add(fromSL('drumOffset')); break;
+    case 'panel': if (ud.sp.hull) add(cfgCtl('hullBow', 'Bow point (ahead of the boxes)', 0, 36, 1));
+      add(cfgCtl('boxEndGap', 'Box end clearance', 0.5, 8, .25)); add(cfgCtl('boxSideGap', 'Box side clearance', 0.5, 6, .25)); add(cfgCtl('boxTopGap', 'Room above the drums (panel height)', 0, 6, .25)); add(fromSL('packGap')); break;
     case 'crew': CREW.forEach(d => add(fromSL(d[0]))); break;
   }
   return out;
@@ -1060,7 +1134,7 @@ function showHover(h){
   const tip = $('tip'), info = h && partInfo(h.ud);
   if (!info) { tip.hidden = true; return; }
   tip.classList.remove('pinned');
-  tip.replaceChildren(el('b', {}, info.title), ...info.lines.map(t => el('div', {}, t)), el('div', { class: 'small muted' }, toolMode === 'paint' ? (partArea(h.ud) ? `Click to ${paintSel ? 'paint' : 'erase'} (${partArea(h.ud).toFixed(1)} sq ft)` : "Can't paint this") : 'Click to adjust'));
+  tip.replaceChildren(el('b', {}, info.title), ...info.lines.map(t => el('div', {}, t)), el('div', { class: 'small muted' }, toolMode === 'decal' ? (decalType === 'erase' ? 'Click a decal to remove it' : 'Click to place the decal here') : toolMode === 'paint' ? (partArea(h.ud) ? `Click to ${paintSel ? 'paint' : 'erase'} (${partArea(h.ud).toFixed(1)} sq ft)` : "Can't paint this") : 'Click to adjust'));
   const st = $('stage');
   tip.style.left = Math.min(h.x, st.clientWidth - 280) + 'px'; tip.style.top = Math.min(h.y, st.clientHeight - 120) + 'px';
   tip.hidden = false;
@@ -1069,7 +1143,7 @@ function showHover(h){
 function afterBuild(){
   const parts = scenePartList();
   mA = reanchor(mA, parts); mB = mB && mA ? reanchor(mB, parts) : null; hoverSnap = null;
-  drawTies(parts); applyPaint(parts);
+  drawTies(parts); applyPaint(parts); drawDecals(parts);
   drawMeasure(); refreshPin(parts); renderToolSummary();
 }
 // ── Tools: zip-tie supports and paint ──
@@ -1077,7 +1151,7 @@ function afterBuild(){
 //   extraTies: anchors on parts (like measurement points), counted as zip ties
 //   paint: [{ kind, key, dir, point, color, paint, area_sqft }], one per painted part
 let toolMode = 'select', paintSel = null;
-const TOOL_MODES = [['select', '👆 Adjust'], ['tie', '🔗 Zip tie'], ['paint', '🎨 Paint'], ['measure', '📏 Measure']];
+const TOOL_MODES = [['select', '👆 Adjust'], ['tie', '🔗 Zip tie'], ['paint', '🎨 Paint'], ['decal', '🏴‍☠️ Decals'], ['measure', '📏 Measure']];
 const paintParts = () => build.parts.filter(p => p.role === 'paint' && p.color_hex);
 function partArea(ud){                                        // paintable outside area, sq ft
   const g = A.geometry;
@@ -1089,6 +1163,7 @@ function partArea(ud){                                        // paintable outsi
     case 'fitting': return 0.15;
     case 'guard': return g.bow ? 2 * (g.outerZ + M.PIPE_R) * (g.config.bowStrut + g.config.bowRiser) * 1.3 / 144 : 0;
     case 'flag': return ud.w * ud.h * 2 / 144;
+    case 'panel': return ud.sp.len * ud.sp.height / 144;
   }
   return 0;
 }
@@ -1111,7 +1186,7 @@ function drawTies(parts){
 const PAINT_MATS = new Map();
 function paintMat(base, hex){
   const k = base.uuid + hex;
-  if (!PAINT_MATS.has(k)) { const m = base.clone(); m.color = new THREE.Color(hex); m.map = null; PAINT_MATS.set(k, m); }
+  if (!PAINT_MATS.has(k)) { const m = base.clone(); m.color = new THREE.Color(hex); m.map = null; m.transparent = false; m.opacity = 1; PAINT_MATS.set(k, m); }
   return PAINT_MATS.get(k);
 }
 function applyPaint(parts){
@@ -1149,10 +1224,90 @@ function tieClick(h){
 function renderToolSummary(){
   const box = $('toolSummary'); if (!box || !A) return;
   const c = build.config, plan = M.paintPlan(c, build.parts), n = (c.extraTies || []).length;
+  const nd = (c.decals || []).length;
   box.replaceChildren(el('div', {}, `🔗 ${n} added tie${n === 1 ? '' : 's'} · layout total ${A.requirements.tieCount} ties`),
+    el('div', {}, nd ? `🏴‍☠️ ${nd} decal${nd === 1 ? '' : 's'}: to buy in Check → Next shopping trip` : '🏴‍☠️ No decals yet'),
     ...(plan ? [el('div', {}, `🎨 ${plan.area.toFixed(1)} sq ft painted ≈ ${(plan.area * M.PAINT_LB_PER_SQFT).toFixed(2)} lb`),
       ...plan.colors.map(b => el('div', { class: b.cans > b.have ? 'muted' : '' }, el('span', { style: `display:inline-block;width:10px;height:10px;border-radius:50%;background:${b.color};border:1px solid #999;margin-right:5px` }),
         `${(b.paint || '').replace(/^Krylon Fusion spray paint, |^Rust-Oleum /, '').replace(/, 1[12] oz$/, '')}: ${b.area.toFixed(1)} sq ft, ${b.cans} of ${b.have} can${b.have === 1 ? '' : 's'}${b.cans > b.have ? ' ⚠️ buy more' : ''}`))] : [el('div', { class: 'muted' }, '🎨 Nothing painted yet')]));
+}
+// ── Decals ──
+let decalType = 'skull';
+const DECAL_COLORS = ['#111111', '#f5f5f0', '#9e1b1b', '#f4c20d', '#1f5fbf', '#c9a227'];
+const decalTex = new Map();
+function decalTexture(type, color, text){
+  const k = type + color + (text || ''); if (decalTex.has(k)) return decalTex.get(k);
+  const W = type === 'name' ? 64 * Math.max(4, (text || '').length) : 256, H = type === 'name' ? 96 : 256;
+  const cv = document.createElement('canvas'); cv.width = W; cv.height = H; const x = cv.getContext('2d');
+  x.fillStyle = color; x.strokeStyle = color; x.lineCap = 'round';
+  if (type === 'skull') {
+    x.lineWidth = 20; x.beginPath(); x.moveTo(50, 200); x.lineTo(206, 236); x.moveTo(206, 200); x.lineTo(50, 236); x.stroke();
+    x.beginPath(); x.arc(128, 104, 70, 0, Math.PI * 2); x.fill(); x.fillRect(92, 140, 72, 50);
+    x.globalCompositeOperation = 'destination-out'; x.beginPath(); x.arc(102, 100, 17, 0, Math.PI * 2); x.arc(154, 100, 17, 0, Math.PI * 2); x.fill();
+    [104, 124, 144].forEach(t => x.fillRect(t, 160, 9, 26));
+  } else if (type === 'porthole') {
+    x.lineWidth = 26; x.beginPath(); x.arc(128, 128, 100, 0, Math.PI * 2); x.stroke();
+    x.fillStyle = 'rgba(120,180,220,.85)'; x.beginPath(); x.arc(128, 128, 86, 0, Math.PI * 2); x.fill();
+    x.fillStyle = 'rgba(255,255,255,.6)'; x.beginPath(); x.ellipse(100, 98, 30, 14, -0.7, 0, Math.PI * 2); x.fill();
+    x.fillStyle = color; for (let i = 0; i < 8; i++) { const a = i * Math.PI / 4; x.beginPath(); x.arc(128 + 113 * Math.cos(a), 128 + 113 * Math.sin(a), 7, 0, Math.PI * 2); x.fill(); }
+  } else if (type === 'star') {
+    x.beginPath(); for (let i = 0; i < 10; i++) { const a = -Math.PI / 2 + i * Math.PI / 5, r = i % 2 ? 48 : 120; x.lineTo(128 + r * Math.cos(a), 128 + r * Math.sin(a)); } x.closePath(); x.fill();
+  } else if (type === 'flames') {
+    x.beginPath(); x.moveTo(10, 200);
+    [[60, 60], [90, 150], [130, 30], [160, 140], [200, 70], [220, 160], [250, 120]].forEach(([px, py], i, arr) => { const [qx, qy] = arr[i - 1] || [10, 200]; x.quadraticCurveTo((qx + px) / 2, py + 60, px, py); });
+    x.lineTo(250, 230); x.lineTo(10, 230); x.closePath(); x.fill();
+  } else if (type === 'name') {
+    x.font = 'bold 72px Barlow, Arial, sans-serif'; x.textAlign = 'center'; x.textBaseline = 'middle'; x.fillText(text || '', W / 2, H / 2 + 4);
+  }
+  const t = new THREE.CanvasTexture(cv); decalTex.set(k, t); return t;
+}
+function drawDecals(parts){
+  const c = build.config; if (!Array.isArray(c.decals)) return;
+  const g = A.geometry;
+  c.decals = c.decals.filter(d => { if (d.at) { const a = reanchor(d.at, parts); if (!a) return false; d.at = a; } return true; });
+  c.decals.forEach((d, i) => {
+    let mesh;
+    if (d.type === 'stripe' && g.hull) {
+      const half = d.size / 2, y = Math.min(g.hull.y1 - half, Math.max(g.hull.y0 + half, d.y));
+      mesh = hullBand(g.hull.outline, y - half, y + half, M.PIPE_R + .3, new THREE.MeshStandardMaterial({ color: d.color, roughness: .5, side: THREE.DoubleSide }));
+      G.sides.add(mesh);
+    } else {
+      const w = d.type === 'name' ? d.size * 0.62 * Math.max(4, (d.text || '').length) * 0.75 : d.type === 'stripe' ? 24 : d.size, h = d.type === 'name' ? d.size * 1.1 : d.type === 'stripe' ? d.size / 3 : d.size;
+      const mat = d.type === 'stripe' ? new THREE.MeshStandardMaterial({ color: d.color, side: THREE.DoubleSide }) : new THREE.MeshStandardMaterial({ map: decalTexture(d.type, d.color, d.text), transparent: true, side: THREE.DoubleSide, roughness: .6, depthWrite: false });
+      mesh = new THREE.Mesh(new THREE.PlaneGeometry(w, h), mat);
+      const p = d.at ? d.at.point : d.point, n = new THREE.Vector3(...d.normal);
+      mesh.position.set(...p).addScaledVector(n, 0.35);
+      boat.add(mesh); boat.updateMatrixWorld(true);
+      const up = Math.abs(n.y) > 0.9 ? new THREE.Vector3(1, 0, 0) : new THREE.Vector3(0, 1, 0);
+      mesh.up.copy(up); mesh.lookAt(boat.localToWorld(mesh.position.clone().add(n)));
+      boat.remove(mesh); G.sides.add(mesh);
+    }
+    mesh.userData = { kind: 'decal', i }; mesh.renderOrder = 5;
+  });
+}
+function decalClick(h){
+  const c = build.config; if (!Array.isArray(c.decals)) c.decals = [];
+  if (decalType === 'erase') {
+    const i = h.ud.kind === 'decal' ? h.ud.i : c.decals.findIndex(d => dist3(d.at ? d.at.point : d.point, h.surface) < Math.max(4, d.size / 2));
+    if (i >= 0) { c.decals.splice(i, 1); changed(); }
+    return;
+  }
+  if (h.ud.kind === 'decal' || h.ud.kind === 'tie') return;
+  const size = +$('decalSize').value, color = decalColor, kind = $('decalKind').value;
+  const at = anchorOf(Object.assign({}, h, { point: h.surface, snapped: false, idx: -1 }));
+  const d = { type: decalType, kind, color, size, normal: h.normal, at };
+  if (decalType === 'stripe') d.y = h.surface[1];
+  if (decalType === 'name') d.text = $('decalText').value.trim() || 'B.O.B.';
+  c.decals.push(d); changed();
+}
+let decalColor = '#111111';
+function renderDecalOpts(){
+  const types = [...Object.entries(M.DECALS).map(([k, v]) => [k, v.label]), ['erase', 'Erase']];
+  $('decalTypes').replaceChildren(...types.map(([k, label]) => el('button', { class: 'erase', 'aria-pressed': decalType === k, onclick: () => { decalType = k; renderDecalOpts(); } }, label)));
+  const colors = [...new Set([...paintParts().map(p => p.color_hex), ...DECAL_COLORS])];
+  $('decalColors').replaceChildren(...colors.map(col => el('button', { 'aria-label': 'Decal color ' + col, 'aria-pressed': decalColor === col, style: `background:${col}`, onclick: () => { decalColor = col; renderDecalOpts(); } })));
+  $('decalNameRow').hidden = decalType !== 'name';
+  $('decalSize').oninput = e => { $('decalSizeO').textContent = e.target.value + '"'; };
 }
 function renderSwatches(){
   const box = $('swatches'); box.replaceChildren();
@@ -1167,9 +1322,10 @@ function setTool(mode){
   toolMode = mode;
   if (mode === 'measure') { measureOn = true; $('measureBtn').setAttribute('aria-pressed', true); }
   document.querySelectorAll('#toolModes button').forEach(b => b.setAttribute('aria-pressed', b.dataset.mode === mode));
-  $('paintOpts').hidden = mode !== 'paint'; $('tieOpts').hidden = mode !== 'tie';
+  $('paintOpts').hidden = mode !== 'paint'; $('tieOpts').hidden = mode !== 'tie'; $('decalOpts').hidden = mode !== 'decal';
+  if (mode === 'decal') renderDecalOpts();
   if (mode === 'paint') renderSwatches();
-  renderer.domElement.style.cursor = mode === 'select' ? '' : mode === 'paint' ? 'cell' : 'crosshair';
+  renderer.domElement.style.cursor = mode === 'select' ? '' : mode === 'paint' || mode === 'decal' ? 'cell' : 'crosshair';
   closePin(); hoverSnap = null;
   if (mode === 'measure' || !mB) clearMeasure(); else { drawMeasure(); measureHint(); }
 }
@@ -1182,7 +1338,7 @@ function toggleTools(force){
 function initTools(){
   $('toolModes').append(...TOOL_MODES.map(([m, label]) => el('button', { 'data-mode': m, 'aria-pressed': m === 'select', onclick: () => setTool(m) }, label)));
   $('clearTies').onclick = () => { build.config.extraTies = []; changed(); };
-  $('clearPaint').onclick = () => { build.config.paint = []; syncControls(); changed(); };
+  $('clearPaint').onclick = () => { build.config.paint = []; build.config.decals = []; syncControls(); changed(); };
   let on = false; try { on = localStorage.getItem('bob-tools') === '1'; } catch (e) {}
   toggleTools(on);
 }
@@ -1244,6 +1400,7 @@ function initPicking(){
     }
     if (toolMode === 'tie') { if (h) tieClick(h); return; }
     if (toolMode === 'paint') { if (h) paintClick(h, e.shiftKey); return; }
+    if (toolMode === 'decal') { if (h) decalClick(h); return; }
     if (h) pinPart(h); else closePin();
   });
   addEventListener('keydown', e => { if (e.key === 'Escape' && !/INPUT|SELECT|TEXTAREA/.test(document.activeElement.tagName)) { if (toolMode !== 'select') setTool('select'); closePin(); clearMeasure(); } });

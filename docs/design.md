@@ -188,6 +188,21 @@ Computed numbers:
 | Pipe | ~70 ft = 8 sticks |
 | Joints | 20 side-outlet joints, 8 of them 4-way where boxes share a corner (the team has 24 Zernmiarder 4-way side-outlet tees) |
 
+Side panels: the four corrugated PVC roofing panels from Lowe's (26" × 8 ft)
+are bent into one curved hull around the boxes.
+- The hull has a square transom and a bow point 18" ahead of the bow box,
+  held by a pipe nose.
+- It is 260" around, made of 3 panels joined with 4" overlaps.
+- The boat is 7.9 ft long.
+- It's themed with paint and decals: try them with 🧰 Tools → 🎨 Paint and
+  🏴‍☠️ Decals.
+
+The earlier flat version put a panel on each outer box face:
+- They cover every outer box face, 24.4" tall from rail to rail, and are
+  zip-tied to the rails.
+- They take 3 panels (44 sq ft) and add about 7.6 lb.
+- Predicted weight with panels: 133 lb.
+
 Tradeoffs and what to watch:
 - **Side-to-side stability is low.** Keep the crew low and centered.
   Widening the gap helps: 8" gives roll GM +7" at 148 lb, and 14" gives +18"
