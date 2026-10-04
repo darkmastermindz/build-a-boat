@@ -205,7 +205,7 @@ test('hydrostatics: trim from a fore-aft load on a stable 4-drum pontoon matches
 
 test('every shown calculation links to sources, with at least one educational reference', () => {
   const E = M.analyze(current, rules).engineering;
-  const allowed = /^https:\/\/(en\.wikipedia\.org|(en\.|www\.)?khanacademy\.org|brilliant\.org|www\.wolframalpha\.com|mathworld\.wolfram\.com|doi\.org|www\.sciencedirect\.com|www\.ncbi\.nlm\.nih\.gov|archive\.org|www\.spearsmfg\.com|www\.uni-bell\.org|www\.pipa\.com\.au|www\.roymech\.co\.uk|www\.advancedcableties\.com)\//;
+  const allowed = /^https:\/\/(en\.wikipedia\.org|www\.youtube\.com|qclife\.wbtv\.com|s2odesign\.com|www\.airkayaks\.com|(en\.|www\.)?khanacademy\.org|brilliant\.org|www\.wolframalpha\.com|mathworld\.wolfram\.com|doi\.org|www\.sciencedirect\.com|www\.ncbi\.nlm\.nih\.gov|archive\.org|www\.spearsmfg\.com|www\.uni-bell\.org|www\.pipa\.com\.au|www\.roymech\.co\.uk|www\.advancedcableties\.com)\//;
   const educational = new Set(['Wikipedia', 'Khan Academy', 'Brilliant', 'Wolfram Alpha', 'Wolfram MathWorld']);
   const used = new Set();
   for (const [id, w] of Object.entries(E.work)) {
@@ -214,6 +214,12 @@ test('every shown calculation links to sources, with at least one educational re
     w.refs.forEach(r => { assert.match(r.url, allowed, `${id}: ${r.url}`); used.add(r.id); });
   }
   E.assumptions.forEach(a => { assert.ok(a.refs.length, a.name); a.refs.forEach(r => { assert.match(r.url, allowed); used.add(r.id); }); });
+  const ww = M.whitewater(current, rules, { phases: 4 });
+  for (const [id, w] of Object.entries(ww.work)) {
+    assert.ok(w.refs.some(r => educational.has(r.kind)), `${id} has an educational source`);
+    w.refs.forEach(r => { assert.match(r.url, allowed, `${id}: ${r.url}`); used.add(r.id); });
+  }
+  ww.assumptions.forEach(a => a.refs.forEach(r => { assert.match(r.url, allowed); used.add(r.id); }));
   for (const k of Object.keys(M.SOURCES)) assert.ok(used.has(k), `source ${k} is cited somewhere`);
 });
 
@@ -255,4 +261,83 @@ test('segment centroid matches the MathWorld closed form ȳ = 4R sin³(θ/2) ÷ 
     rel(M.segCentroidY(h, r), r - fromCentre, 1e-9, `h=${h}`);
     rel(M.segArea(h, r), r * r / 2 * (theta - Math.sin(theta)), 1e-9, `area h=${h}`);   // a = ½R²(θ − sin θ)
   }
+});
+
+// ── Whitewater: hydraulics against closed forms and conservation laws ──
+const g = 9.80665;
+test('whitewater: Manning normal depth satisfies Q = (1/n)·A·R^(2/3)·√S and the wide-channel closed form', () => {
+  for (const [Q, b, n, S] of [[15, 12, 0.045, 0.021], [19, 12, 0.045, 0.012], [15, 8, 0.035, 0.021]]) {
+    const h = M.manningDepth(Q, b, n, S), A = b * h, R = A / (b + 2 * h);
+    rel((1 / n) * A * R ** (2 / 3) * Math.sqrt(S), Q, 1e-9, 'Manning');
+  }
+  // very wide channel: R → h, so h = (q·n ÷ √S)^(3/5)
+  const q = 1, n = 0.04, S = 0.01, b = 1e5;
+  rel(M.manningDepth(q * b, b, n, S), (q * n / Math.sqrt(S)) ** 0.6, 1e-4, 'wide-channel limit');
+  assert.throws(() => M.manningDepth(15, 0, 0.04, 0.02));
+});
+
+test('whitewater: a standing wave satisfies U² = (g/k)·tanh(k h), with the deep-water limit λ = 2πU²/g', () => {
+  for (const [U, h] of [[2.1, 0.59], [1.5, 1.2], [1, 3]]) {
+    const k = M.standingWaveK(U, h);
+    rel(U * U, g / k * Math.tanh(k * h), 1e-9, `dispersion U=${U}`);
+  }
+  const U = 1, k = M.standingWaveK(U, 50);                       // kh ≫ 1
+  rel(2 * Math.PI / k, 2 * Math.PI * U * U / g, 1e-6, 'deep water');
+  assert.strictEqual(M.standingWaveK(3, 0.5), null, 'supercritical flow (Fr > 1) has no standing wave train');
+});
+
+test('whitewater: drop and hydraulic jump conserve energy and momentum (Bélanger)', () => {
+  const q = 1.25, h0 = 0.59, U0 = q / h0, dz = 0.9;
+  const E = h0 + U0 * U0 / (2 * g) + dz, h1 = M.supercriticalDepth(q, E), U1 = q / h1;
+  rel(h1 + U1 * U1 / (2 * g), E, 1e-9, 'energy at the foot of the drop');
+  assert.ok(h1 < Math.cbrt(q * q / g), 'supercritical root (below critical depth)');
+  const Fr1 = U1 / Math.sqrt(g * h1), h2 = M.belanger(h1, Fr1);
+  // momentum function per unit width is the same on both sides of a jump: q²/(g h) + h²/2
+  rel(q * q / (g * h1) + h1 * h1 / 2, q * q / (g * h2) + h2 * h2 / 2, 1e-9, 'momentum across the jump');
+  assert.ok(h2 > h1);
+});
+
+test('whitewater: a boat on a uniformly sloping surface aligns with it (Froude–Krylov), and flat water is unchanged', () => {
+  const b = catamaran(), gg = M.geometry(b.config), items = [{ w: 300, x: gg.drums[0].x, y: 30, z: 0, label: 'test' }];
+  const flat = M.solve(gg, items), zero = M.solve(gg, items, () => 0, { maxAngleDeg: 60 });
+  near(zero.d, flat.d, 1e-6, 'zero wave = flat draft'); near(zero.rollDeg, flat.rollDeg, 1e-6, 'zero wave = flat heel');
+  for (const s of [0.02, 0.1]) {
+    const roll = M.solve(gg, items, (x, z) => s * z, { maxAngleDeg: 60 });
+    rel(Math.tan(Math.abs(roll.rollDeg) * Math.PI / 180), s, 0.01, `heel follows a ${s} side slope`);
+  }
+  // without the downhill push it would heel BM/GM times the slope; check it does not
+  const s = 0.02, roll = M.solve(gg, items, (x, z) => s * z, { maxAngleDeg: 60 });
+  assert.ok(Math.abs(Math.tan(roll.rollDeg * Math.PI / 180)) < 1.05 * s);
+});
+
+test('whitewater: natural periods T = 2π r ÷ √(g·GM) from the mass items', () => {
+  const ww = M.whitewater(current, rules, { phases: 4 }), a = M.analyze(current, rules), s = a.solution;
+  const items = M.massItems(current, a.geometry), W = items.reduce((t, i) => t + i.w, 0);
+  const r = Math.sqrt(items.reduce((t, i) => t + i.w * ((i.z - s.zg) ** 2 + (i.y - s.KG) ** 2), 0) / W);
+  rel(ww.periods.roll_s, 2 * Math.PI * r / Math.sqrt(9.80665 / 0.0254 * s.gmRoll), 1e-9, 'roll period');
+});
+
+test('whitewater: hole and wave results follow the formulas, and outputs are deterministic and private', () => {
+  const opts = { phases: 6 }, ww = M.whitewater(current, rules, opts), again = M.whitewater(current, rules, opts);
+  assert.deepStrictEqual(ww, again, 'same inputs, same answer');
+  const H = ww.hydraulics;
+  rel(H.U_ms, 15 / (12 * H.h_m), 1e-9, 'continuity U = Q ÷ (b h)');
+  const drop = ww.features.find(f => f.type === 'drop');
+  assert.ok(drop, 'the race course has a Class III drop');
+  rel(drop.roller_m, 6 * drop.h2_m, 1e-12, 'roller length');
+  assert.strictEqual(drop.retentive, H.h_m >= drop.h2_m, 'retentive when tailwater ≥ sequent depth');
+  const wave = ww.features.find(f => f.type === 'waves' && f.cls === 'III');
+  near(wave.H_m, 5 * 0.3048, 1e-12, 'Class III height (top of 3–5 ft)');
+  assert.ok(wave.H_m / wave.lambda_m <= 0.142 + 1e-12, 'no steeper than the breaking limit');
+  const art = M.whitewaterArtifact(current, ww, { generated: '2026-10-04' }), text = JSON.stringify(art);
+  assert.strictEqual(art.kind, 'bob-whitewater-simulation');
+  assert.ok(!/receipt|order|address|email/i.test(text), 'no receipts or personal details in the artifact');
+  const md = M.whitewaterMarkdown(ww, { generated: '2026-10-04' });
+  ww.features.forEach(f => assert.ok(md.includes(f.name)));
+  assert.ok(md.includes('## Assumptions') && md.includes('## Limits'));
+});
+
+test('whitewater: settings outside physical ranges fail loudly', () => {
+  assert.throws(() => M.whitewater(current, rules, { width_m: 0 }));
+  assert.throws(() => M.whitewater(current, rules, { channel: 'lazy-river' }));
 });
