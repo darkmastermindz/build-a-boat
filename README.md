@@ -77,6 +77,14 @@ bob/
   catamaran** and **Packed triangle** layouts from the team's Onshape
   sketches. Boxes that touch share walls and crossbars, and their 4-pipe
   corners are counted as 4-way fittings.
+- **Side panels** (box frames): corrugated PVC roofing panels on every outer
+  box face, from the bottom rail to the top rail. Shared walls stay open.
+  - The cut list packs the pieces into 26" × 8 ft panels. The current plan
+    uses 3 of the 4 bought.
+  - Only the area used is weighed. Ties to the rails, about every 18", are
+    added to the zip-tie count.
+  - Panels have their own **Sides** layer and can be painted or clicked for
+    sizes.
 - **Drum retention**: zip-tie bands, or **caged** between two PVC frames
   (a lower cradle or a single rail under each drum, with posts up to the deck
   frame). Caging adds pipe, fittings and weight, and is shown for every
