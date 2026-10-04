@@ -9,10 +9,10 @@
       "summary": {
         "preset": "tri3pack",
         "drums": 3,
-        "weight": 133,
-        "loadPct": 31,
+        "weight": 130.6,
+        "loadPct": 30,
         "crew": 2,
-        "cost": 1067.35,
+        "cost": 1113.28,
         "sticks": 8
       },
       "build": {
@@ -56,7 +56,9 @@
             "weightMeasured": false
           },
           "packGap": 4,
-          "sidePanels": true
+          "sidePanels": true,
+          "sideStyle": "hull",
+          "hullBow": 18
         },
         "parts": [
           {
@@ -233,7 +235,7 @@
             "weight_lb_each": 6,
             "weight_measured": false,
             "unit_cost_usd": 38.29,
-            "status": "planned",
+            "status": "suggested",
             "notes": "Only if the three 24x36 sheets run short (the deck skin needs ~28 sq ft)."
           },
           {
@@ -260,7 +262,7 @@
             "weight_lb_each": 0.1,
             "weight_measured": false,
             "unit_cost_usd": 5,
-            "status": "planned",
+            "status": "suggested",
             "notes": ""
           },
           {
@@ -273,7 +275,7 @@
             "weight_lb_each": 0.7,
             "weight_measured": false,
             "unit_cost_usd": 6.5,
-            "status": "planned",
+            "status": "suggested",
             "notes": ""
           },
           {
@@ -326,7 +328,7 @@
             "weight_lb_each": 0.6,
             "weight_measured": false,
             "unit_cost_usd": 7.98,
-            "status": "planned",
+            "status": "suggested",
             "notes": "",
             "max_piece_length_in": 18
           },
@@ -353,7 +355,7 @@
             "weight_lb_each": 2,
             "weight_measured": false,
             "unit_cost_usd": 22.98,
-            "status": "planned",
+            "status": "suggested",
             "notes": ""
           },
           {
@@ -366,7 +368,7 @@
             "weight_lb_each": 0.2,
             "weight_measured": false,
             "unit_cost_usd": 28.98,
-            "status": "planned",
+            "status": "suggested",
             "notes": ""
           },
           {
@@ -407,7 +409,7 @@
             "weight_lb_each": 0.2,
             "weight_measured": false,
             "unit_cost_usd": 13.98,
-            "status": "planned",
+            "status": "suggested",
             "notes": ""
           },
           {
@@ -434,7 +436,7 @@
             "weight_lb_each": 0.2,
             "weight_measured": false,
             "unit_cost_usd": 6.98,
-            "status": "planned",
+            "status": "suggested",
             "notes": ""
           },
           {
@@ -459,7 +461,7 @@
             "weight_lb_each": 0.2,
             "weight_measured": false,
             "unit_cost_usd": 5.48,
-            "status": "planned",
+            "status": "suggested",
             "notes": ""
           },
           {
@@ -629,6 +631,58 @@
             "unit_cost_usd": 3.98,
             "status": "bought",
             "notes": "Lowe's 2026-10-03."
+          },
+          {
+            "name": "Skull and crossbones vinyl decal, waterproof, 6-12 in",
+            "role": "decal",
+            "category": "decor",
+            "material": "vinyl",
+            "quantity": 2,
+            "weight_lb_each": 0.02,
+            "weight_measured": false,
+            "unit_cost_usd": 7.99,
+            "status": "suggested",
+            "notes": "Bow sides. Waterproof outdoor vinyl; press onto clean, scuffed plastic.",
+            "estimate": true
+          },
+          {
+            "name": "Waterproof vinyl pinstripe tape, 1 in x 150 ft",
+            "role": "decal",
+            "category": "decor",
+            "material": "vinyl",
+            "quantity": 1,
+            "weight_lb_each": 0.02,
+            "weight_measured": false,
+            "unit_cost_usd": 9.98,
+            "status": "suggested",
+            "notes": "Stripe around the hull (~22 ft per stripe).",
+            "estimate": true
+          },
+          {
+            "name": "Porthole window vinyl decals, waterproof, set of 4",
+            "role": "decal",
+            "category": "decor",
+            "material": "vinyl",
+            "quantity": 1,
+            "weight_lb_each": 0.02,
+            "weight_measured": false,
+            "unit_cost_usd": 11.99,
+            "status": "suggested",
+            "notes": "Two per side.",
+            "estimate": true
+          },
+          {
+            "name": "Waterproof vinyl letters, 3 in, black (letters and numbers set)",
+            "role": "decal",
+            "category": "decor",
+            "material": "vinyl",
+            "quantity": 1,
+            "weight_lb_each": 0.02,
+            "weight_measured": false,
+            "unit_cost_usd": 7.98,
+            "status": "suggested",
+            "notes": "Boat name, e.g. KNOT SO FAST.",
+            "estimate": true
           }
         ]
       }
@@ -641,10 +695,10 @@
       "summary": {
         "preset": "cat2",
         "drums": 2,
-        "weight": 92.7,
-        "loadPct": 45,
+        "weight": 85.9,
+        "loadPct": 44,
         "crew": 2,
-        "cost": 1067.35,
+        "cost": 1113.28,
         "sticks": 5
       },
       "build": {
@@ -688,7 +742,9 @@
             "weightMeasured": false
           },
           "packGap": 4,
-          "sidePanels": true
+          "sidePanels": true,
+          "sideStyle": "hull",
+          "hullBow": 18
         },
         "parts": [
           {
@@ -865,7 +921,7 @@
             "weight_lb_each": 6,
             "weight_measured": false,
             "unit_cost_usd": 38.29,
-            "status": "planned",
+            "status": "suggested",
             "notes": "Only if the three 24x36 sheets run short (the deck skin needs ~28 sq ft)."
           },
           {
@@ -892,7 +948,7 @@
             "weight_lb_each": 0.1,
             "weight_measured": false,
             "unit_cost_usd": 5,
-            "status": "planned",
+            "status": "suggested",
             "notes": ""
           },
           {
@@ -905,7 +961,7 @@
             "weight_lb_each": 0.7,
             "weight_measured": false,
             "unit_cost_usd": 6.5,
-            "status": "planned",
+            "status": "suggested",
             "notes": ""
           },
           {
@@ -958,7 +1014,7 @@
             "weight_lb_each": 0.6,
             "weight_measured": false,
             "unit_cost_usd": 7.98,
-            "status": "planned",
+            "status": "suggested",
             "notes": "",
             "max_piece_length_in": 18
           },
@@ -985,7 +1041,7 @@
             "weight_lb_each": 2,
             "weight_measured": false,
             "unit_cost_usd": 22.98,
-            "status": "planned",
+            "status": "suggested",
             "notes": ""
           },
           {
@@ -998,7 +1054,7 @@
             "weight_lb_each": 0.2,
             "weight_measured": false,
             "unit_cost_usd": 28.98,
-            "status": "planned",
+            "status": "suggested",
             "notes": ""
           },
           {
@@ -1039,7 +1095,7 @@
             "weight_lb_each": 0.2,
             "weight_measured": false,
             "unit_cost_usd": 13.98,
-            "status": "planned",
+            "status": "suggested",
             "notes": ""
           },
           {
@@ -1066,7 +1122,7 @@
             "weight_lb_each": 0.2,
             "weight_measured": false,
             "unit_cost_usd": 6.98,
-            "status": "planned",
+            "status": "suggested",
             "notes": ""
           },
           {
@@ -1091,7 +1147,7 @@
             "weight_lb_each": 0.2,
             "weight_measured": false,
             "unit_cost_usd": 5.48,
-            "status": "planned",
+            "status": "suggested",
             "notes": ""
           },
           {
@@ -1261,6 +1317,58 @@
             "unit_cost_usd": 3.98,
             "status": "bought",
             "notes": "Lowe's 2026-10-03."
+          },
+          {
+            "name": "Skull and crossbones vinyl decal, waterproof, 6-12 in",
+            "role": "decal",
+            "category": "decor",
+            "material": "vinyl",
+            "quantity": 2,
+            "weight_lb_each": 0.02,
+            "weight_measured": false,
+            "unit_cost_usd": 7.99,
+            "status": "suggested",
+            "notes": "Bow sides. Waterproof outdoor vinyl; press onto clean, scuffed plastic.",
+            "estimate": true
+          },
+          {
+            "name": "Waterproof vinyl pinstripe tape, 1 in x 150 ft",
+            "role": "decal",
+            "category": "decor",
+            "material": "vinyl",
+            "quantity": 1,
+            "weight_lb_each": 0.02,
+            "weight_measured": false,
+            "unit_cost_usd": 9.98,
+            "status": "suggested",
+            "notes": "Stripe around the hull (~22 ft per stripe).",
+            "estimate": true
+          },
+          {
+            "name": "Porthole window vinyl decals, waterproof, set of 4",
+            "role": "decal",
+            "category": "decor",
+            "material": "vinyl",
+            "quantity": 1,
+            "weight_lb_each": 0.02,
+            "weight_measured": false,
+            "unit_cost_usd": 11.99,
+            "status": "suggested",
+            "notes": "Two per side.",
+            "estimate": true
+          },
+          {
+            "name": "Waterproof vinyl letters, 3 in, black (letters and numbers set)",
+            "role": "decal",
+            "category": "decor",
+            "material": "vinyl",
+            "quantity": 1,
+            "weight_lb_each": 0.02,
+            "weight_measured": false,
+            "unit_cost_usd": 7.98,
+            "status": "suggested",
+            "notes": "Boat name, e.g. KNOT SO FAST.",
+            "estimate": true
           }
         ]
       }
@@ -1273,10 +1381,10 @@
       "summary": {
         "preset": "cat2",
         "drums": 2,
-        "weight": 90,
+        "weight": 83.2,
         "loadPct": 44,
         "crew": 2,
-        "cost": 1067.35,
+        "cost": 1113.28,
         "sticks": 5
       },
       "build": {
@@ -1320,7 +1428,9 @@
             "weightMeasured": false
           },
           "packGap": 4,
-          "sidePanels": true
+          "sidePanels": true,
+          "sideStyle": "hull",
+          "hullBow": 18
         },
         "parts": [
           {
@@ -1497,7 +1607,7 @@
             "weight_lb_each": 6,
             "weight_measured": false,
             "unit_cost_usd": 38.29,
-            "status": "planned",
+            "status": "suggested",
             "notes": "Only if the three 24x36 sheets run short (the deck skin needs ~28 sq ft)."
           },
           {
@@ -1524,7 +1634,7 @@
             "weight_lb_each": 0.1,
             "weight_measured": false,
             "unit_cost_usd": 5,
-            "status": "planned",
+            "status": "suggested",
             "notes": ""
           },
           {
@@ -1537,7 +1647,7 @@
             "weight_lb_each": 0.7,
             "weight_measured": false,
             "unit_cost_usd": 6.5,
-            "status": "planned",
+            "status": "suggested",
             "notes": ""
           },
           {
@@ -1590,7 +1700,7 @@
             "weight_lb_each": 0.6,
             "weight_measured": false,
             "unit_cost_usd": 7.98,
-            "status": "planned",
+            "status": "suggested",
             "notes": "",
             "max_piece_length_in": 18
           },
@@ -1617,7 +1727,7 @@
             "weight_lb_each": 2,
             "weight_measured": false,
             "unit_cost_usd": 22.98,
-            "status": "planned",
+            "status": "suggested",
             "notes": ""
           },
           {
@@ -1630,7 +1740,7 @@
             "weight_lb_each": 0.2,
             "weight_measured": false,
             "unit_cost_usd": 28.98,
-            "status": "planned",
+            "status": "suggested",
             "notes": ""
           },
           {
@@ -1671,7 +1781,7 @@
             "weight_lb_each": 0.2,
             "weight_measured": false,
             "unit_cost_usd": 13.98,
-            "status": "planned",
+            "status": "suggested",
             "notes": ""
           },
           {
@@ -1698,7 +1808,7 @@
             "weight_lb_each": 0.2,
             "weight_measured": false,
             "unit_cost_usd": 6.98,
-            "status": "planned",
+            "status": "suggested",
             "notes": ""
           },
           {
@@ -1723,7 +1833,7 @@
             "weight_lb_each": 0.2,
             "weight_measured": false,
             "unit_cost_usd": 5.48,
-            "status": "planned",
+            "status": "suggested",
             "notes": ""
           },
           {
@@ -1893,6 +2003,58 @@
             "unit_cost_usd": 3.98,
             "status": "bought",
             "notes": "Lowe's 2026-10-03."
+          },
+          {
+            "name": "Skull and crossbones vinyl decal, waterproof, 6-12 in",
+            "role": "decal",
+            "category": "decor",
+            "material": "vinyl",
+            "quantity": 2,
+            "weight_lb_each": 0.02,
+            "weight_measured": false,
+            "unit_cost_usd": 7.99,
+            "status": "suggested",
+            "notes": "Bow sides. Waterproof outdoor vinyl; press onto clean, scuffed plastic.",
+            "estimate": true
+          },
+          {
+            "name": "Waterproof vinyl pinstripe tape, 1 in x 150 ft",
+            "role": "decal",
+            "category": "decor",
+            "material": "vinyl",
+            "quantity": 1,
+            "weight_lb_each": 0.02,
+            "weight_measured": false,
+            "unit_cost_usd": 9.98,
+            "status": "suggested",
+            "notes": "Stripe around the hull (~22 ft per stripe).",
+            "estimate": true
+          },
+          {
+            "name": "Porthole window vinyl decals, waterproof, set of 4",
+            "role": "decal",
+            "category": "decor",
+            "material": "vinyl",
+            "quantity": 1,
+            "weight_lb_each": 0.02,
+            "weight_measured": false,
+            "unit_cost_usd": 11.99,
+            "status": "suggested",
+            "notes": "Two per side.",
+            "estimate": true
+          },
+          {
+            "name": "Waterproof vinyl letters, 3 in, black (letters and numbers set)",
+            "role": "decal",
+            "category": "decor",
+            "material": "vinyl",
+            "quantity": 1,
+            "weight_lb_each": 0.02,
+            "weight_measured": false,
+            "unit_cost_usd": 7.98,
+            "status": "suggested",
+            "notes": "Boat name, e.g. KNOT SO FAST.",
+            "estimate": true
           }
         ]
       }
@@ -1905,10 +2067,10 @@
       "summary": {
         "preset": "tri3bow",
         "drums": 3,
-        "weight": 112.8,
+        "weight": 106,
         "loadPct": 31,
         "crew": 2,
-        "cost": 1032.35,
+        "cost": 1078.28,
         "sticks": 5
       },
       "build": {
@@ -1952,7 +2114,9 @@
             "weightMeasured": false
           },
           "packGap": 4,
-          "sidePanels": true
+          "sidePanels": true,
+          "sideStyle": "hull",
+          "hullBow": 18
         },
         "parts": [
           {
@@ -2129,7 +2293,7 @@
             "weight_lb_each": 6,
             "weight_measured": false,
             "unit_cost_usd": 38.29,
-            "status": "planned",
+            "status": "suggested",
             "notes": "Only if the three 24x36 sheets run short (the deck skin needs ~28 sq ft)."
           },
           {
@@ -2156,7 +2320,7 @@
             "weight_lb_each": 0.1,
             "weight_measured": false,
             "unit_cost_usd": 5,
-            "status": "planned",
+            "status": "suggested",
             "notes": ""
           },
           {
@@ -2169,7 +2333,7 @@
             "weight_lb_each": 0.7,
             "weight_measured": false,
             "unit_cost_usd": 6.5,
-            "status": "planned",
+            "status": "suggested",
             "notes": ""
           },
           {
@@ -2222,7 +2386,7 @@
             "weight_lb_each": 0.6,
             "weight_measured": false,
             "unit_cost_usd": 7.98,
-            "status": "planned",
+            "status": "suggested",
             "notes": "",
             "max_piece_length_in": 18
           },
@@ -2249,7 +2413,7 @@
             "weight_lb_each": 2,
             "weight_measured": false,
             "unit_cost_usd": 22.98,
-            "status": "planned",
+            "status": "suggested",
             "notes": ""
           },
           {
@@ -2262,7 +2426,7 @@
             "weight_lb_each": 0.2,
             "weight_measured": false,
             "unit_cost_usd": 28.98,
-            "status": "planned",
+            "status": "suggested",
             "notes": ""
           },
           {
@@ -2303,7 +2467,7 @@
             "weight_lb_each": 0.2,
             "weight_measured": false,
             "unit_cost_usd": 13.98,
-            "status": "planned",
+            "status": "suggested",
             "notes": ""
           },
           {
@@ -2330,7 +2494,7 @@
             "weight_lb_each": 0.2,
             "weight_measured": false,
             "unit_cost_usd": 6.98,
-            "status": "planned",
+            "status": "suggested",
             "notes": ""
           },
           {
@@ -2355,7 +2519,7 @@
             "weight_lb_each": 0.2,
             "weight_measured": false,
             "unit_cost_usd": 5.48,
-            "status": "planned",
+            "status": "suggested",
             "notes": ""
           },
           {
@@ -2525,6 +2689,58 @@
             "unit_cost_usd": 3.98,
             "status": "bought",
             "notes": "Lowe's 2026-10-03."
+          },
+          {
+            "name": "Skull and crossbones vinyl decal, waterproof, 6-12 in",
+            "role": "decal",
+            "category": "decor",
+            "material": "vinyl",
+            "quantity": 2,
+            "weight_lb_each": 0.02,
+            "weight_measured": false,
+            "unit_cost_usd": 7.99,
+            "status": "suggested",
+            "notes": "Bow sides. Waterproof outdoor vinyl; press onto clean, scuffed plastic.",
+            "estimate": true
+          },
+          {
+            "name": "Waterproof vinyl pinstripe tape, 1 in x 150 ft",
+            "role": "decal",
+            "category": "decor",
+            "material": "vinyl",
+            "quantity": 1,
+            "weight_lb_each": 0.02,
+            "weight_measured": false,
+            "unit_cost_usd": 9.98,
+            "status": "suggested",
+            "notes": "Stripe around the hull (~22 ft per stripe).",
+            "estimate": true
+          },
+          {
+            "name": "Porthole window vinyl decals, waterproof, set of 4",
+            "role": "decal",
+            "category": "decor",
+            "material": "vinyl",
+            "quantity": 1,
+            "weight_lb_each": 0.02,
+            "weight_measured": false,
+            "unit_cost_usd": 11.99,
+            "status": "suggested",
+            "notes": "Two per side.",
+            "estimate": true
+          },
+          {
+            "name": "Waterproof vinyl letters, 3 in, black (letters and numbers set)",
+            "role": "decal",
+            "category": "decor",
+            "material": "vinyl",
+            "quantity": 1,
+            "weight_lb_each": 0.02,
+            "weight_measured": false,
+            "unit_cost_usd": 7.98,
+            "status": "suggested",
+            "notes": "Boat name, e.g. KNOT SO FAST.",
+            "estimate": true
           }
         ]
       }
@@ -2537,10 +2753,10 @@
       "summary": {
         "preset": "quad4pontoon",
         "drums": 4,
-        "weight": 128.9,
+        "weight": 126.2,
         "loadPct": 24,
         "crew": 2,
-        "cost": 1021.39,
+        "cost": 1067.32,
         "sticks": 5
       },
       "build": {
@@ -2584,7 +2800,9 @@
             "weightMeasured": false
           },
           "packGap": 4,
-          "sidePanels": true
+          "sidePanels": true,
+          "sideStyle": "hull",
+          "hullBow": 18
         },
         "parts": [
           {
@@ -2761,7 +2979,7 @@
             "weight_lb_each": 6,
             "weight_measured": false,
             "unit_cost_usd": 38.29,
-            "status": "planned",
+            "status": "suggested",
             "notes": "Only if the three 24x36 sheets run short (the deck skin needs ~28 sq ft)."
           },
           {
@@ -2788,7 +3006,7 @@
             "weight_lb_each": 0.1,
             "weight_measured": false,
             "unit_cost_usd": 5,
-            "status": "planned",
+            "status": "suggested",
             "notes": ""
           },
           {
@@ -2801,7 +3019,7 @@
             "weight_lb_each": 0.7,
             "weight_measured": false,
             "unit_cost_usd": 6.5,
-            "status": "planned",
+            "status": "suggested",
             "notes": ""
           },
           {
@@ -2854,7 +3072,7 @@
             "weight_lb_each": 0.6,
             "weight_measured": false,
             "unit_cost_usd": 7.98,
-            "status": "planned",
+            "status": "suggested",
             "notes": "",
             "max_piece_length_in": 18
           },
@@ -2881,7 +3099,7 @@
             "weight_lb_each": 0.2,
             "weight_measured": false,
             "unit_cost_usd": 28.98,
-            "status": "planned",
+            "status": "suggested",
             "notes": ""
           },
           {
@@ -2922,7 +3140,7 @@
             "weight_lb_each": 0.2,
             "weight_measured": false,
             "unit_cost_usd": 13.98,
-            "status": "planned",
+            "status": "suggested",
             "notes": ""
           },
           {
@@ -2949,7 +3167,7 @@
             "weight_lb_each": 0.2,
             "weight_measured": false,
             "unit_cost_usd": 6.98,
-            "status": "planned",
+            "status": "suggested",
             "notes": ""
           },
           {
@@ -2974,7 +3192,7 @@
             "weight_lb_each": 0.2,
             "weight_measured": false,
             "unit_cost_usd": 5.48,
-            "status": "planned",
+            "status": "suggested",
             "notes": ""
           },
           {
@@ -3144,6 +3362,58 @@
             "unit_cost_usd": 3.98,
             "status": "bought",
             "notes": "Lowe's 2026-10-03."
+          },
+          {
+            "name": "Skull and crossbones vinyl decal, waterproof, 6-12 in",
+            "role": "decal",
+            "category": "decor",
+            "material": "vinyl",
+            "quantity": 2,
+            "weight_lb_each": 0.02,
+            "weight_measured": false,
+            "unit_cost_usd": 7.99,
+            "status": "suggested",
+            "notes": "Bow sides. Waterproof outdoor vinyl; press onto clean, scuffed plastic.",
+            "estimate": true
+          },
+          {
+            "name": "Waterproof vinyl pinstripe tape, 1 in x 150 ft",
+            "role": "decal",
+            "category": "decor",
+            "material": "vinyl",
+            "quantity": 1,
+            "weight_lb_each": 0.02,
+            "weight_measured": false,
+            "unit_cost_usd": 9.98,
+            "status": "suggested",
+            "notes": "Stripe around the hull (~22 ft per stripe).",
+            "estimate": true
+          },
+          {
+            "name": "Porthole window vinyl decals, waterproof, set of 4",
+            "role": "decal",
+            "category": "decor",
+            "material": "vinyl",
+            "quantity": 1,
+            "weight_lb_each": 0.02,
+            "weight_measured": false,
+            "unit_cost_usd": 11.99,
+            "status": "suggested",
+            "notes": "Two per side.",
+            "estimate": true
+          },
+          {
+            "name": "Waterproof vinyl letters, 3 in, black (letters and numbers set)",
+            "role": "decal",
+            "category": "decor",
+            "material": "vinyl",
+            "quantity": 1,
+            "weight_lb_each": 0.02,
+            "weight_measured": false,
+            "unit_cost_usd": 7.98,
+            "status": "suggested",
+            "notes": "Boat name, e.g. KNOT SO FAST.",
+            "estimate": true
           }
         ]
       }
@@ -3156,11 +3426,11 @@
       "summary": {
         "preset": "stagger2",
         "drums": 2,
-        "weight": 107,
-        "loadPct": 43,
+        "weight": 106.7,
+        "loadPct": 42,
         "crew": 2,
-        "cost": 1067.35,
-        "sticks": 6
+        "cost": 1113.28,
+        "sticks": 8
       },
       "build": {
         "name": "Box frames: staggered catamaran",
@@ -3203,7 +3473,9 @@
             "weightMeasured": false
           },
           "packGap": 4,
-          "sidePanels": true
+          "sidePanels": true,
+          "sideStyle": "hull",
+          "hullBow": 18
         },
         "parts": [
           {
@@ -3380,7 +3652,7 @@
             "weight_lb_each": 6,
             "weight_measured": false,
             "unit_cost_usd": 38.29,
-            "status": "planned",
+            "status": "suggested",
             "notes": "Only if the three 24x36 sheets run short (the deck skin needs ~28 sq ft)."
           },
           {
@@ -3407,7 +3679,7 @@
             "weight_lb_each": 0.1,
             "weight_measured": false,
             "unit_cost_usd": 5,
-            "status": "planned",
+            "status": "suggested",
             "notes": ""
           },
           {
@@ -3420,7 +3692,7 @@
             "weight_lb_each": 0.7,
             "weight_measured": false,
             "unit_cost_usd": 6.5,
-            "status": "planned",
+            "status": "suggested",
             "notes": ""
           },
           {
@@ -3473,7 +3745,7 @@
             "weight_lb_each": 0.6,
             "weight_measured": false,
             "unit_cost_usd": 7.98,
-            "status": "planned",
+            "status": "suggested",
             "notes": "",
             "max_piece_length_in": 18
           },
@@ -3500,7 +3772,7 @@
             "weight_lb_each": 2,
             "weight_measured": false,
             "unit_cost_usd": 22.98,
-            "status": "planned",
+            "status": "suggested",
             "notes": ""
           },
           {
@@ -3513,7 +3785,7 @@
             "weight_lb_each": 0.2,
             "weight_measured": false,
             "unit_cost_usd": 28.98,
-            "status": "planned",
+            "status": "suggested",
             "notes": ""
           },
           {
@@ -3554,7 +3826,7 @@
             "weight_lb_each": 0.2,
             "weight_measured": false,
             "unit_cost_usd": 13.98,
-            "status": "planned",
+            "status": "suggested",
             "notes": ""
           },
           {
@@ -3581,7 +3853,7 @@
             "weight_lb_each": 0.2,
             "weight_measured": false,
             "unit_cost_usd": 6.98,
-            "status": "planned",
+            "status": "suggested",
             "notes": ""
           },
           {
@@ -3606,7 +3878,7 @@
             "weight_lb_each": 0.2,
             "weight_measured": false,
             "unit_cost_usd": 5.48,
-            "status": "planned",
+            "status": "suggested",
             "notes": ""
           },
           {
@@ -3776,6 +4048,58 @@
             "unit_cost_usd": 3.98,
             "status": "bought",
             "notes": "Lowe's 2026-10-03."
+          },
+          {
+            "name": "Skull and crossbones vinyl decal, waterproof, 6-12 in",
+            "role": "decal",
+            "category": "decor",
+            "material": "vinyl",
+            "quantity": 2,
+            "weight_lb_each": 0.02,
+            "weight_measured": false,
+            "unit_cost_usd": 7.99,
+            "status": "suggested",
+            "notes": "Bow sides. Waterproof outdoor vinyl; press onto clean, scuffed plastic.",
+            "estimate": true
+          },
+          {
+            "name": "Waterproof vinyl pinstripe tape, 1 in x 150 ft",
+            "role": "decal",
+            "category": "decor",
+            "material": "vinyl",
+            "quantity": 1,
+            "weight_lb_each": 0.02,
+            "weight_measured": false,
+            "unit_cost_usd": 9.98,
+            "status": "suggested",
+            "notes": "Stripe around the hull (~22 ft per stripe).",
+            "estimate": true
+          },
+          {
+            "name": "Porthole window vinyl decals, waterproof, set of 4",
+            "role": "decal",
+            "category": "decor",
+            "material": "vinyl",
+            "quantity": 1,
+            "weight_lb_each": 0.02,
+            "weight_measured": false,
+            "unit_cost_usd": 11.99,
+            "status": "suggested",
+            "notes": "Two per side.",
+            "estimate": true
+          },
+          {
+            "name": "Waterproof vinyl letters, 3 in, black (letters and numbers set)",
+            "role": "decal",
+            "category": "decor",
+            "material": "vinyl",
+            "quantity": 1,
+            "weight_lb_each": 0.02,
+            "weight_measured": false,
+            "unit_cost_usd": 7.98,
+            "status": "suggested",
+            "notes": "Boat name, e.g. KNOT SO FAST.",
+            "estimate": true
           }
         ]
       }
@@ -3788,11 +4112,11 @@
       "summary": {
         "preset": "tri3stern",
         "drums": 3,
-        "weight": 141.8,
-        "loadPct": 31,
+        "weight": 138.5,
+        "loadPct": 30,
         "crew": 2,
-        "cost": 1032.35,
-        "sticks": 9
+        "cost": 1078.28,
+        "sticks": 10
       },
       "build": {
         "name": "Box frames: reverse triangle",
@@ -3835,7 +4159,9 @@
             "weightMeasured": false
           },
           "packGap": 4,
-          "sidePanels": true
+          "sidePanels": true,
+          "sideStyle": "hull",
+          "hullBow": 18
         },
         "parts": [
           {
@@ -4012,7 +4338,7 @@
             "weight_lb_each": 6,
             "weight_measured": false,
             "unit_cost_usd": 38.29,
-            "status": "planned",
+            "status": "suggested",
             "notes": "Only if the three 24x36 sheets run short (the deck skin needs ~28 sq ft)."
           },
           {
@@ -4039,7 +4365,7 @@
             "weight_lb_each": 0.1,
             "weight_measured": false,
             "unit_cost_usd": 5,
-            "status": "planned",
+            "status": "suggested",
             "notes": ""
           },
           {
@@ -4052,7 +4378,7 @@
             "weight_lb_each": 0.7,
             "weight_measured": false,
             "unit_cost_usd": 6.5,
-            "status": "planned",
+            "status": "suggested",
             "notes": ""
           },
           {
@@ -4105,7 +4431,7 @@
             "weight_lb_each": 0.6,
             "weight_measured": false,
             "unit_cost_usd": 7.98,
-            "status": "planned",
+            "status": "suggested",
             "notes": "",
             "max_piece_length_in": 18
           },
@@ -4132,7 +4458,7 @@
             "weight_lb_each": 2,
             "weight_measured": false,
             "unit_cost_usd": 22.98,
-            "status": "planned",
+            "status": "suggested",
             "notes": ""
           },
           {
@@ -4145,7 +4471,7 @@
             "weight_lb_each": 0.2,
             "weight_measured": false,
             "unit_cost_usd": 28.98,
-            "status": "planned",
+            "status": "suggested",
             "notes": ""
           },
           {
@@ -4186,7 +4512,7 @@
             "weight_lb_each": 0.2,
             "weight_measured": false,
             "unit_cost_usd": 13.98,
-            "status": "planned",
+            "status": "suggested",
             "notes": ""
           },
           {
@@ -4213,7 +4539,7 @@
             "weight_lb_each": 0.2,
             "weight_measured": false,
             "unit_cost_usd": 6.98,
-            "status": "planned",
+            "status": "suggested",
             "notes": ""
           },
           {
@@ -4238,7 +4564,7 @@
             "weight_lb_each": 0.2,
             "weight_measured": false,
             "unit_cost_usd": 5.48,
-            "status": "planned",
+            "status": "suggested",
             "notes": ""
           },
           {
@@ -4408,6 +4734,58 @@
             "unit_cost_usd": 3.98,
             "status": "bought",
             "notes": "Lowe's 2026-10-03."
+          },
+          {
+            "name": "Skull and crossbones vinyl decal, waterproof, 6-12 in",
+            "role": "decal",
+            "category": "decor",
+            "material": "vinyl",
+            "quantity": 2,
+            "weight_lb_each": 0.02,
+            "weight_measured": false,
+            "unit_cost_usd": 7.99,
+            "status": "suggested",
+            "notes": "Bow sides. Waterproof outdoor vinyl; press onto clean, scuffed plastic.",
+            "estimate": true
+          },
+          {
+            "name": "Waterproof vinyl pinstripe tape, 1 in x 150 ft",
+            "role": "decal",
+            "category": "decor",
+            "material": "vinyl",
+            "quantity": 1,
+            "weight_lb_each": 0.02,
+            "weight_measured": false,
+            "unit_cost_usd": 9.98,
+            "status": "suggested",
+            "notes": "Stripe around the hull (~22 ft per stripe).",
+            "estimate": true
+          },
+          {
+            "name": "Porthole window vinyl decals, waterproof, set of 4",
+            "role": "decal",
+            "category": "decor",
+            "material": "vinyl",
+            "quantity": 1,
+            "weight_lb_each": 0.02,
+            "weight_measured": false,
+            "unit_cost_usd": 11.99,
+            "status": "suggested",
+            "notes": "Two per side.",
+            "estimate": true
+          },
+          {
+            "name": "Waterproof vinyl letters, 3 in, black (letters and numbers set)",
+            "role": "decal",
+            "category": "decor",
+            "material": "vinyl",
+            "quantity": 1,
+            "weight_lb_each": 0.02,
+            "weight_measured": false,
+            "unit_cost_usd": 7.98,
+            "status": "suggested",
+            "notes": "Boat name, e.g. KNOT SO FAST.",
+            "estimate": true
           }
         ]
       }
@@ -4420,10 +4798,10 @@
       "summary": {
         "preset": "quad4pontoon",
         "drums": 4,
-        "weight": 133.5,
+        "weight": 130.7,
         "loadPct": 24,
         "crew": 2,
-        "cost": 1021.39,
+        "cost": 1067.32,
         "sticks": 8
       },
       "build": {
@@ -4467,7 +4845,9 @@
             "weightMeasured": false
           },
           "packGap": 4,
-          "sidePanels": true
+          "sidePanels": true,
+          "sideStyle": "hull",
+          "hullBow": 18
         },
         "parts": [
           {
@@ -4644,7 +5024,7 @@
             "weight_lb_each": 6,
             "weight_measured": false,
             "unit_cost_usd": 38.29,
-            "status": "planned",
+            "status": "suggested",
             "notes": "Only if the three 24x36 sheets run short (the deck skin needs ~28 sq ft)."
           },
           {
@@ -4671,7 +5051,7 @@
             "weight_lb_each": 0.1,
             "weight_measured": false,
             "unit_cost_usd": 5,
-            "status": "planned",
+            "status": "suggested",
             "notes": ""
           },
           {
@@ -4684,7 +5064,7 @@
             "weight_lb_each": 0.7,
             "weight_measured": false,
             "unit_cost_usd": 6.5,
-            "status": "planned",
+            "status": "suggested",
             "notes": ""
           },
           {
@@ -4737,7 +5117,7 @@
             "weight_lb_each": 0.6,
             "weight_measured": false,
             "unit_cost_usd": 7.98,
-            "status": "planned",
+            "status": "suggested",
             "notes": "",
             "max_piece_length_in": 18
           },
@@ -4764,7 +5144,7 @@
             "weight_lb_each": 0.2,
             "weight_measured": false,
             "unit_cost_usd": 28.98,
-            "status": "planned",
+            "status": "suggested",
             "notes": ""
           },
           {
@@ -4805,7 +5185,7 @@
             "weight_lb_each": 0.2,
             "weight_measured": false,
             "unit_cost_usd": 13.98,
-            "status": "planned",
+            "status": "suggested",
             "notes": ""
           },
           {
@@ -4832,7 +5212,7 @@
             "weight_lb_each": 0.2,
             "weight_measured": false,
             "unit_cost_usd": 6.98,
-            "status": "planned",
+            "status": "suggested",
             "notes": ""
           },
           {
@@ -4857,7 +5237,7 @@
             "weight_lb_each": 0.2,
             "weight_measured": false,
             "unit_cost_usd": 5.48,
-            "status": "planned",
+            "status": "suggested",
             "notes": ""
           },
           {
@@ -5027,6 +5407,58 @@
             "unit_cost_usd": 3.98,
             "status": "bought",
             "notes": "Lowe's 2026-10-03."
+          },
+          {
+            "name": "Skull and crossbones vinyl decal, waterproof, 6-12 in",
+            "role": "decal",
+            "category": "decor",
+            "material": "vinyl",
+            "quantity": 2,
+            "weight_lb_each": 0.02,
+            "weight_measured": false,
+            "unit_cost_usd": 7.99,
+            "status": "suggested",
+            "notes": "Bow sides. Waterproof outdoor vinyl; press onto clean, scuffed plastic.",
+            "estimate": true
+          },
+          {
+            "name": "Waterproof vinyl pinstripe tape, 1 in x 150 ft",
+            "role": "decal",
+            "category": "decor",
+            "material": "vinyl",
+            "quantity": 1,
+            "weight_lb_each": 0.02,
+            "weight_measured": false,
+            "unit_cost_usd": 9.98,
+            "status": "suggested",
+            "notes": "Stripe around the hull (~22 ft per stripe).",
+            "estimate": true
+          },
+          {
+            "name": "Porthole window vinyl decals, waterproof, set of 4",
+            "role": "decal",
+            "category": "decor",
+            "material": "vinyl",
+            "quantity": 1,
+            "weight_lb_each": 0.02,
+            "weight_measured": false,
+            "unit_cost_usd": 11.99,
+            "status": "suggested",
+            "notes": "Two per side.",
+            "estimate": true
+          },
+          {
+            "name": "Waterproof vinyl letters, 3 in, black (letters and numbers set)",
+            "role": "decal",
+            "category": "decor",
+            "material": "vinyl",
+            "quantity": 1,
+            "weight_lb_each": 0.02,
+            "weight_measured": false,
+            "unit_cost_usd": 7.98,
+            "status": "suggested",
+            "notes": "Boat name, e.g. KNOT SO FAST.",
+            "estimate": true
           }
         ]
       }
