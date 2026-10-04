@@ -458,7 +458,7 @@ const SL = [
   ['fittingTakeoff','Fitting take-off',0.5,2.5,0.05,'"', c => c.frameStyle !== 'stacked'],
   ['beamCount','Cross beams',2,6,1,'', c => c.frameStyle !== 'boxes'],
   ['pontoonSpacing','Pontoon spacing',28,90,1,'"', c => c.preset !== 'tri3pack'],
-  ['packGap','Pair gap',0,14,1,'"', c => c.preset === 'tri3pack'],
+  ['packGap','Pair gap',0,14,0.5,'"', c => c.preset === 'tri3pack'],
   ['drumOffset','Drums fore/aft',-30,30,1,'"'],
   ['drumSpread','Fore-aft spread',10,45,1,'"', c => ['tri3bow','tri3stern','tandem2','diamond4','stagger2'].includes(c.preset)],
   ['deck.length','Deck length',36,96,6,'"'],
