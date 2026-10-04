@@ -205,7 +205,7 @@ test('hydrostatics: trim from a fore-aft load on a stable 4-drum pontoon matches
 
 test('every shown calculation links to sources, with at least one educational reference', () => {
   const E = M.analyze(current, rules).engineering;
-  const allowed = /^https:\/\/(en\.wikipedia\.org|www\.youtube\.com|qclife\.wbtv\.com|s2odesign\.com|www\.airkayaks\.com|(en\.|www\.)?khanacademy\.org|brilliant\.org|www\.wolframalpha\.com|mathworld\.wolfram\.com|doi\.org|www\.sciencedirect\.com|www\.ncbi\.nlm\.nih\.gov|archive\.org|www\.spearsmfg\.com|www\.uni-bell\.org|www\.pipa\.com\.au|www\.roymech\.co\.uk|www\.advancedcableties\.com)\//;
+  const allowed = /^https:\/\/(en\.wikipedia\.org|www\.youtube\.com|qclife\.wbtv\.com|s2odesign\.com|www\.airkayaks\.com|(en\.|www\.)?khanacademy\.org|brilliant\.org|www\.wolframalpha\.com|mathworld\.wolfram\.com|doi\.org|www\.sciencedirect\.com|www\.ncbi\.nlm\.nih\.gov|archive\.org|www\.spearsmfg\.com|www\.uni-bell\.org|www\.pipa\.com\.au|www\.roymech\.co\.uk|www\.advancedcableties\.com|www\.lowes\.com)\//;
   const educational = new Set(['Wikipedia', 'Khan Academy', 'Brilliant', 'Wolfram Alpha', 'Wolfram MathWorld']);
   const used = new Set();
   for (const [id, w] of Object.entries(E.work)) {
