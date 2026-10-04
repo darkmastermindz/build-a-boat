@@ -219,7 +219,7 @@ ${a.geometry.labels.joints.map(j => `| ${j.id} | ${j.type} | ${j.pipes.join(', '
 
 </details>
 
-<details><summary>Pipes (${a.geometry.labels.pipes.length})</summary>
+${a.geometry.labels.lashings && a.geometry.labels.lashings.length ? `<details><summary>Platform lashings (${a.geometry.labels.lashings.length})</summary>\n\n| Lashing | Ties platform pipe onto box rail |\n|---|---|\n${a.geometry.labels.lashings.map(l => `| ${l.id} | ${l.joins[0]} onto ${l.joins[1]} |`).join('\n')}\n\n</details>\n\n` : ''}<details><summary>Pipes (${a.geometry.labels.pipes.length})</summary>
 
 | Pipe | Part | Center to center |
 |---|---|---|
