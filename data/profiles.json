@@ -9,11 +9,11 @@
       "summary": {
         "preset": "tri3pack",
         "drums": 3,
-        "weight": 144.9,
-        "loadPct": 31,
+        "weight": 129.5,
+        "loadPct": 30,
         "crew": 2,
         "cost": 1141.92,
-        "sticks": 10
+        "sticks": 8
       },
       "build": {
         "name": "Current plan: packed triangle in box frames",
@@ -60,7 +60,7 @@
           "sideStyle": "hull",
           "hullBow": 18,
           "boxSideGap": -2.6,
-          "platform": true,
+          "platform": false,
           "platformSpacing": 16,
           "bowNoodle": true
         },
@@ -750,7 +750,7 @@
           "sideStyle": "hull",
           "hullBow": 18,
           "boxSideGap": -2.6,
-          "platform": true,
+          "platform": false,
           "platformSpacing": 16,
           "bowNoodle": true
         },
@@ -1440,7 +1440,7 @@
           "sideStyle": "hull",
           "hullBow": 18,
           "boxSideGap": -2.6,
-          "platform": true,
+          "platform": false,
           "platformSpacing": 16,
           "bowNoodle": true
         },
@@ -2130,7 +2130,7 @@
           "sideStyle": "hull",
           "hullBow": 18,
           "boxSideGap": -2.6,
-          "platform": true,
+          "platform": false,
           "platformSpacing": 16,
           "bowNoodle": true
         },
@@ -2820,7 +2820,7 @@
           "sideStyle": "hull",
           "hullBow": 18,
           "boxSideGap": -2.6,
-          "platform": true,
+          "platform": false,
           "platformSpacing": 16,
           "bowNoodle": true
         },
@@ -3446,11 +3446,11 @@
       "summary": {
         "preset": "stagger2",
         "drums": 2,
-        "weight": 114.2,
+        "weight": 98.7,
         "loadPct": 42,
         "crew": 2,
         "cost": 1141.92,
-        "sticks": 9
+        "sticks": 7
       },
       "build": {
         "name": "Box frames: staggered catamaran",
@@ -3497,7 +3497,7 @@
           "sideStyle": "hull",
           "hullBow": 18,
           "boxSideGap": -2.6,
-          "platform": true,
+          "platform": false,
           "platformSpacing": 16,
           "bowNoodle": true
         },
@@ -4136,11 +4136,11 @@
       "summary": {
         "preset": "tri3stern",
         "drums": 3,
-        "weight": 146.1,
-        "loadPct": 31,
+        "weight": 130.6,
+        "loadPct": 30,
         "crew": 2,
         "cost": 1106.92,
-        "sticks": 11
+        "sticks": 9
       },
       "build": {
         "name": "Box frames: reverse triangle",
@@ -4187,7 +4187,7 @@
           "sideStyle": "hull",
           "hullBow": 18,
           "boxSideGap": -2.6,
-          "platform": true,
+          "platform": false,
           "platformSpacing": 16,
           "bowNoodle": true
         },
@@ -4877,7 +4877,7 @@
           "sideStyle": "hull",
           "hullBow": 18,
           "boxSideGap": -2.6,
-          "platform": true,
+          "platform": false,
           "platformSpacing": 16,
           "bowNoodle": true
         },

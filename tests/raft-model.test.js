@@ -416,7 +416,8 @@ test('chord fit: side rails inside the drum diameter press on it, no stubs, drum
 });
 
 test('platform and noodles: PVC grid under the deck, noodles in its bays and around the bow', () => {
-  const g = M.geometry(current.config), q = M.requirements(g, current.parts);
+  const withPlatform = Object.assign({}, current.config, { platform: true });   // optional, off by default
+  const g = M.geometry(withPlatform), q = M.requirements(g, current.parts);
   assert.ok(g.platform && g.cagePieces.some(pc => pc.kind === 'platform'));
   assert.ok(g.deckBottom > g.platform.y, 'deck sits on the platform');
   assert.ok(g.bowNoodle && g.bowNoodle.len <= 52 + 10);
@@ -435,16 +436,17 @@ test('engineering: buoyancy, drag, weight distribution and structural checks', (
   near(E.weight.groups.reduce((t, g) => t + g.lb, 0), a.solution.W, 1e-6, 'groups add up');
   assert.ok(E.structure.length >= 3 && E.structure.every(s => isFinite(s.sf) && ['ok', 'warn', 'error'].includes(s.level)));
   near(M.PVC.S, 0.326, 0.005, 'Sch 40 section modulus');
-  // a longer unsupported platform span lowers the safety factor
-  const wide = M.analyze(Object.assign({}, current, { config: Object.assign({}, current.config, { deck: Object.assign({}, current.config.deck, { width: 40 }) }) }), rules, { skipLeak: true });
+  // a longer unsupported platform span lowers the safety factor (the platform is optional, so turn it on)
+  const withPlat = deck => M.analyze(Object.assign({}, current, { config: Object.assign({}, current.config, { platform: true, deck: Object.assign({}, current.config.deck, deck) }) }), rules, { skipLeak: true });
   const sf = r => (r.engineering.structure.find(s => s.id === 'platform') || {}).sf;
-  assert.ok(sf(wide) < sf(a));
+  assert.ok(sf(withPlat({ width: 40 })) < sf(withPlat({})));
   // every warning has a place on the boat
   assert.ok(a.issues.length > 0 && a.issues.every(i => Array.isArray(i.at) && i.at.length === 3 && i.at.every(Number.isFinite)));
 });
 
 test('engineering: every number shows its work', () => {
-  const E = M.analyze(current, rules, { skipLeak: true }).engineering;
+  const withPlatform = Object.assign({}, current, { config: Object.assign({}, current.config, { platform: true }) });
+  const E = M.analyze(withPlatform, rules, { skipLeak: true }).engineering;
   ['buoy.max', 'buoy.load', 'buoy.reserve', 'buoy.sf', 'buoy.frame', 'buoy.emergency', 'drag.area', 'drag.force', 'drag.speed', 'drag.broadside', 'wt.cg', 'wt.fwd', 'wt.cgw']
     .concat(E.buoyancy.drums.map(d => 'buoy.drum' + d.id), E.structure.map(s => 'st.' + s.id))
     .forEach(id => { const w = E.work[id]; assert.ok(w && w.formula && w.steps.length && w.why, id); assert.ok(w.steps.every(t => !/NaN|undefined/.test(t)), id); });
@@ -478,4 +480,26 @@ test('part IDs: every pipe, joint and part gets a unique, stable label that matc
   // same design, same labels
   const again = M.geometry(M.withDefaults(current.config)).labels;
   assert.deepStrictEqual(again.joints.map(j => [j.id, j.type, j.pipes.join()]), L.joints.map(j => [j.id, j.type, j.pipes.join()]));
+});
+
+test('platform: off by default; when on, it is lashed to the box top rails it crosses', () => {
+  assert.strictEqual(current.config.platform, false, 'default build has no platform');
+  const g0 = M.geometry(current.config), r0 = M.requirements(g0, current.parts);
+  assert.ok(!g0.cagePieces.some(pc => pc.kind === 'platform') && !r0.platformLashings);
+  const g = M.geometry(Object.assign({}, current.config, { platform: true })), r = M.requirements(g, current.parts);
+  const L = g.platform.lashings;
+  assert.ok(L.length > 0, 'the platform crosses some box rails');
+  L.forEach(l => {
+    const pp = l.platformPiece, bp = l.boxPiece;
+    assert.strictEqual(pp.kind, 'platform'); assert.ok(['top', 'link'].includes(bp.kind));
+    // the platform pipe rests on the rail: one pipe diameter higher, crossing at right angles in plan
+    near(pp.a[1] - bp.a[1], 2 * M.PIPE_R, 1e-6, 'stacked one diameter up');
+    const d = q => [q.b[0] - q.a[0], q.b[2] - q.a[2]];
+    near(d(pp)[0] * d(bp)[0] + d(pp)[1] * d(bp)[1], 0, 1e-6, 'perpendicular');
+  });
+  assert.strictEqual(r.platformLashTies, M.PLATFORM_TIES_PER_CROSSING * L.length);
+  assert.strictEqual(r.tieCount - r0.tieCount, r.platformLashTies, 'lashing ties are counted');
+  // a tie around two crossed 1.9" pipes needs about (2 + π)·1.9 + 2 ≈ 12"
+  assert.strictEqual(M.LASH_TIE_MIN_IN, Math.ceil((2 + Math.PI) * 1.9 + 2));
+  assert.strictEqual(new Set(g.labels.lashings.map(x => x.id)).size, L.length);
 });
