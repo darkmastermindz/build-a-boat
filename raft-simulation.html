@@ -17,6 +17,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;700&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
+  [hidden]{display:none !important}   /* a display rule on a class must never override the hidden attribute */
   :root{
     --bg:#E6EEEC; --bg2:#D6E2DF; --panel:#F7F9F8; --ink:#1E2A2E; --muted:#5B6B70; --line:#C5D3D0;
     --accent:#2F6B78; --accent-ink:#fff; --ok:#2E7D4F; --warn:#B26A00; --err:#B3261E; --info:#3B5BA9;
@@ -1147,6 +1148,7 @@ function positionIds(){
 function toggleIds(force){
   idsOn = force ?? !idsOn;
   $('idBtn').setAttribute('aria-pressed', idsOn); $('idBar').hidden = !idsOn;
+  if (idsOn && force === undefined) $('idQuery').focus();
   try { localStorage.setItem('bob-ids', idsOn ? $('idShow').value : ''); } catch (e) {}
   renderIds();
 }
@@ -1163,7 +1165,9 @@ function findId(q){
   renderIds();
   const box = new THREE.Box3().setFromObject(mesh), c = box.getCenter(new THREE.Vector3()).project(camera), cv = renderer.domElement;
   const ud = mesh.userData;
-  pinPart({ ud, x: (c.x + 1) / 2 * cv.clientWidth + 12, y: (1 - c.y) / 2 * cv.clientHeight + 12 });
+  // open the popup just under the find bar, beside the part, so it never covers the buttons under the 3D view
+  const barBottom = $('idBar').offsetTop + $('idBar').offsetHeight + 8;
+  pinPart({ ud, x: (c.x + 1) / 2 * cv.clientWidth + 12, y: barBottom });
 }
 function initIds(){
   $('idShow').onchange = () => { try { localStorage.setItem('bob-ids', $('idShow').value); } catch (e) {} renderIds(); };
