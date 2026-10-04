@@ -70,6 +70,19 @@
       "foam_filled": true
     },
     {
+      "name": "1-1/2\" x 10 ft Sch 40 PVC pipe",
+      "role": "pipe",
+      "category": "frame",
+      "material": "pvc",
+      "quantity": 1,
+      "weight_lb_each": 5.1,
+      "weight_measured": false,
+      "unit_cost_usd": 11.96,
+      "status": "bought",
+      "notes": "Lowe's 2026-10-03. Pressure-rated Sch 40; same OD as DWV, so it fits the same fittings.",
+      "foam_filled": true
+    },
+    {
       "catalog_id": "FT01",
       "name": "1-1/2\" DWV double sanitary tee (HxHxHxH)",
       "role": "cross",
@@ -181,30 +194,44 @@
       "foam_filled": true
     },
     {
+      "name": "Corrugated plastic sheet, white, 24 x 36 in",
+      "role": "coroplast",
+      "category": "deck",
+      "material": "polypropylene",
+      "quantity": 3,
+      "weight_lb_each": 0.8,
+      "weight_measured": false,
+      "unit_cost_usd": 11.98,
+      "status": "bought",
+      "notes": "Lowe's 2026-10-03.",
+      "sheet_sqft": 6
+    },
+    {
       "catalog_id": "D001",
       "name": "Coroplast corrugated plastic 4 mm, 4 x 8 ft",
       "role": "coroplast",
       "category": "deck",
       "material": "polypropylene",
-      "quantity": 2,
+      "quantity": 1,
       "weight_lb_each": 6,
       "weight_measured": false,
       "unit_cost_usd": 38.29,
       "status": "planned",
-      "notes": ""
+      "notes": "Only if the three 24x36 sheets run short (the deck skin needs ~28 sq ft)."
     },
     {
-      "catalog_id": "S003",
-      "name": "XPS foam board 1\" x 4 ft x 8 ft (FOAMULAR)",
+      "name": "XPS foam insulation board 2 in x 4 ft x 8 ft",
       "role": "xps",
       "category": "deck",
       "material": "xps",
-      "quantity": 2,
-      "weight_lb_each": 3,
+      "quantity": 1,
+      "weight_lb_each": 8,
       "weight_measured": false,
-      "unit_cost_usd": 24.97,
-      "status": "planned",
-      "notes": ""
+      "unit_cost_usd": 59.98,
+      "status": "bought",
+      "notes": "Lowe's 2026-10-03. One 2\" board = two 1\" layers. Weight is an estimate (XPS ~1.5 lb/cu ft): weigh it.",
+      "thickness_in": 2,
+      "sheet_sqft": 32
     },
     {
       "catalog_id": "A001",
@@ -233,17 +260,16 @@
       "notes": ""
     },
     {
-      "catalog_id": "A003",
-      "name": "PVC primer + cement kit",
+      "name": "Oatey PVC cement, 16 oz",
       "role": "cement",
       "category": "adhesive",
       "material": "solvent",
       "quantity": 1,
       "weight_lb_each": 0,
       "weight_measured": false,
-      "unit_cost_usd": 11.98,
-      "status": "planned",
-      "notes": ""
+      "unit_cost_usd": 10.28,
+      "status": "bought",
+      "notes": "Lowe's 2026-10-03. Cement only, no primer."
     },
     {
       "catalog_id": "A004",
@@ -327,30 +353,28 @@
       "notes": ""
     },
     {
-      "catalog_id": "X002",
-      "name": "Black outdoor fabric spray paint, 12 oz",
+      "name": "Krylon Fusion spray paint, matte black, 12 oz",
       "role": "paint",
       "category": "decor",
       "material": "acrylic",
       "quantity": 1,
       "weight_lb_each": 0.2,
       "weight_measured": false,
-      "unit_cost_usd": 13.98,
-      "status": "planned",
-      "notes": ""
+      "unit_cost_usd": 7.48,
+      "status": "bought",
+      "notes": "Lowe's 2026-10-03. Bonds to plastic: drums, PVC, Coroplast."
     },
     {
-      "catalog_id": "X003",
-      "name": "Red outdoor fabric spray paint, 12 oz",
+      "name": "Krylon Fusion spray paint, matte red pepper, 12 oz",
       "role": "paint",
       "category": "decor",
       "material": "acrylic",
       "quantity": 1,
       "weight_lb_each": 0.2,
       "weight_measured": false,
-      "unit_cost_usd": 13.98,
-      "status": "planned",
-      "notes": ""
+      "unit_cost_usd": 7.48,
+      "status": "bought",
+      "notes": "Lowe's 2026-10-03."
     },
     {
       "catalog_id": "X004",
@@ -393,17 +417,16 @@
       "notes": ""
     },
     {
-      "catalog_id": "X007",
-      "name": "Painter's tape 0.94 in x 60 yd",
+      "name": "ScotchBlue painter's tape 1.41 in",
       "role": "tape",
-      "category": "decor",
+      "category": "tools",
       "material": "paper",
       "quantity": 1,
       "weight_lb_each": 0.2,
       "weight_measured": false,
-      "unit_cost_usd": 6.47,
-      "status": "planned",
-      "notes": ""
+      "unit_cost_usd": 7.28,
+      "status": "bought",
+      "notes": "Lowe's 2026-10-03."
     },
     {
       "catalog_id": "X008",
@@ -430,6 +453,156 @@
       "unit_cost_usd": 7.99,
       "status": "planned",
       "notes": ""
+    },
+    {
+      "name": "Krylon Fusion spray paint, satin white, 12 oz",
+      "role": "paint",
+      "category": "decor",
+      "material": "acrylic",
+      "quantity": 1,
+      "weight_lb_each": 0.2,
+      "weight_measured": false,
+      "unit_cost_usd": 7.48,
+      "status": "bought",
+      "notes": "Lowe's 2026-10-03."
+    },
+    {
+      "name": "Krylon Fusion spray paint, gloss sunbeam (yellow), 12 oz",
+      "role": "paint",
+      "category": "decor",
+      "material": "acrylic",
+      "quantity": 1,
+      "weight_lb_each": 0.2,
+      "weight_measured": false,
+      "unit_cost_usd": 7.48,
+      "status": "bought",
+      "notes": "Lowe's 2026-10-03."
+    },
+    {
+      "name": "Rust-Oleum multicolor textured spray paint (stone), 12 oz",
+      "role": "paint",
+      "category": "decor",
+      "material": "acrylic",
+      "quantity": 2,
+      "weight_lb_each": 0.3,
+      "weight_measured": false,
+      "unit_cost_usd": 11.98,
+      "status": "bought",
+      "notes": "Lowe's 2026-10-03."
+    },
+    {
+      "name": "Krylon chalky finish clear coat, 11 oz",
+      "role": "paint",
+      "category": "decor",
+      "material": "acrylic",
+      "quantity": 2,
+      "weight_lb_each": 0.15,
+      "weight_measured": false,
+      "unit_cost_usd": 10.98,
+      "status": "bought",
+      "notes": "Lowe's 2026-10-03."
+    },
+    {
+      "name": "Flex Glue clear, 4 oz",
+      "role": "glue",
+      "category": "adhesive",
+      "material": "glue",
+      "quantity": 1,
+      "weight_lb_each": 0.1,
+      "weight_measured": false,
+      "unit_cost_usd": 14.99,
+      "status": "bought",
+      "notes": "Lowe's 2026-10-03."
+    },
+    {
+      "name": "Flex Seal clear spray, 2 oz",
+      "role": "sealant",
+      "category": "adhesive",
+      "material": "rubber",
+      "quantity": 1,
+      "weight_lb_each": 0.05,
+      "weight_measured": false,
+      "unit_cost_usd": 6.99,
+      "status": "bought",
+      "notes": "Lowe's 2026-10-03."
+    },
+    {
+      "name": "Natural twisted sisal twine, 300 ft",
+      "role": "rope",
+      "category": "rigging",
+      "material": "sisal",
+      "quantity": 1,
+      "weight_lb_each": 1.0,
+      "weight_measured": false,
+      "unit_cost_usd": 6.98,
+      "status": "bought",
+      "notes": "Lowe's 2026-10-03. Cut pieces to 18\" or less. Sisal soaks up water and may sink: bucket-test, or use it only for decoration.",
+      "max_piece_length_in": 18,
+      "on_boat_share": 0.1
+    },
+    {
+      "name": "PTFE thread-seal tape 1/2 in x 43 ft",
+      "role": "tape",
+      "category": "adhesive",
+      "material": "ptfe",
+      "quantity": 1,
+      "weight_lb_each": 0.02,
+      "weight_measured": false,
+      "unit_cost_usd": 1.98,
+      "status": "bought",
+      "notes": "Lowe's 2026-10-03. For the drum bung threads."
+    },
+    {
+      "name": "Cable ties 8 in, black, 100-pack",
+      "role": "zip-tie",
+      "category": "rigging",
+      "material": "nylon",
+      "quantity": 1,
+      "weight_lb_each": 0.25,
+      "weight_measured": false,
+      "unit_cost_usd": 10.98,
+      "status": "bought",
+      "notes": "Lowe's 2026-10-03. Under 18\": fine for the securing-material rule.",
+      "length_in": 8,
+      "pack_count": 100
+    },
+    {
+      "name": "Corrugated PVC panel 26 in x 8 ft, beige (PVCLite)",
+      "role": "panel",
+      "category": "deck",
+      "material": "pvc-sheet",
+      "quantity": 4,
+      "weight_lb_each": 3,
+      "weight_measured": false,
+      "unit_cost_usd": 18.48,
+      "status": "bought",
+      "notes": "Lowe's 2026-10-03. Use not decided yet (hull sides or bow guard?), so not counted in the weight: untick \"not on the boat yet\" once you use them. Weight is an estimate: weigh one. Solid PVC sheet sinks: foam behind it or bucket-test.",
+      "on_boat": false
+    },
+    {
+      "name": "1-1/2 in x 8 ft cap (item BRCAP18)",
+      "role": "trim",
+      "category": "deck",
+      "material": "unknown",
+      "quantity": 4,
+      "weight_lb_each": 0.5,
+      "weight_measured": false,
+      "unit_cost_usd": 1.24,
+      "status": "bought",
+      "notes": "Lowe's 2026-10-03. What is this exactly? Not counted in the weight until you use it. If it is metal, it is not allowed on the boat.",
+      "on_boat": false
+    },
+    {
+      "name": "Sharpie Magnum jumbo marker, black",
+      "role": "tool",
+      "category": "tools",
+      "material": "n/a",
+      "quantity": 1,
+      "weight_lb_each": 0,
+      "weight_measured": false,
+      "unit_cost_usd": 3.98,
+      "status": "bought",
+      "notes": "Lowe's 2026-10-03."
     }
   ],
   "receipts": [
@@ -513,6 +686,110 @@
           "ANPTGHT 1-1/2\" 5-way furniture-grade fitting, 4-pack",
           1,
           27.81
+        ]
+      ]
+    },
+    {
+      "store": "Lowe's",
+      "date": "2026-10-03",
+      "subtotal_usd": 326.06,
+      "tax_usd": 22.82,
+      "total_usd": 348.88,
+      "lines": [
+        [
+          "Krylon Fusion 12 oz matte red pepper",
+          1,
+          7.48
+        ],
+        [
+          "Rust-Oleum 12 oz multicolor textured stone",
+          2,
+          11.98
+        ],
+        [
+          "Krylon Fusion 12 oz gloss sunbeam",
+          1,
+          7.48
+        ],
+        [
+          "Krylon Fusion 12 oz satin white",
+          1,
+          7.48
+        ],
+        [
+          "Krylon Fusion 12 oz matte black",
+          1,
+          7.48
+        ],
+        [
+          "Krylon 11 oz chalky clear",
+          2,
+          10.98
+        ],
+        [
+          "Flex Glue clear 4 oz",
+          1,
+          14.99
+        ],
+        [
+          "Flex Seal 2 oz clear spray",
+          1,
+          6.99
+        ],
+        [
+          "300 ft natural twisted sisal twine",
+          1,
+          6.98
+        ],
+        [
+          "ScotchBlue 1.41 in painter's tape",
+          1,
+          7.28
+        ],
+        [
+          "Oatey 16 oz PVC cement",
+          1,
+          10.28
+        ],
+        [
+          "PTFE tape 1/2 in x 43 ft",
+          1,
+          1.98
+        ],
+        [
+          "8 in black cable tie, 100-pack",
+          1,
+          10.98
+        ],
+        [
+          "Sharpie Magnum jumbo, black",
+          1,
+          3.98
+        ],
+        [
+          "1-1/2 in x 10 ft Sch 40 PVC pipe",
+          1,
+          11.96
+        ],
+        [
+          "26 x 96 PVCLite PVC panel, beige",
+          4,
+          18.48
+        ],
+        [
+          "1-1/2 in x 8 ft cap (BRCAP18)",
+          4,
+          1.24
+        ],
+        [
+          "24 x 36 corrugated plastic, white",
+          3,
+          11.98
+        ],
+        [
+          "2 in x 4 ft x 8 ft insulation board",
+          1,
+          59.98
         ]
       ]
     }

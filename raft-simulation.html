@@ -84,6 +84,9 @@
   .part .ph input{font-weight:600;padding:4px 6px}
   .part .meta{margin:3px 0 6px}
   .part .pc{display:grid;grid-template-columns:52px 60px 28px 72px 1fr;gap:6px;align-items:end}
+  .part .pc2{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-top:5px}
+  .part .pc2 label{display:flex;gap:5px;align-items:center}
+  .part .pc2 input[type=number]{width:62px}
   .part .pc label{display:flex;flex-direction:column;font-size:10.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.3px;gap:2px}
   .part .pc input[type=number]{padding:3px 4px}
   .part .pc select{padding:3px 2px;font-size:12px}
@@ -581,7 +584,12 @@ function renderParts(){
       el('div', { class:'pc' },
         num('quantity', 1, 'Qty'), num('weight_lb_each', 0.1, 'lb ea'),
         el('label', { title:'Weighed?' }, '⚖', el('input', { type:'checkbox', checked: !!p.weight_measured, 'aria-label':'Weight measured', onchange: e => { p.weight_measured = e.target.checked; changed(); } })),
-        num('unit_cost_usd', 0.01, '$ ea'), status)));
+        num('unit_cost_usd', 0.01, '$ ea'), status),
+      el('div', { class:'pc2 small' },
+        p.role in M.CONSUMABLE_SHARE ? el('label', { title:'How much of each container ends up on the boat (the rest is left over and not weighed)' }, '% on boat',
+          el('input', { type:'number', min:0, max:100, step:5, value: Math.round(M.onBoatShare(p) * 100), onchange: e => { p.on_boat_share = Math.min(100, Math.max(0, +e.target.value)) / 100; changed(); } })) : '',
+        ['pipe','elbow','tee','side-tee','five-way','cleanout-tee','cross','coupling','zip-tie','xps','coroplast'].includes(p.role) ? el('span', { class:'muted' }, p.role === 'xps' || p.role === 'coroplast' ? 'Weighed by the deck area cut' : 'Weighed by what the layout uses') : '',
+        el('label', { title:'Bought, but not decided whether it goes on the boat: not weighed' }, el('input', { type:'checkbox', checked: p.on_boat === false, onchange: e => { if (e.target.checked) p.on_boat = false; else delete p.on_boat; changed(); } }), ' not on the boat yet'))));
   });
 }
 
