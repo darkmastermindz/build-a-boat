@@ -74,6 +74,332 @@ Open `raft-simulation.html` → Check → Next shopping trip and enter a ZIP cod
 | Crew at bow: bow clearance | 0.1" |
 | Lose one drum | sinks or capsizes |
 
+## Engineering
+
+### Buoyancy
+
+| | |
+|---|---|
+| Total lift (every drum under) | 1614 lb |
+| Boat + crew | 495 lb |
+| Reserve | 1119 lb (safety factor 3.3×) |
+| Drum 1 | 153 of 495 lb (31% used), 7.9" under |
+| Drum 2 | 147 of 495 lb (30% used), 7.7" under |
+| Drum 3 | 147 of 495 lb (30% used), 7.7" under |
+| Carried by submerged foam-filled pipe | 47 lb |
+| Foam lift if swamped | 324 lb vs 85 lb of structure |
+
+### Drag
+
+| | |
+|---|---|
+| Underwater area, ahead / side | 2.75 / 4.83 sq ft |
+| Paddling 1 mph | 3.3 lb, 6 W |
+| Paddling 2 mph | 13.0 lb, 52 W |
+| Paddling 3 mph | 29.3 lb, 175 W |
+| Top speed (150 W) | 2.9 mph |
+| Broadside to a 3 mph current | 100 lb |
+| Broadside to a 5 mph current | 277 lb |
+| Broadside to a 8 mph current | 710 lb |
+
+### Weight distribution
+
+| | |
+|---|---|
+| Centre of gravity (fore-aft, height, across) | 0.4", 29.9", 0.0" |
+| Forward / aft | 46% / 54% |
+| CG above the waterline | 22.2" |
+| crew | 350 lb at 0" |
+| frame | 67 lb at 3" |
+| drum | 60 lb at -0" |
+| fittings/decor | 12 lb at 0" |
+| deck | 6 lb at 0" |
+
+### Structure (1-1/2" Sch 40 PVC, crew × 2 for slamming)
+
+| Check | Stress | Safety factor | |
+|---|---|---|---|
+| Box top rail under the deck (crew) | 5164 psi | 2.7 | ✅ |
+| Drum uplift on its box (drum pushed fully under a wave) | 3506 psi | 4.0 | ✅ |
+| Platform cross member (crew) | 5928 psi | 2.4 | ⚠️ |
+| Bow nose chords (a 100 lb wave hit on the point) | 1484 psi | 9.4 | ✅ |
+| Deck tie-downs vs foam lift when swamped | — | 6.4 | ✅ |
+
+Targets: safety factor 2.5+ (minimum 1.5). PVC flexural strength ~14000 psi.
+
+### How each number was worked out
+
+<details><summary><code>buoy.max</code>: Lift = Σ (π r² L × 0.0361) for each drum + foam-filled pipe below the deck</summary>
+
+1. Drum 1: π × 11.25² × 34.5 = 13717 in³ × 0.0361 = 495.4 lb
+2. Drum 2: π × 11.25² × 34.5 = 13717 in³ × 0.0361 = 495.4 lb
+3. Drum 3: π × 11.25² × 34.5 = 13717 in³ × 0.0361 = 495.4 lb
+4. Foam-filled pipe that can go under: 127.8 lb
+5. Total = 1486.1 + 127.8 = 1614 lb
+
+Archimedes: a body pushed under water is lifted by the weight of water it displaces (water weighs 62.4 lb/ft³ = 0.0361 lb/in³). This is the most the boat can ever hold up.
+
+</details>
+<details><summary><code>buoy.load</code>: W = boat parts + drums + crew</summary>
+
+1. drum: 60.0 lb
+2. frame: 66.8 lb
+3. deck: 6.2 lb
+4. fittings/decor: 11.9 lb
+5. crew: 350.0 lb
+6. Total W = 494.9 lb
+
+Everything the drums have to hold up: the predicted boat weight from the parts list plus the crew.
+
+</details>
+<details><summary><code>buoy.reserve</code>: Reserve = Lift − W</summary>
+
+1. 1614 − 495 = 1119 lb
+
+How much more weight (water in the boat, a wave pushing down) it can take before it goes under.
+
+</details>
+<details><summary><code>buoy.sf</code>: Safety factor = Lift ÷ W</summary>
+
+1. 1614 ÷ 495 = 3.26×
+
+Above 2× is comfortable for rough water; below 1.5× a big wave or a swamped deck can push it under.
+
+</details>
+<details><summary><code>buoy.drum0</code>: Submerged slice area A(h) = r² · acos((r − h)/r) − (r − h) · √(2rh − h²); lift = Σ A(h) × slice length × 0.0361</summary>
+
+1. r = 11.25", length 34.5", deepest point h = 7.90" (the boat trims, so h varies along the drum)
+2. Lift = 153.0 lb of a 495.4 lb maximum = 31% used
+3. Share of the load = 153.0 ÷ 494.9 = 31%
+
+The solver moves the boat up/down and tilts it until the lift equals the weight and the lift is centred under the centre of gravity. Each drum is cut into 12 slices; each slice floats to its own depth.
+
+</details>
+<details><summary><code>buoy.drum1</code>: Submerged slice area A(h) = r² · acos((r − h)/r) − (r − h) · √(2rh − h²); lift = Σ A(h) × slice length × 0.0361</summary>
+
+1. r = 11.25", length 34.5", deepest point h = 7.70" (the boat trims, so h varies along the drum)
+2. Lift = 147.5 lb of a 495.4 lb maximum = 30% used
+3. Share of the load = 147.5 ÷ 494.9 = 30%
+
+The solver moves the boat up/down and tilts it until the lift equals the weight and the lift is centred under the centre of gravity. Each drum is cut into 12 slices; each slice floats to its own depth.
+
+</details>
+<details><summary><code>buoy.drum2</code>: Submerged slice area A(h) = r² · acos((r − h)/r) − (r − h) · √(2rh − h²); lift = Σ A(h) × slice length × 0.0361</summary>
+
+1. r = 11.25", length 34.5", deepest point h = 7.70" (the boat trims, so h varies along the drum)
+2. Lift = 147.5 lb of a 495.4 lb maximum = 30% used
+3. Share of the load = 147.5 ÷ 494.9 = 30%
+
+The solver moves the boat up/down and tilts it until the lift equals the weight and the lift is centred under the centre of gravity. Each drum is cut into 12 slices; each slice floats to its own depth.
+
+</details>
+<details><summary><code>buoy.frame</code>: Pipe lift = W − Σ drum lift</summary>
+
+1. 494.9 − 447.9 = 46.9 lb
+
+The bottom rails of the boxes sit below the waterline; foam-filled pipe floats, so it carries part of the load.
+
+</details>
+<details><summary><code>buoy.emergency</code>: Foam lift = deck XPS + pool noodles + foam-filled pipe</summary>
+
+1. Deck: 72 × 24 × (2.3 − 0.3 skins) in³ × 0.0361 = 125 lb
+2. Noodles: 16 × π × 1.25² × 52 in³ × 0.0361 = 147 lb
+3. Pipe: 1124" × π × 0.95² × 0.0361 × 45% net = 52 lb
+4. Total 324 lb vs structure without drums 145 − 60 = 85 lb
+
+The rules say everything must float even when broken. If every drum leaked, the foam would still have to hold up the frame and deck.
+
+</details>
+<details><summary><code>drag.area</code>: Frontal area = drum cross-sections below the waterline (seen from ahead, overlaps counted once) + hull skirt width × depth under water</summary>
+
+1. Waterline 7.7" above the drum bottoms; hull skirt bottom at 1.3", so 6.3" of skirt is under water
+2. Drums below the skirt: 0.46 ft² (sampled every 0.5" across)
+3. Hull: 52.0" wide × 6.3" = 2.29 ft²
+4. From the side: drums 0.65 ft² + hull 95.0" × 6.3" = 4.18 ft²
+
+Drag depends on how much the boat pushes against water head-on. Only what is below the waterline counts.
+
+</details>
+<details><summary><code>drag.force</code>: F = ½ · ρ · v² · Cd · A   (ρ = 1.94 slug/ft³, v in ft/s, 1 mph = 1.467 ft/s)</summary>
+
+1. Cd·A = 0.9 × 0.46 (blunt drum ends) + 0.5 × 2.29 (pointed bow) = 1.56 ft²
+2. 1 mph: ½ × 1.94 × 1.47² × 1.56 = 3.3 lb; power = F × v = 3.3 × 1.47 × 1.356 = 6 W
+3. 2 mph: ½ × 1.94 × 2.93² × 1.56 = 13.0 lb; power = F × v = 13.0 × 2.93 × 1.356 = 52 W
+4. 3 mph: ½ × 1.94 × 4.40² × 1.56 = 29.3 lb; power = F × v = 29.3 × 4.40 × 1.356 = 175 W
+
+Water drag grows with the square of speed, and the power to push it with the cube. Skin friction along the sides is left out, so real drag is a little higher.
+
+</details>
+<details><summary><code>drag.speed</code>: P = F · v = ½ ρ Cd A v³  →  v = ∛(P ÷ (½ ρ Cd A))</summary>
+
+1. P = 2 paddlers × 75 W = 150 W = 111 ft·lb/s
+2. v = ∛(111 ÷ (0.5 × 1.94 × 1.56)) = 4.18 ft/s = 2.9 mph
+
+A fit recreational paddler sustains about 75 W. Top speed is where the paddlers' power equals the drag power.
+
+</details>
+<details><summary><code>drag.broadside</code>: F = ½ · ρ · v² · Cd · A_side   (Cd ≈ 1.1 broadside)</summary>
+
+1. Cd·A_side = 1.1 × 4.83 = 5.32 ft²
+2. 3 mph: ½ × 1.94 × 4.40² × 5.32 = 100 lb
+3. 5 mph: ½ × 1.94 × 7.33² × 5.32 = 277 lb
+4. 8 mph: ½ × 1.94 × 11.73² × 5.32 = 710 lb
+
+Turned sideways in the current, the long side faces the flow. This is the push that pins a boat against a rock, so keep the bow into the rapids.
+
+</details>
+<details><summary><code>wt.cg</code>: x̄ = Σ wᵢ·xᵢ ÷ Σ wᵢ (same for height and across)</summary>
+
+1. drum: 20.0 lb at x 25.3", height 11.3", across 0.0"
+2. drum: 20.0 lb at x -13.3", height 11.3", across -14.3"
+3. drum: 20.0 lb at x -13.3", height 11.3", across 14.3"
+4. cage: 0.7 lb at x -24.5", height 21.2", across 0.0"
+5. cage: 0.7 lb at x -24.5", height 1.3", across 0.0"
+6. cage: 0.7 lb at x -2.0", height 21.2", across 0.0"
+7. cage: 0.7 lb at x -2.0", height 1.3", across 0.0"
+8. cage: 2.0 lb at x 25.3", height 21.2", across -7.1"
+9. cage: 2.0 lb at x 25.3", height 21.2", across 7.1"
+10. cage: 0.7 lb at x 6.0", height 21.2", across 0.0"
+11. cage: 0.7 lb at x 44.5", height 21.2", across 0.0"
+12. cage: 2.0 lb at x 25.3", height 1.3", across -7.1"
+13. cage: 2.0 lb at x 25.3", height 1.3", across 7.1"
+14. cage: 0.7 lb at x 6.0", height 1.3", across 0.0"
+15. cage: 0.7 lb at x 44.5", height 1.3", across 0.0"
+16. cage: 1.0 lb at x 44.5", height 11.3", across -7.1"
+17. cage: 1.0 lb at x 44.5", height 11.3", across 7.1"
+18. cage: 2.0 lb at x -13.3", height 21.2", across -22.9"
+19. cage: 0.4 lb at x -28.5", height 21.2", across -7.1"
+20. cage: 1.2 lb at x -13.3", height 21.2", across -7.1"
+21. cage: 0.4 lb at x 2.0", height 21.2", across -7.1"
+22. cage: 0.8 lb at x -32.5", height 21.2", across -15.0"
+23. cage: 0.8 lb at x 6.0", height 21.2", across -15.0"
+24. cage: 2.0 lb at x -13.3", height 1.3", across -22.9"
+25. cage: 0.4 lb at x -28.5", height 1.3", across -7.1"
+26. cage: 1.2 lb at x -13.3", height 1.3", across -7.1"
+27. cage: 0.4 lb at x 2.0", height 1.3", across -7.1"
+28. cage: 0.8 lb at x -32.5", height 1.3", across -15.0"
+29. cage: 0.8 lb at x 6.0", height 1.3", across -15.0"
+30. cage: 1.0 lb at x -32.5", height 11.3", across -22.9"
+31. cage: 1.0 lb at x -32.5", height 11.3", across -7.1"
+32. cage: 1.0 lb at x 6.0", height 11.3", across -22.9"
+33. cage: 1.0 lb at x 6.0", height 11.3", across -7.1"
+34. cage: 0.4 lb at x -28.5", height 21.2", across 7.1"
+35. cage: 1.2 lb at x -13.3", height 21.2", across 7.1"
+36. cage: 0.4 lb at x 2.0", height 21.2", across 7.1"
+37. cage: 2.0 lb at x -13.3", height 21.2", across 22.9"
+38. cage: 0.8 lb at x -32.5", height 21.2", across 15.0"
+39. cage: 0.8 lb at x 6.0", height 21.2", across 15.0"
+40. cage: 0.4 lb at x -28.5", height 1.3", across 7.1"
+41. cage: 1.2 lb at x -13.3", height 1.3", across 7.1"
+42. cage: 0.4 lb at x 2.0", height 1.3", across 7.1"
+43. cage: 2.0 lb at x -13.3", height 1.3", across 22.9"
+44. cage: 0.8 lb at x -32.5", height 1.3", across 15.0"
+45. cage: 0.8 lb at x 6.0", height 1.3", across 15.0"
+46. cage: 1.0 lb at x -32.5", height 11.3", across 7.1"
+47. cage: 1.0 lb at x -32.5", height 11.3", across 22.9"
+48. cage: 1.0 lb at x 6.0", height 11.3", across 7.1"
+49. cage: 1.0 lb at x 6.0", height 11.3", across 22.9"
+50. cage: 0.9 lb at x -26.3", height 23.1", across -11.1"
+51. cage: 0.9 lb at x -8.8", height 23.1", across -11.1"
+52. cage: 0.9 lb at x 8.8", height 23.1", across -11.1"
+53. cage: 0.9 lb at x 26.3", height 23.1", across -11.1"
+54. cage: 0.9 lb at x -26.3", height 23.1", across 11.1"
+55. cage: 0.9 lb at x -8.8", height 23.1", across 11.1"
+56. cage: 0.9 lb at x 8.8", height 23.1", across 11.1"
+57. cage: 0.9 lb at x 26.3", height 23.1", across 11.1"
+58. cage: 1.1 lb at x -35.0", height 23.1", across 0.0"
+59. cage: 1.1 lb at x -17.5", height 23.1", across 0.0"
+60. cage: 1.1 lb at x 0.0", height 23.1", across 0.0"
+61. cage: 1.1 lb at x 17.5", height 23.1", across 0.0"
+62. cage: 1.1 lb at x 35.0", height 23.1", across 0.0"
+63. cage: 1.0 lb at x 53.5", height 1.3", across -3.6"
+64. cage: 1.0 lb at x 53.5", height 1.3", across 3.6"
+65. cage: 1.0 lb at x 53.5", height 21.2", across -3.6"
+66. cage: 1.0 lb at x 53.5", height 21.2", across 3.6"
+67. cage: 1.0 lb at x 62.5", height 11.3", across 0.0"
+68. frame: 2.1 lb at x 0.0", height 22.1", across 0.0"
+69. deck: 6.2 lb at x 0.0", height 25.2", across 0.0"
+70. fittings/decor: 11.9 lb at x 0.0", height 28.3", across 0.0"
+71. crew: 175.0 lb at x -15.0", height 36.3", across 0.0"
+72. crew: 175.0 lb at x 15.0", height 36.3", across 0.0"
+73. x̄ = 175 ÷ 494.9 = 0.4"; height = 29.9"; across = 0.0"
+
+The centre of gravity is the balance point of everything on board. The drums must float the boat with their combined lift centred right under it, so it decides trim and heel.
+
+</details>
+<details><summary><code>wt.fwd</code>: Forward share = Σ w (x > 0) ÷ W</summary>
+
+1. 228.0 ÷ 494.9 = 46% forward
+
+Weight forward of the middle pushes the bow down; balance it against where the drums are.
+
+</details>
+<details><summary><code>wt.cgw</code>: CG height above the waterline = KG − waterline</summary>
+
+1. 29.9 − 7.7 = 22.2"
+2. Centre of buoyancy KB = 4.2"; stability GM = I/V + KB − KG (roll 2.2", pitch 43.5")
+
+The higher the weight sits above the water, the easier it tips. Seated crew are most of it; sitting low on the deck raises stability.
+
+</details>
+<details><summary><code>st.deck-rail</code>: Simply supported, centre load: M = (P/2) · L ÷ 4;  σ = M ÷ S;  SF = 14000 psi ÷ σ</summary>
+
+1. P = 175 lb × 2 (slamming) = 350 lb, split over 2 rails = 175 lb
+2. L = 38.5" between the corner posts
+3. M = 175 × 38.5 ÷ 4 = 1684 in·lb
+4. S = π (D⁴ − d⁴) ÷ (32 D) = π (1.9⁴ − 1.61⁴) ÷ (32 × 1.9) = 0.326 in³ (1-1/2" Sch 40)
+5. σ = 1684 in·lb ÷ 0.326 in³ = 5164 psi
+6. SF = 14000 ÷ 5164 = 2.71 (target 2.5, minimum 1.5)
+
+The deck spreads a person over the two top rails of the box below; each rail acts as a beam between its corner posts. Bending stress in the pipe wall is compared with PVC's flexural strength (about 14000 psi).
+
+</details>
+<details><summary><code>st.uplift</code>: Uniform load over the span: M = (U/2) · L ÷ 8;  σ = M ÷ S;  SF = 14000 psi ÷ σ</summary>
+
+1. U = π × 11.25² × 34.5 × 0.0361 − 20 lb drum = 475 lb
+2. Per rail U/2 = 238 lb along L = 38.5"
+3. M = 238 × 38.5 ÷ 8 = 1144 in·lb
+4. S = π (D⁴ − d⁴) ÷ (32 D) = π (1.9⁴ − 1.61⁴) ÷ (32 × 1.9) = 0.326 in³ (1-1/2" Sch 40)
+5. σ = 1144 in·lb ÷ 0.326 in³ = 3506 psi
+6. SF = 14000 ÷ 3506 = 3.99 (target 2.5, minimum 1.5)
+
+When a wave shoves a drum fully under, its whole lift presses up on the rails that trap it. Bending stress in the pipe wall is compared with PVC's flexural strength (about 14000 psi).
+
+</details>
+<details><summary><code>st.platform</code>: Worst platform cross member: centre load M = P · L ÷ 4, or overhang M = P · a ÷ 2;  σ = M ÷ S;  SF = 14000 psi ÷ σ</summary>
+
+1. P = 175 × 2 = 350 lb (one person, slamming)
+2. Worst member at x = -35.0": no rail under it: spans the full 22.1"
+3. M = P · L ÷ 4 = 350 × 22.1 ÷ 4 = 1934 in·lb
+4. S = π (D⁴ − d⁴) ÷ (32 D) = π (1.9⁴ − 1.61⁴) ÷ (32 × 1.9) = 0.326 in³ (1-1/2" Sch 40)
+5. σ = 1934 in·lb ÷ 0.326 in³ = 5928 psi
+6. SF = 14000 ÷ 5928 = 2.36 (target 2.5, minimum 1.5)
+
+Each cross member under the foam rests on the box top rails it crosses; the longest gap between rails (or past the last one) bends the most. Bending stress in the pipe wall is compared with PVC's flexural strength (about 14000 psi).
+
+</details>
+<details><summary><code>st.nose</code>: M = (P/2) · L ÷ 4 per chord pair;  σ = M ÷ S;  SF = 14000 psi ÷ σ</summary>
+
+1. P = 100 lb wave hit × 2 = 200 lb, split top/bottom = 100 lb
+2. L = 19.4" (longest chord)
+3. M = 100 × 19.4 ÷ 4 = 484 in·lb
+4. S = π (D⁴ − d⁴) ÷ (32 D) = π (1.9⁴ − 1.61⁴) ÷ (32 × 1.9) = 0.326 in³ (1-1/2" Sch 40)
+5. σ = 484 in·lb ÷ 0.326 in³ = 1484 psi
+6. SF = 14000 ÷ 1484 = 9.44 (target 2.5, minimum 1.5)
+
+The nose points take the first hit from waves and rocks. Treating the chords as beams is conservative; as a triangle they mostly carry the push along their length. Bending stress in the pipe wall is compared with PVC's flexural strength (about 14000 psi).
+
+</details>
+<details><summary><code>st.deck-ties</code>: SF = ties × rating ÷ foam lift</summary>
+
+1. Foam lift = 72 × 24 × (2.3 − 0.3) × 0.0361 = 125 lb
+2. Hold = 16 ties × 50 lb = 800 lb
+3. SF = 800 ÷ 125 = 6.4
+
+If the boat swamps, the foam deck wants to float off. The tie-downs hold it; their rating comes from the weakest tie on the parts list (8" ties ≈ 50 lb, heavy 36" ties ≈ 175 lb).
+
+</details>
+
 ## Competition rules
 
 - ⚠️ **~145 lb is within 10 lb of the 150 lb limit** — Estimated weights can be off. Weigh the parts.
@@ -104,6 +430,7 @@ Open `raft-simulation.html` → Check → Next shopping trip and enter a ZIP cod
 - ⚠️ **Not counted yet: 15.8 lb of suggested or undecided parts** — Coroplast corrugated plastic 4 mm, 4 x 8 ft; 2-part marine epoxy; 100% silicone / marine sealant, 10.1 oz; 550 paracord, 100 ft; Outdoor seat cushion, 18-24 in; Outdoor acrylic craft paint set (18 colors); Canvas drop cloth, 4 x 5 ft; Fabric glue, 4 oz; 1-1/2 in x 8 ft cap (item BRCAP18); Skull and crossbones vinyl decal, waterproof, 6-12 in; Waterproof vinyl pinstripe tape, 1 in x 150 ft; Porthole window vinyl decals, waterproof, set of 4; Waterproof vinyl letters, 3 in, black (letters and numbers set). Using all of it would bring the boat to 160.7 lb, over the 150 lb limit. Set a suggested part to planned, or untick "not on the boat yet", once you decide to use it.
 - ℹ️ **Side panels: 3 of the 26" × 8 ft panels, 35.5 sq ft** — Cut each panel to 19.8" tall (rail to rail) and to these lengths: panel 1: 90.1" (5.9" left); panel 2: 90.1" (5.9" left); panel 3: 90.1" (5.9" left). Zip-tie them to the top and bottom rails about every 18" (32 ties). Solid PVC sheet sinks if it breaks loose: back it with foam or keep scraps from washing away.
 - ℹ️ **Box frames: each drum sits in its own box of pipe (91 ft of pipe)** — Drums are trapped without straps and the deck sits on the box tops, so there is no separate deck frame. The bottom rails sit just under the drums and can catch rocks in shallow water. Every box corner joins 3 pipes, so use side-outlet tees (3-way corners) there. Where boxes share a wall or butt against another box's crossbar, 8 of the 36 joints take 4 pipes: use 4-way side-outlet tees or 5-way fittings there. Boxes 2 and 1 meet corner to corner: join them where their end rails meet (a 4-way fitting where the corners touch, short ties otherwise).
+- ⚠️ **Structure: Platform cross member (crew): safety factor 2.4** — Worst cross member: no rail under it: spans the full 22.1". One crew member (175 lb × 2) on it. Target 2.5 or more. Shorten the span, add a support or a second pipe, or a fitting in the middle.
 
 ## Structure options and tradeoffs
 
