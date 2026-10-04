@@ -441,7 +441,14 @@
     if (per > 0) return Math.ceil(pieces / per);
     return Math.ceil(pieces * len * wid * 1.15 / (SHEET.w * SHEET.l));
   }
+  // Extra zip-tie supports placed in the 3D view (config.extraTies) add to
+  // the layout's tie count.
   function requirements(g, parts) {
+    const req = baseRequirements(g, parts), extra = Array.isArray(g.config.extraTies) ? g.config.extraTies.length : 0;
+    if (extra) { req.extraTies = extra; req.tieCount += extra; req.items['zip-tie'] = Math.ceil(req.tieCount * 1.15); }
+    return req;
+  }
+  function baseRequirements(g, parts) {
     if (g.boxes) return boxRequirements(g, parts);
     const c = g.config;
     const r = g.r;
@@ -567,37 +574,64 @@
   }
 
   // ── Weight & mass distribution ──
-  const FRAME_ROLES = new Set(['pipe', 'pipe-large', 'elbow', 'elbow45', 'coupling', 'tee', 'side-tee', 'cross', 'wye', 'cleanout-tee', 'cap', 'spray-foam', 'zip-tie', 'cement', 'epoxy', 'sealant', 'rope', 'mast']);
+  const FRAME_ROLES = new Set(['pipe', 'pipe-large', 'elbow', 'elbow45', 'coupling', 'tee', 'side-tee', 'five-way', 'cross', 'wye', 'cleanout-tee', 'cap', 'spray-foam', 'zip-tie', 'cement', 'epoxy', 'sealant', 'rope', 'mast']);
   const DECK_ROLES = new Set(['xps', 'coroplast', 'plywood']);
-  const boatParts = parts => (parts || []).filter(p => p.role !== 'tool' && p.category !== 'tools');
+  // tools, and parts marked on_boat: false (bought, use not decided), are not weighed
+  const boatParts = parts => (parts || []).filter(p => p.role !== 'tool' && p.category !== 'tools' && p.on_boat !== false);
 
-  // Pipe and fittings the layout derives are weighed by what it actually uses
-  // (spares and offcuts stay on the list but off the boat). Everything else
-  // is weighed as listed.
-  const USED_ROLES = { pipe: 'pipe', elbow: 'elbow', tee: 'tee', 'side-tee': 'tee', 'cleanout-tee': 'tee', cross: 'cross', coupling: 'coupling' };
+  // Pipe, fittings and zip ties the layout derives are weighed by what it
+  // actually uses (spares and offcuts stay on the list but off the boat).
+  // Consumables (paint, glue, sealant, tape, twine) are weighed by the share
+  // of each container that ends up on the boat: the part's on_boat_share, or
+  // a default per role. Everything else is weighed as listed.
+  const USED_ROLES = { pipe: 'pipe', elbow: 'elbow', tee: 'tee', 'side-tee': 'tee', 'five-way': 'tee', 'cleanout-tee': 'tee', cross: 'cross', coupling: 'coupling', 'zip-tie': 'zip-tie', xps: 'xps', coroplast: 'coroplast' };
+  const CONSUMABLE_SHARE = { paint: 0.5, glue: 0.5, sealant: 0.5, epoxy: 0.75, cement: 0.25, tape: 0.25, rope: 0.25 };
+  const onBoatShare = p => (p.on_boat_share != null && isFinite(+p.on_boat_share) ? Math.min(1, Math.max(0, +p.on_boat_share)) : CONSUMABLE_SHARE[p.role] ?? 1);
   function partWeights(build, g) {
     const parts = boatParts(build.parts);
     const req = requirements(g, build.parts);
     const used = {};
     Object.values(USED_ROLES).forEach(k => { used[k] = k === 'pipe' ? req.pipeLength_in / STOCK : req.items[k] || 0; });
+    // foam board and Coroplast are cut to the deck: weigh the area used (in full 4 x 8 ft sheets, XPS per 1" layer)
+    const c = g.config, deckSheets = c.deck.length * c.deck.width / (SHEET.w * SHEET.l);
+    used.xps = deckSheets * Math.max(1, Math.round(c.deck.thickness - 0.3));
+    used.coroplast = deckSheets * 2;                         // top and bottom skins
     const pool = {};
-    parts.forEach(p => { const k = USED_ROLES[p.role]; if (k) pool[k] = (pool[k] || 0) + (+p.quantity || 0); });
+    parts.forEach(p => { const k = USED_ROLES[p.role]; if (k) pool[k] = (pool[k] || 0) + (inventory([p])[k] || 0); });
+    const plan = paintPlan(c, parts);
     const rows = parts.filter(p => p.role !== 'drum').map(p => {
       const q = +p.quantity || 0, k = USED_ROLES[p.role];
-      const share = k && pool[k] ? Math.min(1, used[k] / pool[k]) : 1;
+      const share = k ? (pool[k] ? Math.min(1, used[k] / pool[k]) : 1) : (plan && p.role === 'paint' ? 0 : onBoatShare(p));
       return { part: p, w: q * share * (+p.weight_lb_each || 0) };
     });
     // the layout needs more pipe or fittings than listed: weigh the shortfall too
-    const DEFAULT_EACH = { pipe: 5.1, elbow: 0.2, tee: 0.35, cross: 0.45, coupling: 0.15 };
+    const DEFAULT_EACH = { pipe: 5.1, elbow: 0.2, tee: 0.35, cross: 0.45, coupling: 0.15, xps: 3, coroplast: 6 };
     Object.keys(DEFAULT_EACH).forEach(k => {
       const short = used[k] - (pool[k] || 0);
       if (short <= 1e-9) return;
       const listed = parts.filter(p => USED_ROLES[p.role] === k);
-      const qty = listed.reduce((t, p) => t + (+p.quantity || 0), 0);
-      const each = qty ? listed.reduce((t, p) => t + (+p.quantity || 0) * (+p.weight_lb_each || 0), 0) / qty : DEFAULT_EACH[k];
+      const each = pool[k] ? listed.reduce((t, p) => t + (+p.quantity || 0) * (+p.weight_lb_each || 0), 0) / pool[k] : DEFAULT_EACH[k];   // per pipe stick, fitting or sheet
       rows.push({ part: { name: `more ${k} (not on the list yet)`, role: k, status: 'planned' }, w: short * each });
     });
+    if (plan) rows.push({ part: { name: `paint on ${plan.area.toFixed(1)} sq ft (painted in the 3D view)`, role: 'paint', status: parts.some(p => p.role === 'paint' && isBought(p)) ? 'bought' : 'planned' }, w: plan.area * PAINT_LB_PER_SQFT });
     return rows;
+  }
+
+  // Paint applied in the 3D view: config.paint = [{ paint: part name, color, area_sqft }].
+  // Dried spray paint weighs about 0.02 lb per sq ft per coat; a 12 oz can covers
+  // about 15 sq ft (a part's coverage_sqft overrides it).
+  const PAINT_LB_PER_SQFT = 0.02, CAN_SQFT = 15;
+  function paintPlan(c, parts) {
+    const list = Array.isArray(c && c.paint) ? c.paint.filter(x => +x.area_sqft > 0) : [];
+    if (!list.length) return null;
+    const by = {};
+    list.forEach(x => { const k = x.paint || x.color; (by[k] = by[k] || { paint: x.paint, color: x.color, area: 0, parts: 0 }); by[k].area += +x.area_sqft; by[k].parts++; });
+    const colors = Object.values(by).map(b => {
+      const part = (parts || []).find(p => p.name === b.paint);
+      const cover = part && +part.coverage_sqft > 0 ? +part.coverage_sqft : CAN_SQFT;
+      return Object.assign(b, { cans: Math.ceil(b.area / cover - 1e-9), have: part ? +part.quantity || 0 : 0, bought: !!(part && isBought(part)) });
+    });
+    return { area: colors.reduce((t, b) => t + b.area, 0), colors };
   }
 
   const isBought = p => p.status === 'bought' || p.status === 'installed';
@@ -623,8 +657,10 @@
       if (isBought(p)) { onHand += w; boughtListed += (+p.quantity || 0) * (+p.weight_lb_each || 0); }
     });
     const usedBought = onHand - drumsBoughtW;
+    const undecided = (build.parts || []).filter(p => p.on_boat === false);
     return {
       total, predicted: total, measured, drumEach, byRole, onHand,
+      undecided: undecided.reduce((t, p) => t + (+p.quantity || 0) * (+p.weight_lb_each || 0), 0), undecidedParts: undecided.map(p => p.name),
       spareOnHand: Math.max(0, boughtListed - usedBought),
       remaining: Math.max(0, total - onHand),
       measuredShare: total ? measured / total : 0,
@@ -806,7 +842,7 @@
 
   // ── Rules ──
   const METAL = /\b(nail|screw|staple|bolt|bracket|clamp|hinge|wire|sheet metal|steel|alumin(?:i)?um|metal|rivet|washer|nut)s?\b/i;
-  const SINKS = new Set(['cotton-canvas', 'nylon', 'foam-fabric', 'polyester']);
+  const SINKS = new Set(['cotton-canvas', 'nylon', 'foam-fabric', 'polyester', 'sisal', 'pvc-sheet', 'unknown']);
   const FASTENER_ROLES = new Set(['zip-tie', 'cement', 'epoxy', 'sealant', 'glue', 'spray-foam', 'paint', 'tape']);
 
   function checkRules(build, g, rules, wt) {
@@ -837,7 +873,7 @@
     else add('ok', 'rope', `Securing materials ≤ ${ropeMax}" pieces; zip ties trimmed flush`, 'Drum bands made of daisy-chained ties: confirm with the organizers.');
     const longTies = parts.filter(p => p.role === 'zip-tie' && +p.length_in > ropeMax);
     if (longTies.length) add('warn', 'ties', `Zip ties longer than ${ropeMax}"`, longTies.map(p => p.name).join('; ') + `. The rule caps securing materials at ${ropeMax}". Ask the organizers whether a long tie trimmed flush counts by its installed length. If not, use daisy-chained ties of ${ropeMax}" or less.`);
-    const pipes = parts.filter(p => ['pipe', 'pipe-large', 'elbow', 'elbow45', 'coupling', 'tee', 'side-tee', 'cross', 'wye', 'cleanout-tee', 'cap', 'mast'].includes(p.role) && p.material === 'pvc');
+    const pipes = parts.filter(p => ['pipe', 'pipe-large', 'elbow', 'elbow45', 'coupling', 'tee', 'side-tee', 'five-way', 'cross', 'wye', 'cleanout-tee', 'cap', 'mast'].includes(p.role) && p.material === 'pvc');
     const hasFoam = parts.some(p => p.role === 'spray-foam' && p.quantity > 0);
     const unfilled = pipes.filter(p => !p.foam_filled);
     if (pipes.length && (!hasFoam || unfilled.length)) add('error', 'float', 'PVC sinks: every pipe and fitting must be foam-filled so broken pieces float', unfilled.length ? unfilled.map(p => p.name).join('; ') : 'Add expanding spray foam to the parts list.');
@@ -907,8 +943,20 @@
     const spent = parts.filter(p => p.status === 'bought' || p.status === 'installed').reduce((s, p) => s + (+p.quantity || 0) * (+p.unit_cost_usd || 0), 0);
     const recs = recommend({ build, g, req, wt, sol, fwd, side, leaks, rulesOut, crewW });
     if (g.cageUnsupported) recs.push({ level: 'warn', title: 'The cage is only modeled for lengthwise drums', detail: 'Crosswise drums use zip-tie bands here. Switch to a lengthwise layout to compare a caged build.' });
+    const plan = paintPlan(g.config, build.parts);
+    if (plan) {
+      const short = plan.colors.filter(b => b.cans > b.have);
+      recs.push({ level: short.length ? 'warn' : 'info', title: `Paint plan: ${plan.area.toFixed(1)} sq ft painted (~${(plan.area * PAINT_LB_PER_SQFT).toFixed(1)} lb)`,
+        detail: plan.colors.map(b => `${b.paint || b.color}: ${b.area.toFixed(1)} sq ft on ${b.parts} part${b.parts > 1 ? 's' : ''}, ~${b.cans} can${b.cans > 1 ? 's' : ''} for one coat (${b.have} on the list)`).join('; ') + '.' + (short.length ? ' Buy more of: ' + short.map(b => b.paint || b.color).join(', ') + '.' : '') });
+    }
+    if (g.config.extraTies && g.config.extraTies.length) recs.push({ level: 'info', title: `${g.config.extraTies.length} extra zip-tie supports added in the 3D view`, detail: 'Counted in the zip-tie total and weight. Keep each tie 18" or less and trim flush.' });
+    if (wt.undecided > 0) {
+      const max = (rules && rules.max_boat_weight_lb) || 150, all = wt.total + wt.undecided;
+      recs.push({ level: all >= max ? 'warn' : 'info', title: `Not counted yet: ${wt.undecided.toFixed(1)} lb of parts whose use isn't decided`,
+        detail: `${wt.undecidedParts.join('; ')}. Using all of it would bring the boat to ${all.toFixed(1)} lb${all >= max ? `, over the ${max} lb limit` : ''}. Untick "not on the boat yet" in Parts once you decide to use a part.` });
+    }
     if (g.boxes) recs.push({ level: 'info', title: `Box frames: each drum sits in its own box of pipe (${(req.cageLength_in / 12).toFixed(0)} ft of pipe)`,
-      detail: 'Drums are trapped without straps and the deck sits on the box tops, so there is no separate deck frame. The bottom rails sit just under the drums and can catch rocks in shallow water. Every box corner joins 3 pipes, so use side-outlet tees (3-way corners) there.' + (req.fourWay ? ` Where boxes share a wall or butt against another box's crossbar, ${req.fourWay} of the ${req.items.tee} joints take 4 pipes: use the 4-way side-outlet tees there.` : '') + (g.boxContacts.length ? ` Boxes ${g.boxContacts.map(([a2, b2]) => `${a2 + 1} and ${b2 + 1}`).join(', ')} meet corner to corner: join them where their end rails meet (a 4-way fitting where the corners touch, short ties otherwise).` : '') });
+      detail: 'Drums are trapped without straps and the deck sits on the box tops, so there is no separate deck frame. The bottom rails sit just under the drums and can catch rocks in shallow water. Every box corner joins 3 pipes, so use side-outlet tees (3-way corners) there.' + (req.fourWay ? ` Where boxes share a wall or butt against another box's crossbar, ${req.fourWay} of the ${req.items.tee} joints take 4 pipes: use 4-way side-outlet tees or 5-way fittings there.` : '') + (g.boxContacts.length ? ` Boxes ${g.boxContacts.map(([a2, b2]) => `${a2 + 1} and ${b2 + 1}`).join(', ')} meet corner to corner: join them where their end rails meet (a 4-way fitting where the corners touch, short ties otherwise).` : '') });
     if (!opts.noVariant && !g.boxes && g.drums.every(d => d.axis === 'x')) {
       const other = g.cage ? Object.assign({}, c, { retention: 'bands' }) : Object.assign({}, c, { retention: 'cage' });
       const v = analyze(Object.assign({}, build, { config: other }), rules, { skipLeak: true, noVariant: true });
@@ -979,7 +1027,7 @@
     else if (leaks.length) add('ok', 'Survives losing any one drum', '');
     // parts list vs geometry
     const have = inventory(build.parts);
-    const names = { drum: 'drums', pipe: '10 ft pipe sticks', elbow: 'elbows', cross: 'double sani tees (4-way)', tee: 'tees (3-way, incl. side-outlet tees)', coupling: 'couplings', 'zip-tie': 'zip ties', xps: 'XPS sheets', coroplast: 'Coroplast sheets', 'spray-foam': 'spray-foam cans', cement: 'PVC cement kits' };
+    const names = { drum: 'drums', pipe: '10 ft pipe sticks', elbow: 'elbows', cross: 'double sani tees (4-way)', tee: 'side-outlet fittings and tees (3-, 4- and 5-way)', coupling: 'couplings', 'zip-tie': 'zip ties', xps: 'XPS sheets (4 x 8 ft, 1" layers)', coroplast: 'Coroplast sheets (4 x 8 ft)', 'spray-foam': 'spray-foam cans', cement: 'PVC cement kits' };
     Object.entries(req.items).forEach(([role, need]) => {
       const h = have[role] || 0;
       if (need > h && role === 'pipe') {
@@ -992,8 +1040,8 @@
       } else if (role === 'pipe' && need === h) {
         const slack = h * STOCK - req.pipeLength_in - req.cuts.length * KERF;
         if (slack < 24) add('warn', `Pipe fits with only ${slack.toFixed(0)}" to spare`, 'One mis-cut means another 10 ft stick. Measure twice, cut the long pieces first, or buy a spare stick.');
-      } else if (need > h) add('warn', `Parts list is short ${need - h} ${names[role]}`, `This configuration needs ${need}; the list has ${h}.`);
-      else if (h > need + (role === 'zip-tie' ? 100 : 0) && need >= 0 && role !== 'drum') add('info', `${h - need} spare ${names[role]} on the list`, 'Keep for repairs or trim the list to save weight and cost.');
+      } else if (need > h) add('warn', `Parts list is short ${+(need - h).toFixed(2)} ${names[role]}`, `This configuration needs ${need}; the list has ${+h.toFixed(2)}.` + (['xps', 'coroplast'].includes(role) ? ' Counted in full 4 x 8 ft sheets (XPS per 1" layer).' : ''));
+      else if (h > need + (role === 'zip-tie' ? 100 : 0) && need >= 0 && role !== 'drum') add('info', `${+(h - need).toFixed(2)} spare ${names[role]} on the list`, ['xps', 'coroplast', 'zip-tie'].includes(role) ? 'Leftovers after cutting; only what is used is weighed.' : 'Keep for repairs or trim the list to save weight and cost.');
       else if (role === 'drum' && h > need) add('info', `List has ${h} drums; configuration uses ${need}`, 'Extra drums are not counted in the weight.');
     });
     const max = 150;
@@ -1020,8 +1068,11 @@
     const have = {};
     (parts || []).forEach(p => {
       let role = p.role, q = +p.quantity || 0;
-      if (role === 'side-tee' || role === 'cleanout-tee') role = 'tee';
+      if (role === 'side-tee' || role === 'five-way' || role === 'cleanout-tee') role = 'tee';   // any side-outlet fitting can take a box corner
       if (role === 'zip-tie') q *= +p.pack_count || 100;   // list zip ties in packs
+      // sheet goods count in full 4 x 8 ft sheets (XPS in 1" layers), so smaller or thicker boards convert
+      if ((role === 'coroplast' || role === 'xps') && +p.sheet_sqft > 0) q *= +p.sheet_sqft / (SHEET.w * SHEET.l / 144);
+      if (role === 'xps' && +p.thickness_in > 0) q *= +p.thickness_in;
       have[role] = (have[role] || 0) + q;
     });
     return have;
@@ -1052,13 +1103,13 @@
       const need = req.items[role] || 0, have = bought[role] || 0;
       if (need <= have) return;
       const src = pick(role);
-      const per = role === 'zip-tie' ? (+(src && src.pack_count) || 100) : 1;
-      const qty = Math.ceil((need - have) / per);
+      const per = src ? (inventory([Object.assign({}, src, { quantity: 1 })])[role] || 1) : 1;   // ties per pack, sheets per board
+      const qty = Math.ceil((need - have) / per - 1e-9);
       rows.push({
         role, name: src ? src.name : role, qty, unit: role === 'zip-tie' ? 'pack' : (src && src.unit) || 'each',
         unitCost: src ? +src.unit_cost_usd || 0 : 0, estimate: !!(src && src.estimate),
         source: src ? src.source || '' : '', priority: 'needed', catalog_id: src && (src.catalog_id || src.id), url: src && src.url,
-        why: `Layout needs ${need}${role === 'zip-tie' ? ' ties' : ''}; ${have} bought.` + (role === 'zip-tie' && parts.some(p => p.role === 'zip-tie' && +p.length_in > ropeMax) ? ` Suggests ties of ${ropeMax}" or less, since the longer ones may break the rule.` : ''),
+        why: `Layout needs ${need}${role === 'zip-tie' ? ' ties' : ['xps', 'coroplast'].includes(role) ? ' full 4 x 8 ft sheets' : ''}; ${+have.toFixed(2)} bought.` + (role === 'zip-tie' && parts.some(p => p.role === 'zip-tie' && +p.length_in > ropeMax) ? ` Suggests ties of ${ropeMax}" or less, since the longer ones may break the rule.` : ''),
       });
     });
     const slack = (bought.pipe || 0) * STOCK - req.pipeLength_in - req.cuts.length * KERF;
@@ -1089,7 +1140,7 @@
   // site shows in-store availability once you pick your store there.
   const LOCAL_QUERY = {
     drum: 'reconditioned 55 gallon plastic drums', pipe: 'plumbing supply', tee: 'plumbing supply', cross: 'plumbing supply',
-    elbow: 'plumbing supply', coupling: 'plumbing supply', cement: 'plumbing supply', 'side-tee': 'furniture grade PVC fittings',
+    elbow: 'plumbing supply', coupling: 'plumbing supply', cement: 'plumbing supply', 'side-tee': 'furniture grade PVC fittings', 'five-way': 'furniture grade PVC fittings',
     coroplast: 'corrugated plastic sheet supplier', 'zip-tie': 'Harbor Freight', epoxy: 'Harbor Freight', sealant: 'Harbor Freight',
     tool: 'Harbor Freight', rope: 'Tractor Supply', paint: 'craft store', fabric: 'craft store',
   };
@@ -1244,7 +1295,7 @@
 
   return {
     WATER, DRUM, DRUM_SIZES, drumSpec, drumLabel, PIPE_R, RAIL_OFFSET, PRESETS, DEFAULT_CONFIG, inventory,
-    withDefaults, geometry, requirements, shoppingList, storeLinks, fitFrame, rankPresets, PRIORITIES, weights, massItems, crewPositions, solve, checkRules, analyze, comparePresets,
+    CONSUMABLE_SHARE, onBoatShare, paintPlan, PAINT_LB_PER_SQFT, withDefaults, geometry, requirements, shoppingList, storeLinks, fitFrame, rankPresets, PRIORITIES, weights, massItems, crewPositions, solve, checkRules, analyze, comparePresets,
     segArea, drumMaxLb,
   };
 });

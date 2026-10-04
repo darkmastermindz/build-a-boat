@@ -331,3 +331,24 @@ test('packed triangle: a resized drum moves its box instead of overlapping', () 
   assert.deepStrictEqual(g.overlaps, []);
   g.drums.forEach((d, i) => { const bx = g.boxList[i]; assert.ok(bx.x0 < d.x - d.ex && bx.x1 > d.x + d.ex && bx.z0 < d.z - d.ez && bx.z1 > d.z + d.ez); });
 });
+
+test('tools: extra zip-tie supports add ties; painted area replaces paint can weight', () => {
+  const b = clone(current), base = M.analyze(b, rules, { skipLeak: true });
+  b.config.extraTies = [{ kind: 'pipe', point: [0, 0, 0] }, { kind: 'pipe', point: [1, 0, 0] }];
+  const red = b.parts.find(p => /matte red/.test(p.name));
+  b.config.paint = [{ kind: 'drum', key: 'drum:0', color: red.color_hex, paint: red.name, area_sqft: 22.5 }];
+  const a = M.analyze(b, rules, { skipLeak: true });
+  assert.strictEqual(a.requirements.tieCount, base.requirements.tieCount + 2);
+  const plan = M.paintPlan(b.config, b.parts);
+  assert.strictEqual(plan.colors[0].cans, 2);                       // 22.5 sq ft at 15 sq ft a can
+  near(a.weights.byRole.paint, 22.5 * M.PAINT_LB_PER_SQFT, 1e-6, 'paint weighed by area');
+  assert.ok(a.recommendations.some(r => /^Paint plan/.test(r.title) && r.level === 'warn'), 'one can of red is not enough');
+});
+
+test('weights: consumables and sheet goods count only what ends up on the boat', () => {
+  const a = M.analyze(current, rules, { skipLeak: true }), w = a.weights;
+  assert.ok(w.byRole.xps < 8 && w.byRole.xps > 0, 'XPS cut to the deck');
+  assert.ok(w.byRole['zip-tie'] < 1, 'only the ties the layout uses');
+  assert.ok(w.undecided > 0 && w.predicted < 150);
+  assert.ok(a.recommendations.some(r => /^Not counted yet/.test(r.title)));
+});

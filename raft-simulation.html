@@ -84,6 +84,9 @@
   .part .ph input{font-weight:600;padding:4px 6px}
   .part .meta{margin:3px 0 6px}
   .part .pc{display:grid;grid-template-columns:52px 60px 28px 72px 1fr;gap:6px;align-items:end}
+  .part .pc2{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-top:5px}
+  .part .pc2 label{display:flex;gap:5px;align-items:center}
+  .part .pc2 input[type=number]{width:62px}
   .part .pc label{display:flex;flex-direction:column;font-size:10.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.3px;gap:2px}
   .part .pc input[type=number]{padding:3px 4px}
   .part .pc select{padding:3px 2px;font-size:12px}
@@ -119,7 +122,17 @@
   .trow output{text-align:right;font-variant-numeric:tabular-nums}
   .mlabel{position:absolute;z-index:4;pointer-events:none;transform:translate(-50%,-130%);background:#111;color:#fff;border-radius:6px;padding:4px 8px;font:600 12.5px Barlow,sans-serif;white-space:nowrap;text-align:center}
   .mlabel small{display:block;font-weight:400;opacity:.8;font-size:11px}
-  .mhint{position:absolute;top:10px;right:12px;z-index:4;background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:6px 10px;font-size:12.5px;max-width:min(300px,60%)}
+  .tools{position:absolute;top:10px;right:12px;z-index:4;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:8px 10px;width:250px;font-size:12.5px;box-shadow:0 4px 14px rgba(0,0,0,.12)}
+  .tools .tm{display:grid;grid-template-columns:1fr 1fr;gap:5px;margin:6px 0}
+  .tools .tm button{font:500 12.5px Barlow,sans-serif;border:1.5px solid var(--line);background:var(--panel);color:var(--ink);padding:5px 6px;border-radius:7px;cursor:pointer}
+  .tools .tm button[aria-pressed="true"]{border-color:var(--accent);background:var(--accent);color:var(--accent-ink)}
+  .tools .sw{display:flex;flex-wrap:wrap;gap:5px;margin:4px 0}
+  .tools .sw button{width:26px;height:26px;border-radius:50%;border:2px solid var(--line);cursor:pointer;padding:0}
+  .tools .sw button[aria-pressed="true"]{outline:3px solid var(--accent);outline-offset:1px}
+  .tools .sw .erase{width:auto;border-radius:13px;padding:0 8px;background:var(--panel);color:var(--ink);font-size:11.5px}
+  .tools .row2{display:flex;gap:6px;margin-top:6px;flex-wrap:wrap}
+  .tools #toolSummary div{margin-top:2px}
+  .mhint{position:absolute;bottom:56px;left:50%;transform:translateX(-50%);z-index:4;background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:6px 10px;font-size:12.5px;max-width:min(300px,60%)}
   .profiles{display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-left:auto}
   .profiles select{width:auto;min-width:200px;max-width:min(320px,100%)}
   .profiles input{width:180px}
@@ -303,6 +316,14 @@
     <div class="tip" id="tip" hidden></div>
     <div class="mlabel" id="mlabel" hidden></div>
     <div class="mhint" id="mhint" hidden role="status"></div>
+    <div class="tools" id="tools" hidden>
+      <b>🧰 Tools</b> <span class="small muted">Esc returns to Adjust</span>
+      <div class="tm" id="toolModes"></div>
+      <div id="paintOpts" hidden><div class="small muted">Paint color (from your paint parts). Shift-click paints every part of that kind.</div><div class="sw" id="swatches"></div></div>
+      <div id="tieOpts" hidden class="small muted">Click a pipe, joint or drum to add a zip-tie support there; click a tie to remove it.</div>
+      <div id="toolSummary" class="small"></div>
+      <div class="row2"><button class="btn ghost sm" id="clearTies">Clear ties</button><button class="btn ghost sm" id="clearPaint">Clear paint</button></div>
+    </div>
   </div>
 </main>
 <footer class="site-footer">© 2026 Created by <a href="https://hanselwei.dev" target="_blank" rel="noopener">Hansel Wei</a></footer>
@@ -581,7 +602,12 @@ function renderParts(){
       el('div', { class:'pc' },
         num('quantity', 1, 'Qty'), num('weight_lb_each', 0.1, 'lb ea'),
         el('label', { title:'Weighed?' }, '⚖', el('input', { type:'checkbox', checked: !!p.weight_measured, 'aria-label':'Weight measured', onchange: e => { p.weight_measured = e.target.checked; changed(); } })),
-        num('unit_cost_usd', 0.01, '$ ea'), status)));
+        num('unit_cost_usd', 0.01, '$ ea'), status),
+      el('div', { class:'pc2 small' },
+        p.role in M.CONSUMABLE_SHARE ? el('label', { title:'How much of each container ends up on the boat (the rest is left over and not weighed)' }, '% on boat',
+          el('input', { type:'number', min:0, max:100, step:5, value: Math.round(M.onBoatShare(p) * 100), onchange: e => { p.on_boat_share = Math.min(100, Math.max(0, +e.target.value)) / 100; changed(); } })) : '',
+        ['pipe','elbow','tee','side-tee','five-way','cleanout-tee','cross','coupling','zip-tie','xps','coroplast'].includes(p.role) ? el('span', { class:'muted' }, p.role === 'xps' || p.role === 'coroplast' ? 'Weighed by the deck area cut' : 'Weighed by what the layout uses') : '',
+        el('label', { title:'Bought, but not decided whether it goes on the boat: not weighed' }, el('input', { type:'checkbox', checked: p.on_boat === false, onchange: e => { if (e.target.checked) p.on_boat = false; else delete p.on_boat; changed(); } }), ' not on the boat yet'))));
   });
 }
 
@@ -724,7 +750,8 @@ function initScene(){
   const bar = $('layers');
   LAYERS.forEach(k => bar.append(el('button', { 'aria-pressed':'true', onclick: e => { const on = e.target.getAttribute('aria-pressed') !== 'true'; e.target.setAttribute('aria-pressed', on); G[k].visible = on; } }, k[0].toUpperCase() + k.slice(1))));
   bar.append(el('button', { class: 'measure', id: 'measureBtn', 'aria-pressed': 'false', title: 'Measure between two points (snaps to pipe ends, midpoints, centers and corners). Esc to exit.', onclick: () => setMeasure(!measureOn) }, '📏 Measure'));
-  orbit(); initPicking(); resize(); addEventListener('resize', resize);
+  bar.append(el('button', { class: 'measure', id: 'toolsBtn', 'aria-pressed': 'false', 'aria-controls': 'tools', title: 'Show tools: zip-tie supports, paint, measure', onclick: () => toggleTools() }, '🧰 Tools'));
+  orbit(); initPicking(); initTools(); resize(); addEventListener('resize', resize);
   loop(0);
 }
 function disposeGroup(g){ g.traverse(o => { if (o.geometry) o.geometry.dispose(); }); }
@@ -888,6 +915,7 @@ function partInfo(ud){
     case 'deck': return { title: 'Deck (XPS sandwich)', lines: [`${inch(ud.size[0])} × ${inch(ud.size[2])} × ${inch(ud.size[1])} thick`, `Top at ${inch(ud.c[1] + ud.size[1] / 2)} above the drum bottoms`] };
     case 'guard': return { title: 'Bow guard (Coroplast)', lines: [`Top at ${inch(g.bow.topY)}`] };
     case 'flag': return { title: 'Jolly Roger', lines: [`${inch(ud.w)} × ${inch(ud.h)}`] };
+    case 'tie': return { title: 'Zip-tie support', lines: ['Added in the 3D view', 'Remove it with 🔗 Zip tie in 🧰 Tools'] };
     case 'crew': return { title: `Crew ${ud.i + 1}`, lines: [`${c.crew.weightEach} lb, seated`, `Head ≈ ${inch(ud.top - g.deckTop)} above the deck`] };
   }
   return null;
@@ -1032,7 +1060,7 @@ function showHover(h){
   const tip = $('tip'), info = h && partInfo(h.ud);
   if (!info) { tip.hidden = true; return; }
   tip.classList.remove('pinned');
-  tip.replaceChildren(el('b', {}, info.title), ...info.lines.map(t => el('div', {}, t)), el('div', { class: 'small muted' }, 'Click to adjust'));
+  tip.replaceChildren(el('b', {}, info.title), ...info.lines.map(t => el('div', {}, t)), el('div', { class: 'small muted' }, toolMode === 'paint' ? (partArea(h.ud) ? `Click to ${paintSel ? 'paint' : 'erase'} (${partArea(h.ud).toFixed(1)} sq ft)` : "Can't paint this") : 'Click to adjust'));
   const st = $('stage');
   tip.style.left = Math.min(h.x, st.clientWidth - 280) + 'px'; tip.style.top = Math.min(h.y, st.clientHeight - 120) + 'px';
   tip.hidden = false;
@@ -1041,7 +1069,122 @@ function showHover(h){
 function afterBuild(){
   const parts = scenePartList();
   mA = reanchor(mA, parts); mB = mB && mA ? reanchor(mB, parts) : null; hoverSnap = null;
-  drawMeasure(); refreshPin(parts);
+  drawTies(parts); applyPaint(parts);
+  drawMeasure(); refreshPin(parts); renderToolSummary();
+}
+// ── Tools: zip-tie supports and paint ──
+// Both live in build.config so they are saved with the design and profiles:
+//   extraTies: anchors on parts (like measurement points), counted as zip ties
+//   paint: [{ kind, key, dir, point, color, paint, area_sqft }], one per painted part
+let toolMode = 'select', paintSel = null;
+const TOOL_MODES = [['select', '👆 Adjust'], ['tie', '🔗 Zip tie'], ['paint', '🎨 Paint'], ['measure', '📏 Measure']];
+const paintParts = () => build.parts.filter(p => p.role === 'paint' && p.color_hex);
+function partArea(ud){                                        // paintable outside area, sq ft
+  const g = A.geometry;
+  switch (ud.kind) {
+    case 'pipe': case 'mast': return Math.PI * 1.9 * ud.len / 144;
+    case 'noodle': return Math.PI * 2 * ud.rad * ud.len / 144;
+    case 'drum': return (Math.PI * 2 * ud.d.r * ud.d.len + 2 * Math.PI * ud.d.r ** 2) / 144;
+    case 'deck': { const [l, t, w] = ud.size; return (l * w + 2 * (l + w) * t) / 144; }
+    case 'fitting': return 0.15;
+    case 'guard': return g.bow ? 2 * (g.outerZ + M.PIPE_R) * (g.config.bowStrut + g.config.bowRiser) * 1.3 / 144 : 0;
+    case 'flag': return ud.w * ud.h * 2 / 144;
+  }
+  return 0;
+}
+function tieAxis(ud){
+  if (ud && ud.a) return new THREE.Vector3(...ud.b).sub(new THREE.Vector3(...ud.a)).normalize();
+  if (ud && ud.kind === 'drum') return ud.d.axis === 'z' ? new THREE.Vector3(0, 0, 1) : new THREE.Vector3(1, 0, 0);
+  return new THREE.Vector3(0, 1, 0);
+}
+const TIE_MAT = new THREE.MeshStandardMaterial({ color: 0x111111, roughness: .6 });
+function drawTies(parts){
+  const c = build.config; if (!Array.isArray(c.extraTies)) return;
+  c.extraTies = c.extraTies.map(a => reanchor(a, parts)).filter(Boolean);
+  c.extraTies.forEach((a, i) => {
+    const ud = resolvePart(a, parts), r = ud && ud.kind === 'drum' ? 2.2 : ud && ud.rad ? ud.rad + .35 : 1.4;
+    const t = new THREE.Mesh(new THREE.TorusGeometry(r, .3, 6, 20), TIE_MAT);
+    t.position.set(...a.point); t.quaternion.setFromUnitVectors(new THREE.Vector3(0, 0, 1), tieAxis(ud));
+    t.userData = { kind: 'tie', i }; G.lash.add(t);
+  });
+}
+const PAINT_MATS = new Map();
+function paintMat(base, hex){
+  const k = base.uuid + hex;
+  if (!PAINT_MATS.has(k)) { const m = base.clone(); m.color = new THREE.Color(hex); m.map = null; PAINT_MATS.set(k, m); }
+  return PAINT_MATS.get(k);
+}
+function applyPaint(parts){
+  const c = build.config; if (!Array.isArray(c.paint) || !c.paint.length) return;
+  let areaChanged = false;
+  c.paint = c.paint.filter(e => {
+    const ud = resolvePart(e, parts); if (!ud) return false;
+    e.point = refPoint(ud);
+    const area = +partArea(ud).toFixed(2); if (Math.abs(area - (e.area_sqft || 0)) > 0.01) { e.area_sqft = area; areaChanged = true; }
+    parts.get(ud).forEach(o => { const m = Array.isArray(o.material) ? o.material.map(x => paintMat(x, e.color)) : paintMat(o.material, e.color); o.material = m; o.__base = m; });
+    return true;
+  });
+  if (areaChanged) changed();                                  // sizes changed: re-run the paint weight and cans
+}
+function paintEntry(ud){ return { kind: ud.kind, key: partKey(ud), idx: -1, dir: ud.a ? pipeDir(ud) : null, point: refPoint(ud) }; }
+function paintClick(h, all){
+  const c = build.config, parts = scenePartList(); if (!Array.isArray(c.paint)) c.paint = [];
+  const targets = all ? [...parts.keys()].filter(u => u.kind === h.ud.kind) : [h.ud];
+  targets.forEach(ud => {
+    if (!partArea(ud)) return;
+    c.paint = c.paint.filter(e => resolvePart(e, parts) !== ud);
+    if (paintSel) c.paint.push(Object.assign(paintEntry(ud), { color: paintSel.color_hex, paint: paintSel.name, area_sqft: +partArea(ud).toFixed(2) }));
+  });
+  syncControls(); changed();
+}
+function tieClick(h){
+  const c = build.config; if (!Array.isArray(c.extraTies)) c.extraTies = [];
+  const near = c.extraTies.findIndex(a => dist3(a.point, h.point) < 3);    // clicking on or right next to a tie removes it
+  if (h.ud.kind === 'tie') c.extraTies.splice(h.ud.i, 1);
+  else if (near >= 0) c.extraTies.splice(near, 1);
+  else if (['pipe', 'fitting', 'drum', 'mast'].includes(h.ud.kind)) c.extraTies.push(anchorOf(h));
+  else return;
+  changed();
+}
+function renderToolSummary(){
+  const box = $('toolSummary'); if (!box || !A) return;
+  const c = build.config, plan = M.paintPlan(c, build.parts), n = (c.extraTies || []).length;
+  box.replaceChildren(el('div', {}, `🔗 ${n} added tie${n === 1 ? '' : 's'} · layout total ${A.requirements.tieCount} ties`),
+    ...(plan ? [el('div', {}, `🎨 ${plan.area.toFixed(1)} sq ft painted ≈ ${(plan.area * M.PAINT_LB_PER_SQFT).toFixed(2)} lb`),
+      ...plan.colors.map(b => el('div', { class: b.cans > b.have ? 'muted' : '' }, el('span', { style: `display:inline-block;width:10px;height:10px;border-radius:50%;background:${b.color};border:1px solid #999;margin-right:5px` }),
+        `${(b.paint || '').replace(/^Krylon Fusion spray paint, |^Rust-Oleum /, '').replace(/, 1[12] oz$/, '')}: ${b.area.toFixed(1)} sq ft, ${b.cans} of ${b.have} can${b.have === 1 ? '' : 's'}${b.cans > b.have ? ' ⚠️ buy more' : ''}`))] : [el('div', { class: 'muted' }, '🎨 Nothing painted yet')]));
+}
+function renderSwatches(){
+  const box = $('swatches'); box.replaceChildren();
+  const list = paintParts();
+  if (paintSel && !list.includes(paintSel)) paintSel = null;
+  if (paintSel === null && list.length && !box.dataset.erase) paintSel = list[0];
+  list.forEach(p => box.append(el('button', { title: p.name, 'aria-label': 'Paint with ' + p.name, 'aria-pressed': paintSel === p, style: `background:${p.color_hex}`, onclick: () => { paintSel = p; delete box.dataset.erase; renderSwatches(); } })));
+  box.append(el('button', { class: 'erase', 'aria-pressed': !paintSel, onclick: () => { paintSel = null; box.dataset.erase = '1'; renderSwatches(); } }, 'Erase'));
+}
+function setTool(mode){
+  if (toolMode === 'measure' && mode !== 'measure') { measureOn = false; $('measureBtn').setAttribute('aria-pressed', false); }
+  toolMode = mode;
+  if (mode === 'measure') { measureOn = true; $('measureBtn').setAttribute('aria-pressed', true); }
+  document.querySelectorAll('#toolModes button').forEach(b => b.setAttribute('aria-pressed', b.dataset.mode === mode));
+  $('paintOpts').hidden = mode !== 'paint'; $('tieOpts').hidden = mode !== 'tie';
+  if (mode === 'paint') renderSwatches();
+  renderer.domElement.style.cursor = mode === 'select' ? '' : mode === 'paint' ? 'cell' : 'crosshair';
+  closePin(); hoverSnap = null;
+  if (mode === 'measure' || !mB) clearMeasure(); else { drawMeasure(); measureHint(); }
+}
+function toggleTools(force){
+  const on = force ?? $('tools').hidden;
+  $('tools').hidden = !on; $('toolsBtn').setAttribute('aria-pressed', on);
+  if (!on && (toolMode === 'tie' || toolMode === 'paint')) setTool('select');
+  try { localStorage.setItem('bob-tools', on ? '1' : ''); } catch (e) {}
+}
+function initTools(){
+  $('toolModes').append(...TOOL_MODES.map(([m, label]) => el('button', { 'data-mode': m, 'aria-pressed': m === 'select', onclick: () => setTool(m) }, label)));
+  $('clearTies').onclick = () => { build.config.extraTies = []; changed(); };
+  $('clearPaint').onclick = () => { build.config.paint = []; syncControls(); changed(); };
+  let on = false; try { on = localStorage.getItem('bob-tools') === '1'; } catch (e) {}
+  toggleTools(on);
 }
 function marker(p, color){
   const m = new THREE.Mesh(new THREE.SphereGeometry(1.4, 14, 10), new THREE.MeshBasicMaterial({ color, depthTest: false }));
@@ -1051,7 +1194,7 @@ function measureEnd(){ return mB ? mB.point : (mA && hoverSnap && measureOn ? ho
 function drawMeasure(){
   if (mGroup) { mGroup.traverse(o => { if (o.geometry) o.geometry.dispose(); if (o.material) o.material.dispose(); }); boat.remove(mGroup); }
   mGroup = new THREE.Group(); boat.add(mGroup);
-  if (hoverSnap && measureOn) mGroup.add(marker(hoverSnap.point, hoverSnap.snapped ? 0xF2C230 : 0xffffff));
+  if (hoverSnap && (measureOn || toolMode === 'tie')) mGroup.add(marker(hoverSnap.point, hoverSnap.snapped ? 0xF2C230 : 0xffffff));
   if (mA) mGroup.add(marker(mA.point, 0xE4572E));
   const end = measureEnd();
   if (mA && end) {
@@ -1077,12 +1220,7 @@ function measureHint(){
   h.textContent = !mA ? 'Measure: click the first point. Points snap to pipe ends, midpoints, centers and corners (yellow).' : !mB ? 'Click the second point.' : 'Click to start a new measurement. Turn 📏 off to keep it while you adjust parts; Esc clears it.';
 }
 function clearMeasure(){ mA = mB = hoverSnap = null; if (renderer) { drawMeasure(); measureHint(); } }
-function setMeasure(on){
-  measureOn = on; $('measureBtn').setAttribute('aria-pressed', on);
-  renderer.domElement.style.cursor = on ? 'crosshair' : '';
-  closePin(); hoverSnap = null;
-  if (on || !mB) clearMeasure(); else { drawMeasure(); measureHint(); }      // turning it off keeps a finished measurement
-}
+function setMeasure(on){ setTool(on ? 'measure' : 'select'); }      // turning it off keeps a finished measurement
 function initPicking(){
   const cv = renderer.domElement;
   let down = null;
@@ -1090,11 +1228,12 @@ function initPicking(){
   cv.addEventListener('pointermove', e => {
     if (pts.size || e.pointerType === 'touch') return;          // dragging to orbit
     const h = pick(e);
-    if (measureOn) { hoverSnap = h; drawMeasure(); cv.style.cursor = 'crosshair'; return; }
+    if (measureOn || toolMode === 'tie') { hoverSnap = h; drawMeasure(); return; }
     showHover(h);
+    if (toolMode === 'paint') { cv.style.cursor = h && partArea(h.ud) ? 'cell' : 'not-allowed'; return; }
     cv.style.cursor = h && partInfo(h.ud) ? 'pointer' : '';
   });
-  cv.addEventListener('pointerleave', () => { if (!pinSel) $('tip').hidden = true; if (measureOn && hoverSnap) { hoverSnap = null; drawMeasure(); } });
+  cv.addEventListener('pointerleave', () => { if (!pinSel) $('tip').hidden = true; if (hoverSnap) { hoverSnap = null; drawMeasure(); } });
   cv.addEventListener('pointerup', e => {
     if (!down || Math.hypot(e.clientX - down[0], e.clientY - down[1]) > 6) return;   // a drag, not a click
     const h = pick(e);
@@ -1103,9 +1242,11 @@ function initPicking(){
       if (!mA || mB) { mA = anchorOf(h); mB = null; } else mB = anchorOf(h);
       hoverSnap = e.pointerType === 'touch' ? null : h; drawMeasure(); measureHint(); return;
     }
+    if (toolMode === 'tie') { if (h) tieClick(h); return; }
+    if (toolMode === 'paint') { if (h) paintClick(h, e.shiftKey); return; }
     if (h) pinPart(h); else closePin();
   });
-  addEventListener('keydown', e => { if (e.key === 'Escape') { if (measureOn) setMeasure(false); closePin(); clearMeasure(); } });
+  addEventListener('keydown', e => { if (e.key === 'Escape' && !/INPUT|SELECT|TEXTAREA/.test(document.activeElement.tagName)) { if (toolMode !== 'select') setTool('select'); closePin(); clearMeasure(); } });
 }
 
 // ── Design profiles ──────────────────────────

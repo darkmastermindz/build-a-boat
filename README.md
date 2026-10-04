@@ -110,11 +110,31 @@ bob/
   - It gives the straight-line distance plus the fore-aft, up and across
     parts. Turning 📏 off keeps the finished measurement on screen while you
     adjust parts, and Esc clears it.
+- **🧰 Tools panel** (button under the 3D view):
+  - 👆 Adjust: click a part for sliders.
+  - 🔗 Zip tie: click a pipe, joint or drum to add a support tie; click a
+    tie to remove it. Added ties count toward the zip-tie total and weight.
+  - 🎨 Paint: pick one of your paint parts and click parts to paint them.
+    Shift-click paints every part of that kind; Erase removes paint.
+    - The panel shows the painted area and cans needed per color (one coat,
+      ~15 sq ft a can) against cans on the list.
+    - Painted area replaces the paint cans in the weight.
+  - 📏 Measure.
+  - Ties and paint are saved with the design and follow parts when you
+    resize them.
 - **Crew**: 1–4 people, weight each, seat position and lean.
 - **Physics**: solves heave, trim and heel for horizontal drums, then reports
   draft, frame clearance, reserve buoyancy and stability (GM) both ways.
   Scenarios cover crew at the bow, crew leaning, and **any one drum
   leaking**.
+- **Weight counts what ends up on the boat**:
+  - Pipe, fittings and zip ties are weighed by what the layout uses.
+  - Foam board and Coroplast are weighed by the deck area cut from them.
+  - Paint, glue, sealant, tape and twine are weighed by a "% on boat" share
+    of each container, which you can edit per part.
+  - Leftovers count as spares, not boat weight.
+  - Parts ticked "not on the boat yet" (bought, use undecided) are left out
+    of the total, and the Check tab shows what they'd add.
 - **Parts tab**: the team's actual list. Add parts from the suggested
   materials or as custom parts, and track qty, weight (tick **measured** once
   weighed), cost and status (planned / bought / installed). Changes are saved
