@@ -1169,6 +1169,7 @@
     kayakPower: { kind: 'Paper', title: 'Prediction of simulated 1000 m kayak ergometer performance in young athletes (≈130 W over 1000 m)', url: 'https://www.ncbi.nlm.nih.gov/pmc/articles/PMC7855298/' },
     sectionModulus: { kind: 'Wikipedia', title: 'Section modulus (hollow circle S = π(D⁴ − d⁴) ÷ 32D; σ = M ÷ S)', url: 'https://en.wikipedia.org/wiki/Section_modulus' },
     nps: { kind: 'Wikipedia', title: 'Nominal Pipe Size (1-1/2": OD 1.900", Sch 40 wall 0.145")', url: 'https://en.wikipedia.org/wiki/Nominal_Pipe_Size' },
+    charlotte: { kind: 'Datasheet', title: 'Charlotte Pipe 1-1/2" Sch 40 PVC (ASTM D1785): OD 1.900", wall 0.145", ~0.51 lb/ft (the pipe the team bought)', url: 'https://www.lowes.com/pd/Charlotte-Pipe-1-1-2-in-x-10-ft-330-Sch-40-Solidcore-PVC-DWV-Pipe/3133037' },
     bendingMoment: { kind: 'Wikipedia', title: 'Bending moment', url: 'https://en.wikipedia.org/wiki/Bending_moment' },
     shearMoment: { kind: 'Wikipedia', title: 'Shear and moment diagram (simply supported beams)', url: 'https://en.wikipedia.org/wiki/Shear_and_moment_diagram' },
     eulerBernoulli: { kind: 'Wikipedia', title: 'Euler–Bernoulli beam theory', url: 'https://en.wikipedia.org/wiki/Euler%E2%80%93Bernoulli_beam_theory' },
@@ -1238,7 +1239,7 @@
   const ASSUMPTIONS = [
     { name: 'Water weight', used: '62.4 lb/ft³', source: '62.43 lb/ft³ at 4 °C, 62.32 at 20 °C', effect: 'Lift is about 0.1% high in summer water: negligible.', refs: ['waterProps', 'wolframWater'] },
     { name: 'Water density for drag', used: `${RHO} slug/ft³`, source: '1.940 slug/ft³ = 1000 kg/m³', effect: 'Matches.', refs: ['wolframSlug'] },
-    { name: '1-1/2" Sch 40 PVC size', used: `OD ${PVC.D}", ID ${PVC.d}"`, source: 'OD 1.900", wall 0.145" → ID 1.610"', effect: 'Matches.', refs: ['nps'] },
+    { name: '1-1/2" Sch 40 PVC size', used: `OD ${PVC.D}", ID ${PVC.d}"`, source: 'OD 1.900", wall 0.145" → ID 1.610" (Charlotte Pipe, the brand bought; ~0.51 lb/ft, 5.1 lb per 10 ft stick)', effect: 'Matches.', refs: ['nps', 'charlotte'] },
     { name: 'PVC flexural strength', used: `${PVC.flex} psi`, source: '14,450 psi at 73 °F (cell class 12454); about 0.62× that at 100 °F', effect: '3% low (safe side) at 73 °F. Sun-heated pipe is weaker and is not derated here.', refs: ['pvcSpears', 'pvcCellClass', 'pvcDerate'] },
     { name: 'Drag coefficient, drum end-on', used: '0.9', source: '1.17 for a flat disc, falling to ~0.81 for length/diameter > 2 (a drum is ~1.5)', effect: 'Within the range, toward the high (safe) side for speed.', refs: ['hoerner', 'dragCoef'] },
     { name: 'Drag coefficient, broadside', used: '1.1', source: '1.1–1.2 for a smooth cylinder at Re 2×10⁴–10⁵; lower past the drag crisis (Re > 2×10⁵)', effect: 'The broadside Reynolds number here is ~10⁶, so the real push is probably lower; 1.1 is a high-side estimate for pinning.', refs: ['dragCoef', 'dragCrisis', 'reynolds'] },
