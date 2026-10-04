@@ -887,16 +887,138 @@ Four drums side by side across a wide frame.
 
 ### Pipe cut list (10 ft sticks)
 
-1. box 1 top 36", box 1 top 36", box 1 bottom 36", box 2 link 11.5" — offcut 0"
-2. box 1 bottom 36", box 2 top 36", box 2 bottom 36", box 2 link 11.5" — offcut 0"
-3. box 3 top 36", box 3 bottom 36", mast 36", box 2 link 11.5" — offcut 0"
-4. box 2 top 20", box 2 bottom 20", box 3 top 20", box 3 bottom 20", platform 19.6", platform 19.6" — offcut 0"
-5. platform 19.6", platform 19.6", platform 19.6", box 1 post 17.48", box 1 post 17.48", box 2 post 17.48", box 2 top 5.5" — offcut 3"
-6. box 2 post 17.48", box 2 post 17.48", box 2 post 17.48", box 3 post 17.48", box 3 post 17.48", box 3 post 17.48", box 2 top 13.15" — offcut 1"
-7. box 3 post 17.48", box 1 nose 17.48", box 1 nose 16.81", box 1 nose 16.81", box 1 nose 16.81", box 1 nose 16.81", platform 15.02" — offcut 2"
-8. platform 15.02", platform 15.02", platform 15.02", platform 15.02", platform 15.02", platform 15.02", platform 15.02", box 2 top 13.15" — offcut 1"
-9. box 2 bottom 13.15", box 2 bottom 13.15", box 3 top 13.15", box 3 top 13.15", box 3 bottom 13.15", box 3 bottom 13.15", box 2 link 11.5", box 1 top 11.5", box 1 top 11.5" — offcut 6"
-10. box 1 bottom 11.5", box 1 bottom 11.5", box 2 top 5.5", box 2 bottom 5.5", box 2 bottom 5.5", box 3 top 5.5", box 3 top 5.5", box 3 bottom 5.5", box 3 bottom 5.5" — offcut 58"
+1. P13 box 1 top 36", P14 box 1 top 36", P15 box 1 bottom 36", P48 box 2 link 11.5" — offcut 0"
+2. P16 box 1 bottom 36", P39 box 2 top 36", P43 box 2 bottom 36", P49 box 2 link 11.5" — offcut 0"
+3. P42 box 3 top 36", P46 box 3 bottom 36", mast 36", P35 box 2 link 11.5" — offcut 0"
+4. P40 box 2 top 20", P44 box 2 bottom 20", P41 box 3 top 20", P45 box 3 bottom 20", P64 platform 19.6", P47 platform 19.6" — offcut 0"
+5. P34 platform 19.6", P17 platform 19.6", P10 platform 19.6", P7 box 1 post 17.48", P8 box 1 post 17.48", P58 box 2 post 17.48", P52 box 2 top 5.5" — offcut 3"
+6. P59 box 2 post 17.48", P23 box 2 post 17.48", P24 box 2 post 17.48", P60 box 3 post 17.48", P61 box 3 post 17.48", P25 box 3 post 17.48", P20 box 2 top 13.15" — offcut 1"
+7. P26 box 3 post 17.48", P1 box 1 nose 17.48", P4 box 1 nose 16.81", P5 box 1 nose 16.81", P2 box 1 nose 16.81", P3 box 1 nose 16.81", P50 platform 15.02" — offcut 2"
+8. P37 platform 15.02", P18 platform 15.02", P11 platform 15.02", P51 platform 15.02", P38 platform 15.02", P19 platform 15.02", P12 platform 15.02", P56 box 2 top 13.15" — offcut 1"
+9. P62 box 2 bottom 13.15", P27 box 2 bottom 13.15", P57 box 3 top 13.15", P22 box 3 top 13.15", P63 box 3 bottom 13.15", P29 box 3 bottom 13.15", P36 box 2 link 11.5", P21 box 1 top 11.5", P6 box 1 top 11.5" — offcut 6"
+10. P28 box 1 bottom 11.5", P9 box 1 bottom 11.5", P30 box 2 top 5.5", P54 box 2 bottom 5.5", P32 box 2 bottom 5.5", P53 box 3 top 5.5", P31 box 3 top 5.5", P55 box 3 bottom 5.5", P33 box 3 bottom 5.5" — offcut 58"
+
+### Part IDs
+
+Every pipe (P), joint (J), drum (D), side panel (S), noodle (N), deck (K), mast (M) and crew seat (C) has an ID, numbered bow first, then top to bottom, then port to starboard. Turn on **🏷️ IDs** in the simulator to see them on the boat.
+
+<details><summary>Joints (40)</summary>
+
+| Joint | Fitting | Joins |
+|---|---|---|
+| J1 | 3-way | P1, P2, P3 |
+| J2 | 3-way | P1, P4, P5 |
+| J3 | 4-way | P2, P6, P7, P13 |
+| J4 | 4-way | P3, P6, P8, P14 |
+| J5 | 4-way | P4, P7, P9, P15 |
+| J6 | 4-way | P5, P8, P9, P16 |
+| J7 | 90° elbow | P10, P11 |
+| J8 | 90° elbow | P10, P12 |
+| J9 | 3-way | P11, P17, P18 |
+| J10 | 3-way | P12, P17, P19 |
+| J11 | 3-way | P20, P23, P39 |
+| J12 | 5-way | P13, P20, P21, P24, P30 |
+| J13 | 5-way | P14, P21, P22, P25, P31 |
+| J14 | 3-way | P22, P26, P42 |
+| J15 | 3-way | P23, P27, P43 |
+| J16 | 5-way | P15, P24, P27, P28, P32 |
+| J17 | 5-way | P16, P25, P28, P29, P33 |
+| J18 | 3-way | P26, P29, P46 |
+| J19 | 3-way | P18, P34, P37 |
+| J20 | 3-way | P19, P34, P38 |
+| J21 | 3-way | P30, P35, P40 |
+| J22 | 3-way | P31, P35, P41 |
+| J23 | 3-way | P32, P36, P44 |
+| J24 | 3-way | P33, P36, P45 |
+| J25 | 3-way | P37, P47, P50 |
+| J26 | 3-way | P38, P47, P51 |
+| J27 | 3-way | P40, P48, P52 |
+| J28 | 3-way | P41, P48, P53 |
+| J29 | 3-way | P44, P49, P54 |
+| J30 | 3-way | P45, P49, P55 |
+| J31 | 3-way | P39, P56, P58 |
+| J32 | 3-way | P52, P56, P59 |
+| J33 | 3-way | P53, P57, P60 |
+| J34 | 3-way | P42, P57, P61 |
+| J35 | 3-way | P43, P58, P62 |
+| J36 | 3-way | P54, P59, P62 |
+| J37 | 3-way | P55, P60, P63 |
+| J38 | 3-way | P46, P61, P63 |
+| J39 | 90° elbow | P50, P64 |
+| J40 | 90° elbow | P51, P64 |
+
+</details>
+
+<details><summary>Pipes (64)</summary>
+
+| Pipe | Part | Center to center |
+|---|---|---|
+| P1 | nose (box 1) | 19.98" |
+| P2 | nose (box 1) | 19.31" |
+| P3 | nose (box 1) | 19.31" |
+| P4 | nose (box 1) | 19.31" |
+| P5 | nose (box 1) | 19.31" |
+| P6 | top (box 1) | 14.00" |
+| P7 | post (box 1) | 19.98" |
+| P8 | post (box 1) | 19.98" |
+| P9 | bottom (box 1) | 14.00" |
+| P10 | platform | 22.10" |
+| P11 | platform | 17.52" |
+| P12 | platform | 17.52" |
+| P13 | top (box 1) | 38.50" |
+| P14 | top (box 1) | 38.50" |
+| P15 | bottom (box 1) | 38.50" |
+| P16 | bottom (box 1) | 38.50" |
+| P17 | platform | 22.10" |
+| P18 | platform | 17.52" |
+| P19 | platform | 17.52" |
+| P20 | top (box 2) | 15.65" |
+| P21 | top (box 1) | 14.00" |
+| P22 | top (box 3) | 15.65" |
+| P23 | post (box 2) | 19.98" |
+| P24 | post (box 2) | 19.98" |
+| P25 | post (box 3) | 19.98" |
+| P26 | post (box 3) | 19.98" |
+| P27 | bottom (box 2) | 15.65" |
+| P28 | bottom (box 1) | 14.00" |
+| P29 | bottom (box 3) | 15.65" |
+| P30 | top (box 2) | 8.00" |
+| P31 | top (box 3) | 8.00" |
+| P32 | bottom (box 2) | 8.00" |
+| P33 | bottom (box 3) | 8.00" |
+| P34 | platform | 22.10" |
+| P35 | link (box 2) | 14.00" |
+| P36 | link (box 2) | 14.00" |
+| P37 | platform | 17.52" |
+| P38 | platform | 17.52" |
+| P39 | top (box 2) | 38.50" |
+| P40 | top (box 2) | 22.50" |
+| P41 | top (box 3) | 22.50" |
+| P42 | top (box 3) | 38.50" |
+| P43 | bottom (box 2) | 38.50" |
+| P44 | bottom (box 2) | 22.50" |
+| P45 | bottom (box 3) | 22.50" |
+| P46 | bottom (box 3) | 38.50" |
+| P47 | platform | 22.10" |
+| P48 | link (box 2) | 14.00" |
+| P49 | link (box 2) | 14.00" |
+| P50 | platform | 17.52" |
+| P51 | platform | 17.52" |
+| P52 | top (box 2) | 8.00" |
+| P53 | top (box 3) | 8.00" |
+| P54 | bottom (box 2) | 8.00" |
+| P55 | bottom (box 3) | 8.00" |
+| P56 | top (box 2) | 15.65" |
+| P57 | top (box 3) | 15.65" |
+| P58 | post (box 2) | 19.98" |
+| P59 | post (box 2) | 19.98" |
+| P60 | post (box 3) | 19.98" |
+| P61 | post (box 3) | 19.98" |
+| P62 | bottom (box 2) | 15.65" |
+| P63 | bottom (box 3) | 15.65" |
+| P64 | platform | 22.10" |
+
+</details>
 
 ## Parts list
 
