@@ -83,11 +83,15 @@ bob/
   drum's circle and all four rails press on the drum, so it can't roll.
   - −2.6" makes a square box (rails at 45°). The current plan uses it.
   - Pipe lengths follow; click a box pipe to adjust its fit.
-- **PVC platform + noodles**: a PVC grid on the box tops for the foam deck to
-  sit on, with cross members every 16".
+- **PVC platform + noodles** (optional, off by default): a PVC grid on the box
+  tops for the foam deck to sit on, with cross members every 16".
+  - **How it joins:** it rests one pipe diameter above the box top rails, so it
+    can't share their fittings. Every place a platform pipe crosses a box rail
+    is lashed with 2 zip ties in an X. Each tie must be 12–18" long.
+  - The lashings are counted in the ties, drawn on the boat, and labelled L1, L2…
+    in 🏷️ IDs.
   - Yellow pool noodles fill the gaps between the cross members.
-  - One more yellow noodle wraps around the bow.
-  - The noodle count is in the parts check.
+  - The bow noodle and the noodle count in the parts check don't depend on it.
 - **Side panels** (box frames): the corrugated PVC roofing panels.
   - **Curved hull (default):** one boat-shaped piece around all the boxes,
     with a square transom and a pointed bow. The **Hull bow point** slider

@@ -392,7 +392,7 @@
     <div id="plabels" hidden></div>
     <div class="idbar" id="idBar" hidden>
       <b>🏷️ Part IDs</b>
-      <select id="idShow" aria-label="Which labels to show"><option value="pipes">Pipes (P)</option><option value="joints">Joints (J)</option><option value="parts">Drums, panels, deck, noodles, crew</option><option value="all">Everything</option></select>
+      <select id="idShow" aria-label="Which labels to show"><option value="pipes">Pipes (P)</option><option value="joints">Joints (J)</option><option value="parts">Drums, panels, deck, noodles, crew, lashings</option><option value="all">Everything</option></select>
       <form id="idFind" class="row2"><input id="idQuery" placeholder="Find e.g. P12, J3, D1" aria-label="Find a part by ID" autocomplete="off"><button class="btn ghost sm">Find</button></form>
       <div id="idMsg" class="small muted"></div>
     </div>
@@ -992,6 +992,11 @@ function buildBoat(){
   });
   // cage: lower cradle rails, end ties and posts up to the deck frame
   if (g.cage) g.cagePieces.forEach(pc => { const m = pipe(pc.a, pc.b, G.frame); m.userData.piece = pc.kind; m.userData.id = pc.id; joint(pc.a); joint(pc.b); });
+  // platform lashings: where a platform pipe rests on a box top rail, two zip ties in an X
+  if (g.platform && g.platform.lashings) g.platform.lashings.forEach(l => {
+    const ud = { kind: 'lash', id: l.id, at: l.at, joins: [l.platformPiece.id, l.boxPiece.id] };
+    [-1, 1].forEach(k => { const t = new THREE.Mesh(new THREE.TorusGeometry(2.2, .2, 6, 20), MAT.tie); t.position.set(...l.at); t.rotation.set(Math.PI / 2, 0, k * Math.PI / 4); t.userData = ud; G.lash.add(t); });
+  });
   // platform bays filled with pool noodles, laid fore-aft
   if (g.platform) { const pl = g.platform; for (let k = 0; k < pl.bays; k++) for (let j = 0; j < pl.across; j++) {
     const z = -pl.W / 2 + R + 1.25 + j * 2.5 + ((pl.W - 2 * R) - pl.across * 2.5) / 2;
@@ -1127,7 +1132,7 @@ function idItems(){
   const out = [];
   if (show === 'pipes' || show === 'all') L.pipes.forEach(q => out.push({ id: q.id, at: mid(q), cls: '' }));
   if (show === 'joints' || show === 'all') L.joints.forEach(j => out.push({ id: j.id, at: j.at, cls: 'j' }));
-  if (show === 'parts' || show === 'all') [...L.drums, ...L.panels, ...L.noodles, ...L.others].forEach(o => out.push({ id: o.id, at: o.at, cls: 'o' }));
+  if (show === 'parts' || show === 'all') [...L.drums, ...L.panels, ...L.noodles, ...L.others, ...(L.lashings || [])].forEach(o => out.push({ id: o.id, at: o.at, cls: 'o' }));
   return out;
 }
 function renderIds(){
@@ -1157,7 +1162,7 @@ function findId(q){
   const id = String(q || '').trim().toUpperCase(); if (!id) return;
   let mesh = null; boat.traverse(o => { if (!mesh && o.isMesh && o.userData && o.userData.id === id) mesh = o; });
   if (!mesh) { $('idMsg').textContent = `No part ${id} in this design.`; return; }
-  const L = A.geometry.labels, all = [...L.pipes, ...L.joints, ...L.drums, ...L.panels, ...L.noodles, ...L.others];
+  const L = A.geometry.labels, all = [...L.pipes, ...L.joints, ...L.drums, ...L.panels, ...L.noodles, ...L.others, ...(L.lashings || [])];
   if (!all.some(o => o.id === id)) { $('idMsg').textContent = `No part ${id} in this design.`; return; }
   idHit = id; $('idMsg').textContent = '';
   const want = id[0] === 'P' ? 'pipes' : id[0] === 'J' ? 'joints' : 'parts';
@@ -1335,6 +1340,7 @@ function partInfoBase(ud){
       return { title: `Side panel (${sp.face}, box ${sp.box + 1})`, lines: [`Cut to ${inch(sp.len)} long × ${inch(sp.height)} tall`, `${(sp.len * sp.height / 144).toFixed(1)} sq ft · ${q.panelArea_sqft.toFixed(1)} sq ft on the boat`, `${q.items.panel} of the 26" × 8 ft panels used`, 'Zip-tie to the top and bottom rails'] }; }
     case 'decal': { const d = build.config.decals[ud.i] || {};
       return { title: `Decal: ${(M.DECALS[d.type] || {}).label || d.type}${d.type === 'name' ? ` "${d.text}"` : ''}`, lines: [d.kind === 'paint' ? 'Painted with a stencil' : 'Vinyl sticker', d.type === 'stripe' ? `${d.size}" wide stripe around the hull` : `${d.size}" across`, 'Remove it with 🏴‍☠️ Decals → Erase'] }; }
+    case 'lash': return { title: 'Platform lashing (2 zip ties in an X)', lines: [`Ties platform pipe ${ud.joins[0]} onto box rail ${ud.joins[1]}`, `Ties at least ${M.LASH_TIE_MIN_IN}" long, at most 18"; trim flush`] };
     case 'tie': return { title: 'Zip-tie support', lines: ['Added in the 3D view', 'Remove it with 🔗 Zip tie in 🧰 Tools'] };
     case 'crew': return { title: `Crew ${ud.i + 1}`, lines: [`${c.crew.weightEach} lb, seated`, `Head ≈ ${inch(ud.top - g.deckTop)} above the deck`] };
   }

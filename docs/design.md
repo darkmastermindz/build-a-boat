@@ -166,11 +166,19 @@ Update (2026-10-04): the boxes now **encapsulate** the drums.
 - **Chord fit:** the side rails sit inside each drum's diameter, so every
   rail presses on the drum (side fit −2.6": about a 17" square box around a
   22.5" drum). The drums can't roll.
-- **Platform:** a PVC platform on the box tops carries the foam deck.
-- **Noodles:** 16 yellow pool noodles fill the platform gaps, wrap the bow
-  (one noodle) and form the deck rail.
-- **Weight:** predicted 145 lb with 4 more pipe sticks to buy, close to the
-  limit.
+- **No platform (2026-10-04):** the foam deck sits directly on the box tops.
+  - **Why it was dropped:** a PVC platform can't share the boxes' fittings. It
+    rests one pipe diameter higher, so it would need 12 lashed crossings
+    (24 ties of 12–18"). The 8" and 36" ties on hand don't fit.
+  - **What dropping it gains:** 16 lb lighter, 2 fewer pipe sticks, 11 fewer
+    noodles, and the deck sits 1.9" lower. That lower deck more than doubles
+    side-to-side stability (roll GM 1.4" → 3.2").
+  - **To use it again:** the platform is still an option. When it's on, the
+    simulator lists each lashing (L1, L2…) and flags the tie length.
+- **Noodles:** yellow pool noodles wrap the bow (one noodle) and form the deck
+  rail.
+- **Weight:** predicted about 130 lb without the platform (145 lb with it).
+  It needs 8 pipe sticks; 6 are bought.
 - **Short cage pipes:** the cross pieces (and the links between boxes) are cut
   to **11.5"**, as built (0.5" of each end sits in the fitting). The default
   pair gap of 4.5" gives that length with the 1.25" fitting take-off.

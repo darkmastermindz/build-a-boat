@@ -44,7 +44,7 @@
     "sideStyle": "hull",
     "hullBow": 18,
     "boxSideGap": -2.6,
-    "platform": true,
+    "platform": false,
     "platformSpacing": 16,
     "bowNoodle": true
   },
