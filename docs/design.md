@@ -171,8 +171,11 @@ Update (2026-10-04): the boxes now **encapsulate** the drums.
   (one noodle) and form the deck rail.
 - **Weight:** predicted 145 lb with 4 more pipe sticks to buy, close to the
   limit.
-- **Stability:** side-to-side is low (GM +2"). An 8" pair gap gives about
-  +7".
+- **Short cage pipes:** the cross pieces (and the links between boxes) are cut
+  to **11.5"**, as built (0.5" of each end sits in the fitting). The default
+  pair gap of 4.5" gives that length with the 1.25" fitting take-off.
+- **Stability:** side-to-side is low (GM +1.4" at the 4.5" pair gap). An 8"
+  pair gap gives about +7", but needs longer cross pipes.
 
 
 The team's second sketch, and now the default build, is the **Packed
@@ -184,7 +187,8 @@ triangle** layout.
   their front crossbar.
 
 Default settings in `data/build.json`:
-- **Pair gap 4"** between the side-by-side boxes. Touching (0") gives
+- **Pair gap 4.5"** between the side-by-side boxes (it sets the 11.5" short
+  cage pipes). Touching (0") gives
   roll GM −4" with 2 × 175 lb crew, so it would tip sideways.
 - **Drums 6" forward** under the deck, so the boat floats level (trim
   −0.3°). With the drums centered it trims 4° bow-down.
