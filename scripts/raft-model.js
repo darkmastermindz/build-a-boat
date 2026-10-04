@@ -567,14 +567,14 @@
   }
 
   // ── Weight & mass distribution ──
-  const FRAME_ROLES = new Set(['pipe', 'pipe-large', 'elbow', 'elbow45', 'coupling', 'tee', 'side-tee', 'cross', 'wye', 'cleanout-tee', 'cap', 'spray-foam', 'zip-tie', 'cement', 'epoxy', 'sealant', 'rope', 'mast']);
+  const FRAME_ROLES = new Set(['pipe', 'pipe-large', 'elbow', 'elbow45', 'coupling', 'tee', 'side-tee', 'five-way', 'cross', 'wye', 'cleanout-tee', 'cap', 'spray-foam', 'zip-tie', 'cement', 'epoxy', 'sealant', 'rope', 'mast']);
   const DECK_ROLES = new Set(['xps', 'coroplast', 'plywood']);
   const boatParts = parts => (parts || []).filter(p => p.role !== 'tool' && p.category !== 'tools');
 
   // Pipe and fittings the layout derives are weighed by what it actually uses
   // (spares and offcuts stay on the list but off the boat). Everything else
   // is weighed as listed.
-  const USED_ROLES = { pipe: 'pipe', elbow: 'elbow', tee: 'tee', 'side-tee': 'tee', 'cleanout-tee': 'tee', cross: 'cross', coupling: 'coupling' };
+  const USED_ROLES = { pipe: 'pipe', elbow: 'elbow', tee: 'tee', 'side-tee': 'tee', 'five-way': 'tee', 'cleanout-tee': 'tee', cross: 'cross', coupling: 'coupling' };
   function partWeights(build, g) {
     const parts = boatParts(build.parts);
     const req = requirements(g, build.parts);
@@ -837,7 +837,7 @@
     else add('ok', 'rope', `Securing materials ≤ ${ropeMax}" pieces; zip ties trimmed flush`, 'Drum bands made of daisy-chained ties: confirm with the organizers.');
     const longTies = parts.filter(p => p.role === 'zip-tie' && +p.length_in > ropeMax);
     if (longTies.length) add('warn', 'ties', `Zip ties longer than ${ropeMax}"`, longTies.map(p => p.name).join('; ') + `. The rule caps securing materials at ${ropeMax}". Ask the organizers whether a long tie trimmed flush counts by its installed length. If not, use daisy-chained ties of ${ropeMax}" or less.`);
-    const pipes = parts.filter(p => ['pipe', 'pipe-large', 'elbow', 'elbow45', 'coupling', 'tee', 'side-tee', 'cross', 'wye', 'cleanout-tee', 'cap', 'mast'].includes(p.role) && p.material === 'pvc');
+    const pipes = parts.filter(p => ['pipe', 'pipe-large', 'elbow', 'elbow45', 'coupling', 'tee', 'side-tee', 'five-way', 'cross', 'wye', 'cleanout-tee', 'cap', 'mast'].includes(p.role) && p.material === 'pvc');
     const hasFoam = parts.some(p => p.role === 'spray-foam' && p.quantity > 0);
     const unfilled = pipes.filter(p => !p.foam_filled);
     if (pipes.length && (!hasFoam || unfilled.length)) add('error', 'float', 'PVC sinks: every pipe and fitting must be foam-filled so broken pieces float', unfilled.length ? unfilled.map(p => p.name).join('; ') : 'Add expanding spray foam to the parts list.');
@@ -908,7 +908,7 @@
     const recs = recommend({ build, g, req, wt, sol, fwd, side, leaks, rulesOut, crewW });
     if (g.cageUnsupported) recs.push({ level: 'warn', title: 'The cage is only modeled for lengthwise drums', detail: 'Crosswise drums use zip-tie bands here. Switch to a lengthwise layout to compare a caged build.' });
     if (g.boxes) recs.push({ level: 'info', title: `Box frames: each drum sits in its own box of pipe (${(req.cageLength_in / 12).toFixed(0)} ft of pipe)`,
-      detail: 'Drums are trapped without straps and the deck sits on the box tops, so there is no separate deck frame. The bottom rails sit just under the drums and can catch rocks in shallow water. Every box corner joins 3 pipes, so use side-outlet tees (3-way corners) there.' + (req.fourWay ? ` Where boxes share a wall or butt against another box's crossbar, ${req.fourWay} of the ${req.items.tee} joints take 4 pipes: use the 4-way side-outlet tees there.` : '') + (g.boxContacts.length ? ` Boxes ${g.boxContacts.map(([a2, b2]) => `${a2 + 1} and ${b2 + 1}`).join(', ')} meet corner to corner: join them where their end rails meet (a 4-way fitting where the corners touch, short ties otherwise).` : '') });
+      detail: 'Drums are trapped without straps and the deck sits on the box tops, so there is no separate deck frame. The bottom rails sit just under the drums and can catch rocks in shallow water. Every box corner joins 3 pipes, so use side-outlet tees (3-way corners) there.' + (req.fourWay ? ` Where boxes share a wall or butt against another box's crossbar, ${req.fourWay} of the ${req.items.tee} joints take 4 pipes: use 4-way side-outlet tees or 5-way fittings there.` : '') + (g.boxContacts.length ? ` Boxes ${g.boxContacts.map(([a2, b2]) => `${a2 + 1} and ${b2 + 1}`).join(', ')} meet corner to corner: join them where their end rails meet (a 4-way fitting where the corners touch, short ties otherwise).` : '') });
     if (!opts.noVariant && !g.boxes && g.drums.every(d => d.axis === 'x')) {
       const other = g.cage ? Object.assign({}, c, { retention: 'bands' }) : Object.assign({}, c, { retention: 'cage' });
       const v = analyze(Object.assign({}, build, { config: other }), rules, { skipLeak: true, noVariant: true });
@@ -979,7 +979,7 @@
     else if (leaks.length) add('ok', 'Survives losing any one drum', '');
     // parts list vs geometry
     const have = inventory(build.parts);
-    const names = { drum: 'drums', pipe: '10 ft pipe sticks', elbow: 'elbows', cross: 'double sani tees (4-way)', tee: 'tees (3-way, incl. side-outlet tees)', coupling: 'couplings', 'zip-tie': 'zip ties', xps: 'XPS sheets', coroplast: 'Coroplast sheets', 'spray-foam': 'spray-foam cans', cement: 'PVC cement kits' };
+    const names = { drum: 'drums', pipe: '10 ft pipe sticks', elbow: 'elbows', cross: 'double sani tees (4-way)', tee: 'side-outlet fittings and tees (3-, 4- and 5-way)', coupling: 'couplings', 'zip-tie': 'zip ties', xps: 'XPS sheets', coroplast: 'Coroplast sheets', 'spray-foam': 'spray-foam cans', cement: 'PVC cement kits' };
     Object.entries(req.items).forEach(([role, need]) => {
       const h = have[role] || 0;
       if (need > h && role === 'pipe') {
@@ -1020,7 +1020,7 @@
     const have = {};
     (parts || []).forEach(p => {
       let role = p.role, q = +p.quantity || 0;
-      if (role === 'side-tee' || role === 'cleanout-tee') role = 'tee';
+      if (role === 'side-tee' || role === 'five-way' || role === 'cleanout-tee') role = 'tee';   // any side-outlet fitting can take a box corner
       if (role === 'zip-tie') q *= +p.pack_count || 100;   // list zip ties in packs
       have[role] = (have[role] || 0) + q;
     });
@@ -1089,7 +1089,7 @@
   // site shows in-store availability once you pick your store there.
   const LOCAL_QUERY = {
     drum: 'reconditioned 55 gallon plastic drums', pipe: 'plumbing supply', tee: 'plumbing supply', cross: 'plumbing supply',
-    elbow: 'plumbing supply', coupling: 'plumbing supply', cement: 'plumbing supply', 'side-tee': 'furniture grade PVC fittings',
+    elbow: 'plumbing supply', coupling: 'plumbing supply', cement: 'plumbing supply', 'side-tee': 'furniture grade PVC fittings', 'five-way': 'furniture grade PVC fittings',
     coroplast: 'corrugated plastic sheet supplier', 'zip-tie': 'Harbor Freight', epoxy: 'Harbor Freight', sealant: 'Harbor Freight',
     tool: 'Harbor Freight', rope: 'Tractor Supply', paint: 'craft store', fabric: 'craft store',
   };
