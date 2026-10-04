@@ -171,6 +171,13 @@
   .tools .sw button[aria-pressed="true"]{outline:3px solid var(--accent);outline-offset:1px}
   .tools .sw .erase{width:auto;border-radius:13px;padding:0 8px;background:var(--panel);color:var(--ink);font-size:11.5px}
   .tools .row2{display:flex;gap:6px;margin-top:6px;flex-wrap:wrap}
+  .tools.ww{width:300px;max-height:calc(100% - 70px);overflow:auto}
+  .tools.ww .trow{display:grid;grid-template-columns:70px 1fr 50px;gap:6px;align-items:center;margin-top:5px}
+  .ww .feat{display:flex;gap:6px;align-items:baseline;border-top:1px solid var(--line);padding:4px 0;cursor:pointer}
+  .ww .feat[aria-pressed="true"]{background:color-mix(in srgb,var(--accent) 10%,transparent)}
+  .ww .wwarn{margin:3px 0}
+  .ww .work{margin:4px 0 6px;padding:5px;border-left:3px solid var(--accent);background:color-mix(in srgb,var(--accent) 5%,transparent)}
+  .ww .work ol{margin:2px 0 2px 16px;padding:0;font:11.5px ui-monospace,Menlo,Consolas,monospace}
   .tools #toolSummary div{margin-top:2px}
   .mhint{position:absolute;bottom:56px;left:50%;transform:translateX(-50%);z-index:4;background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:6px 10px;font-size:12.5px;max-width:min(300px,60%)}
   .profiles{display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-left:auto}
@@ -335,6 +342,8 @@
       <h2>Engineering</h2>
       <p class="blurb">Hand calculations from the current design and crew. Show them on the boat with <b>⚠️ Issues</b> under the 3D view.</p>
       <div id="engBox"></div>
+      <h3>🌊 Whitewater warnings</h3>
+      <div id="wwCheck"><p class="small muted">Not run yet: press 🌊 Whitewater under the 3D view.</p></div>
       <h2>Weight</h2>
       <table id="weightTable"></table>
       <h2>Next shopping trip</h2>
@@ -373,6 +382,23 @@
     <div class="mhint" id="mhint" hidden role="status"></div>
     <div id="imarks"></div>
     <div class="ilist" id="ilist" hidden></div>
+    <div class="tools ww" id="wwPanel" hidden>
+      <b>🌊 Whitewater (U.S. National Whitewater Center)</b>
+      <div class="small muted">Balances the boat on Class II and III waves and holes, using the channel's published flow and slope.</div>
+      <div class="trow"><label for="wwChannel">Channel</label><select id="wwChannel" style="grid-column:span 2"><option value="competition">Competition (race course)</option><option value="wilderness">Wilderness</option></select></div>
+      <div class="row2"><label class="small"><input type="checkbox" id="wwII" checked> Class II</label><label class="small"><input type="checkbox" id="wwIII" checked> Class III</label></div>
+      <details class="small"><summary>Assumptions (not published: change them)</summary>
+        <div class="trow"><label for="wwWidth">Width</label><input type="range" id="wwWidth" min="6" max="20" step="0.5" value="12"><output id="wwWidthO">12 m</output></div>
+        <div class="trow"><label for="wwN">Manning n</label><input type="range" id="wwN" min="0.03" max="0.07" step="0.005" value="0.045"><output id="wwNO">0.045</output></div>
+        <div class="trow"><label for="wwWave2">II wave</label><input type="range" id="wwWave2" min="1" max="3" step="0.5" value="3"><output id="wwWave2O">3 ft</output></div>
+        <div class="trow"><label for="wwWave3">III wave</label><input type="range" id="wwWave3" min="3" max="5" step="0.5" value="5"><output id="wwWave3O">5 ft</output></div>
+        <div class="trow"><label for="wwDrop2">II drop</label><input type="range" id="wwDrop2" min="0" max="3" step="0.5" value="1"><output id="wwDrop2O">1 ft</output></div>
+        <div class="trow"><label for="wwDrop3">III drop</label><input type="range" id="wwDrop3" min="0.5" max="6" step="0.5" value="3"><output id="wwDrop3O">3 ft</output></div>
+      </details>
+      <div class="row2"><button class="btn sm" id="wwRun">▶ Simulate rapids</button><button class="btn ghost sm" id="wwStop" hidden>■ Flat water</button></div>
+      <div id="wwOut" class="small" aria-live="polite"></div>
+      <div class="row2" id="wwDl" hidden><button class="btn ghost sm" id="wwJson">⬇️ JSON</button><button class="btn ghost sm" id="wwMd">⬇️ Summary (.md)</button></div>
+    </div>
     <div class="tools" id="tools" hidden>
       <b>🧰 Tools</b> <span class="small muted">Esc returns to Adjust</span>
       <div class="row2"><button class="btn ghost sm" id="undoBtn" title="Undo (Ctrl+Z)">↶ Undo</button><button class="btn ghost sm" id="redoBtn" title="Redo (Ctrl+Shift+Z)">↷ Redo</button><span class="small muted" id="histInfo"></span></div>
@@ -702,7 +728,7 @@ function renderParts(){
 
 // ── Analysis → UI ────────────────────────────
 let pending = false;
-function changed(){ recordHistory(); if (!loadingProfile) markDirty(); store.set(build); if (!pending) { pending = true; requestAnimationFrame(() => { pending = false; update(); }); } }
+function changed(){ if (WW.anim) wwAnimate(null); if (WW.result) { WW.result = null; renderWWCheck(); $('wwOut').replaceChildren(el('p', { class: 'small muted' }, 'The design changed: simulate again.')); $('wwDl').hidden = true; } recordHistory(); if (!loadingProfile) markDirty(); store.set(build); if (!pending) { pending = true; requestAnimationFrame(() => { pending = false; update(); }); } }
 function update(){
   A = M.analyze(build, rules, { catalog, suppliers, zip: shopZip });
   renderStats(); renderCheck(); buildBoat(); renderHud(); renderDrumList();
@@ -889,8 +915,9 @@ function initScene(){
   LAYERS.forEach(k => bar.append(el('button', { 'aria-pressed':'true', onclick: e => { const on = e.target.getAttribute('aria-pressed') !== 'true'; e.target.setAttribute('aria-pressed', on); G[k].visible = on; } }, k[0].toUpperCase() + k.slice(1))));
   bar.append(el('button', { class: 'measure', id: 'measureBtn', 'aria-pressed': 'false', title: 'Measure between two points (snaps to pipe ends, midpoints, centers and corners). Esc to exit.', onclick: () => setMeasure(!measureOn) }, '📏 Measure'));
   bar.append(el('button', { class: 'measure', id: 'issuesBtn', 'aria-pressed': 'false', title: 'Show the warnings and errors on the boat', onclick: () => toggleIssues() }, '⚠️ Issues'));
+  bar.append(el('button', { class: 'measure', id: 'wwBtn', 'aria-pressed': 'false', 'aria-controls': 'wwPanel', title: 'Simulate the U.S. National Whitewater Center Class II and III rapids', onclick: () => toggleWW() }, '🌊 Whitewater'));
   bar.append(el('button', { class: 'measure', id: 'toolsBtn', 'aria-pressed': 'false', 'aria-controls': 'tools', title: 'Show tools: zip-tie supports, paint, measure', onclick: () => toggleTools() }, '🧰 Tools'));
-  orbit(); initPicking(); initTools(); resize(); addEventListener('resize', resize);
+  orbit(); initPicking(); initTools(); initWW(); resize(); addEventListener('resize', resize);
   loop(0);
 }
 // a vertical band following a closed 2-D outline (x, z), pushed `off` inches outward
@@ -1063,13 +1090,133 @@ function resize(){
 }
 const still = matchMedia('(prefers-reduced-motion: reduce)').matches;
 function loop(t){
-  if (!still) {
+  if (WW.anim) wwFrame(t);
+  else if (!still) {
     water.position.y = Math.sin(t * .0012) * .35;
     pivot.position.y = Math.sin(t * .0012 - .4) * .35;
     if (!pts.size && t - idle > 6000 && t - idle < 12000) { th += .0018; place(); }
   }
   positionMeasureLabel(); positionIssues();
   renderer.render(scene, camera); requestAnimationFrame(loop);
+}
+
+// ── Whitewater simulation ─────────────────────
+// Runs M.whitewater on the current design, lists its warnings as their own category,
+// animates the boat on the chosen feature using the solved balance at each wave position,
+// and offers the JSON artifact and a Markdown summary for download.
+const WW = { result: null, anim: null, sel: null, open: new Set() };
+const WW_KEY = 'bob-ww-opts';
+function wwOpts(){
+  return { channel: $('wwChannel').value, classes: [$('wwII').checked && 'II', $('wwIII').checked && 'III'].filter(Boolean),
+    width_m: +$('wwWidth').value, manningN: +$('wwN').value, waveFt: { II: +$('wwWave2').value, III: +$('wwWave3').value }, dropFt: { II: +$('wwDrop2').value, III: +$('wwDrop3').value } };
+}
+function wwSyncOutputs(){
+  $('wwWidthO').textContent = $('wwWidth').value + ' m'; $('wwNO').textContent = (+$('wwN').value).toFixed(3);
+  [['wwWave2', 'ft'], ['wwWave3', 'ft'], ['wwDrop2', 'ft'], ['wwDrop3', 'ft']].forEach(([id, u]) => $(id + 'O').textContent = $(id).value + ' ' + u);
+}
+function initWW(){
+  try { const o = JSON.parse(localStorage.getItem(WW_KEY) || 'null'); if (o) {
+    $('wwChannel').value = o.channel || 'competition'; $('wwII').checked = (o.classes || ['II']).includes('II'); $('wwIII').checked = (o.classes || ['III']).includes('III');
+    if (o.width_m) $('wwWidth').value = o.width_m; if (o.manningN) $('wwN').value = o.manningN;
+    if (o.waveFt) { $('wwWave2').value = o.waveFt.II; $('wwWave3').value = o.waveFt.III; } if (o.dropFt) { $('wwDrop2').value = o.dropFt.II; $('wwDrop3').value = o.dropFt.III; } } } catch (e) {}
+  wwSyncOutputs();
+  $('wwPanel').querySelectorAll('input,select').forEach(i => i.addEventListener('input', () => { wwSyncOutputs(); if (WW.result) $('wwOut').prepend(el('div', { class: 'small muted' }, 'Settings changed: simulate again to update.')); }));
+  $('wwRun').onclick = runWW;
+  $('wwStop').onclick = () => wwAnimate(null);
+  $('wwJson').onclick = () => wwDownload('json');
+  $('wwMd').onclick = () => wwDownload('md');
+}
+function toggleWW(force){
+  const on = force ?? $('wwPanel').hidden;
+  if (on && !$('tools').hidden) toggleTools(false);
+  $('wwPanel').hidden = !on; $('wwBtn').setAttribute('aria-pressed', on);
+  if (!on) wwAnimate(null);
+}
+function runWW(){
+  const o = wwOpts();
+  if (!o.classes.length) { $('wwOut').replaceChildren(el('p', { class: 'sf-warn' }, 'Pick Class II, Class III or both.')); return; }
+  try { localStorage.setItem(WW_KEY, JSON.stringify(o)); } catch (e) {}
+  $('wwRun').disabled = true; $('wwOut').replaceChildren(el('p', { class: 'muted' }, 'Simulating… balancing the boat at every wave position.'));
+  setTimeout(() => {
+    try { WW.result = M.whitewater(build, rules, o); WW.generated = new Date().toISOString(); renderWW(); renderWWCheck(); }
+    catch (err) { WW.result = null; $('wwOut').replaceChildren(el('p', { class: 'sf-error' }, 'Simulation failed: ' + err.message)); }
+    $('wwRun').disabled = false;
+  }, 30);
+}
+const WW_ICON = { error: '❌', warn: '⚠️', info: 'ℹ️', ok: '✅' };
+function wwWork(id){
+  const w = WW.result.work[id]; if (!w) return null;
+  return el('div', { class: 'work' }, el('b', {}, w.formula), el('ol', {}, ...w.steps.map(t => el('li', {}, t))), el('div', { class: 'small muted' }, w.why), refLinks(w.refs));
+}
+function renderWW(){
+  const R = WW.result, H = R.hydraulics, f1v = (v, d = 1) => v == null || !isFinite(v) ? '—' : (+v).toFixed(d);
+  const order = { error: 0, warn: 1, info: 2, ok: 3 };
+  const warnRow = w => { const open = WW.open.has(w.title);
+    return el('div', { class: 'wwarn' }, el('div', { class: 'has-work', role: 'button', tabindex: 0, title: w.work ? 'Show the work' : '', onclick: () => { if (!w.work) return; open ? WW.open.delete(w.title) : WW.open.add(w.title); renderWW(); } },
+      WW_ICON[w.level] + ' ', el('b', {}, w.title), w.detail ? el('div', { class: 'small muted' }, w.detail) : ''), open && w.work ? wwWork(w.work) : ''); };
+  $('wwOut').replaceChildren(
+    el('div', { style: 'margin-top:6px' }, `${H.channel.name}: ${f1v(H.U_ms * 2.23694)} mph current, ${f1v(H.h_m * 3.28084)} ft deep on average (Fr ${f1v(H.Fr, 2)}). `,
+      el('a', { href: '#', onclick: e => { e.preventDefault(); WW.open.has('channel') ? WW.open.delete('channel') : WW.open.add('channel'); renderWW(); } }, 'How?')),
+    WW.open.has('channel') ? wwWork('ww.channel') : '',
+    H.channel.notModeled ? el('div', { class: 'small muted' }, H.channel.notModeled) : '',
+    el('div', { style: 'margin-top:6px' }, el('b', {}, 'Features'), el('span', { class: 'small muted' }, ' (click to watch it in 3D)')),
+    ...R.features.map(f => el('div', { class: 'feat', role: 'button', tabindex: 0, 'aria-pressed': WW.sel === f.id, onclick: () => wwAnimate(WW.sel === f.id ? null : f.id) },
+      el('span', {}, WW_ICON[f.level]), el('div', {}, el('b', {}, `${f.name} · Class ${f.cls}`),
+        el('div', { class: 'small muted' }, f.type === 'waves' ? (f.lambda_m ? `${f1v(f.H_m * 3.28084)} ft waves every ${f1v(f.lambda_m * 3.28084)} ft${f.breaking ? ' (breaking)' : ''}; trim up to ${f1v(f.maxPitchDeg, 0)}°, heel ${f1v(f.maxRollDeg, 0)}°` : 'no standing waves at these settings')
+          : `${f1v(f.drop_m * 3.28084)} ft drop → ${f1v(f.U1_ms * 2.23694)} mph jet, ${f1v(f.jumpHeight_m * 3.28084)} ft hole, ${f.retentive ? 'retentive' : 'flushing'}`)))),
+    el('div', { style: 'margin-top:6px' }, el('b', {}, '🌊 Whitewater warnings')),
+    ...[...R.warnings].sort((a, b) => order[a.level] - order[b.level]).map(warnRow),
+    el('details', { class: 'small', style: 'margin-top:6px' }, el('summary', {}, '📚 Assumptions and sources'),
+      ...R.assumptions.map(a => el('div', { class: 'acard' }, el('b', {}, a.name), ': ', a.used, el('div', { class: 'muted' }, a.source + '. ' + a.effect), refLinks(a.refs)))),
+    el('div', { class: 'small muted', style: 'margin-top:6px' }, 'Quasi-static: the boat is balanced on the water at each position. Splash, impacts and paddling are left out. Use it to compare designs, not as a guarantee.'));
+  $('wwDl').hidden = false;
+}
+// The Check tab gets its own whitewater section from the last run.
+function renderWWCheck(){
+  const box = $('wwCheck'); if (!box) return;
+  if (!WW.result) { box.replaceChildren(el('p', { class: 'small muted' }, 'Not run yet: press 🌊 Whitewater under the 3D view.')); return; }
+  const order = { error: 0, warn: 1, info: 2, ok: 3 };
+  box.replaceChildren(el('ul', { class: 'msgs' }, ...[...WW.result.warnings].sort((a, b) => order[a.level] - order[b.level]).map(w =>
+    el('li', {}, el('span', { class: 'dot ' + w.level, title: w.level }), el('div', {}, el('div', { class: 't' }, w.title), w.detail ? el('div', { class: 'd' }, w.detail) : '')))));
+}
+function wwDownload(kind){
+  if (!WW.result) return;
+  const meta = { generated: WW.generated }, stamp = (WW.generated || '').slice(0, 10), ch = WW.result.options.channel;
+  const [body, type, name] = kind === 'json'
+    ? [JSON.stringify(M.whitewaterArtifact(build, WW.result, meta), null, 2) + '\n', 'application/json', `whitewater-${ch}-${stamp}.json`]
+    : [M.whitewaterMarkdown(WW.result, meta), 'text/markdown', `whitewater-${ch}-${stamp}.md`];
+  const a = el('a', { href: URL.createObjectURL(new Blob([body], { type })), download: name }); document.body.append(a); a.click(); a.remove();
+}
+// 3D: a wavy water surface and the boat posed from the solved balance at each wave position.
+function wwAnimate(id){
+  WW.sel = id; if (WW.result) renderWW();
+  $('wwStop').hidden = !id;
+  if (WW.water) { scene.remove(WW.water); WW.water.geometry.dispose(); WW.water = null; }
+  water.visible = true; WW.anim = null;
+  if (!id) { buildBoat(); return; }
+  const f = WW.result.features.find(x => x.id === id); if (!f || !f.motion) return;
+  const geo = new THREE.PlaneGeometry(900, 900, 180, 60);
+  WW.water = new THREE.Mesh(geo, water.material); WW.water.rotation.x = -Math.PI / 2; scene.add(WW.water); water.visible = false;
+  WW.anim = { f, t0: performance.now() };   // head waves: the boat runs bow-first through the train
+}
+function wwFrame(t){
+  const A2 = WW.anim, f = A2.f, IN = 39.3701, pos = WW.water.geometry.attributes.position;
+  const cycle = 4000, u = still ? 0.25 : (((t - A2.t0) % cycle) + cycle) % cycle / cycle;   // the first frame's t can predate t0
+  let eta, m;
+  if (f.type === 'waves') {
+    const k = 2 * Math.PI / (f.lambda_m * IN), H = f.H_m * IN, ph = 2 * Math.PI * u, n = f.motion.length;
+    eta = x => H / 2 * Math.cos(k * x - ph);
+    const i = Math.floor(u * n) % n, j = (i + 1) % n, w = u * n - Math.floor(u * n), a = f.motion[i], b = f.motion[j];
+    m = a.ok && b.ok ? { d: a.d + (b.d - a.d) * w, t: a.t + (b.t - a.t) * w, p: a.p + (b.p - a.p) * w } : (a.ok ? a : b);
+  } else {
+    const Lr = f.roller_m * IN, dh = f.jumpHeight_m * IN, n = f.motion.length, s = u * (n - 1), i = Math.floor(s), w = s - i, a = f.motion[i], b = f.motion[Math.min(n - 1, i + 1)];
+    const s0 = a.s0 + (b.s0 - a.s0) * w;
+    eta = x => { const v = (x - s0) / Lr; return dh * (v <= 0 ? 0 : v >= 1 ? 1 : (1 - Math.cos(Math.PI * v)) / 2); };
+    m = a.ok && b.ok ? { d: a.d + (b.d - a.d) * w, t: a.t + (b.t - a.t) * w, p: a.p + (b.p - a.p) * w } : (a.ok ? a : b);
+  }
+  for (let i = 0; i < pos.count; i++) pos.setZ(i, eta(pos.getX(i)));
+  pos.needsUpdate = true; WW.water.geometry.computeVertexNormals();
+  if (m && m.ok !== false) { pivot.position.y = 0; boat.position.y = -m.d; pivot.rotation.set(-Math.atan(m.p), 0, Math.atan(m.t), 'XZY'); }
 }
 
 // ── Pick, measure and edit ───────────────────
@@ -1469,6 +1616,7 @@ function setTool(mode){
 }
 function toggleTools(force){
   const on = force ?? $('tools').hidden;
+  if (on && !$('wwPanel').hidden) toggleWW(false);
   $('tools').hidden = !on; $('toolsBtn').setAttribute('aria-pressed', on);
   if (!on && (toolMode === 'tie' || toolMode === 'paint')) setTool('select');
   try { localStorage.setItem('bob-tools', on ? '1' : ''); } catch (e) {}

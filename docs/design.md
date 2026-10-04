@@ -320,6 +320,46 @@ each drum into [circular segments](https://mathworld.wolfram.com/CircularSegment
 and balances lift and moments at the actual tilt. A wider drum spacing raises
 the righting arm, as in this [catamaran sea-trial study](https://doi.org/10.3390/jmse12081436).
 
+## Whitewater simulation (USNWC)
+
+**What's published.** Channel figures come from the
+[USNWC page](https://en.wikipedia.org/wiki/U.S._National_Whitewater_Center)
+and [S2O Design](https://s2odesign.com/projects/the-u-s-national-whitewater-center/):
+
+| Channel | Length | Drop | Slope | Flow |
+|---|---|---|---|---|
+| Competition | 300 m | 6.4 m | 2.1% | 15 m³/s |
+| Wilderness | 550 m | 6.4 m | 1.2% | 19 m³/s |
+
+The named rapids are from the same page:
+- **Competition channel:** Bridge Drop (III) and Big Drop (IV).
+- **Wilderness channel:** Entrance Exam, Huey Lewis, Bread and Butter (II), Sunset (III) and M-Wave (III+).
+
+Wave heights per class come from the
+[International Scale of River Difficulty](https://en.wikipedia.org/wiki/International_scale_of_river_difficulty).
+
+**Not published (editable assumptions):**
+- channel width (12 m, like other Olympic slalom channels);
+- Manning n (0.045);
+- drop heights (1 ft for Class II, 3 ft for Class III).
+
+**Video and photos.** These clips show how home-built boats handle the channel:
+- [2017 compilation](https://www.youtube.com/watch?v=FpRtdIrZW1s)
+- [Build Your Own Boat at USNWC](https://www.youtube.com/watch?v=Vw2WUAATFZk)
+- [WBTV 2022 photos](https://qclife.wbtv.com/2022/10/16/whitewater-center-held-build-your-own-boat-competition-this-weekend/)
+
+They were blocked from the development environment. Please watch them and
+estimate the drop heights and wave spacing, then set them in the panel.
+
+**First results for the current design** (competition channel, default settings):
+- **Class II waves (21 ft apart at the breaking limit):** 23° trim and 28° heel, with about 3" of water over the deck at worst.
+- **Roll resonance:** roll GM is low (2.2"), so it briefly loses roll stability on crests, and its 2.7 s roll period sits near the 3.0 s spacing between waves.
+- **Bridge Drop:** makes a 2.7 ft hole that flushes rather than holds; the boat is pushed with 1,600 lb if pinned sideways.
+
+**Limits.**
+- The model is quasi-static. Splash, impacts, paddling and wave dynamics are left out.
+- Big Drop (Class IV) is on the race course but not simulated.
+
 ## Open items
 
 1. Organizers: are daisy-chained zip-tie drum bands OK under the 18" rule?
