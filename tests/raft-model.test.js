@@ -452,3 +452,10 @@ test('engineering: every number shows its work', () => {
   const pl = E.structure.find(s => s.id === 'platform');
   assert.ok(E.work['st.platform'].steps.some(t => t.includes('SF = ') && t.includes(pl.sf.toFixed(2))));
 });
+
+test('default build: the short cage pipes (box cross pieces and links) cut to 11.5", as built', () => {
+  const g = M.geometry(M.withDefaults(current.config)), req = M.requirements(g, current.parts);
+  const cross = req.cuts.filter(c => /(top|bottom|link)$/.test(c.label) && c.len < 12);
+  assert.ok(cross.length >= 8, 'front box cross pieces and the links');
+  cross.filter(c => c.len > 10).forEach(c => assert.strictEqual(c.len, 11.5, c.label));
+});
