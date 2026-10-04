@@ -39,10 +39,14 @@
       "weight": 20,
       "weightMeasured": false
     },
-    "packGap": 4,
+    "packGap": 5,
     "sidePanels": true,
     "sideStyle": "hull",
-    "hullBow": 18
+    "hullBow": 18,
+    "boxSideGap": -2.6,
+    "platform": true,
+    "platformSpacing": 16,
+    "bowNoodle": true
   },
   "parts": [
     {
@@ -318,16 +322,16 @@
     },
     {
       "catalog_id": "C001",
-      "name": "Pool noodles",
+      "name": "Pool noodles, yellow",
       "role": "noodle",
       "category": "comfort",
       "material": "pe-foam",
-      "quantity": 8,
+      "quantity": 16,
       "weight_lb_each": 0.3,
       "weight_measured": false,
       "unit_cost_usd": 3.58,
       "status": "planned",
-      "notes": ""
+      "notes": "Platform gaps (cut to fit between the cross members), one wrapped around the bow, and the deck-edge rail."
     },
     {
       "catalog_id": "C002",

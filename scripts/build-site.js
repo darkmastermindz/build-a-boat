@@ -29,4 +29,12 @@ for (const [dest, src] of Object.entries(files)) {
   fs.mkdirSync(path.dirname(to), { recursive: true });
   fs.copyFileSync(path.join(ROOT, src), to);
 }
-console.log(`Built ${Object.keys(files).length} files into dist/`);
+// designs saved in the repo (data/designs/*.json, e.g. from "Propose PR"): one index the page lists
+const dir = path.join(ROOT, 'data/designs');
+const designs = (fs.existsSync(dir) ? fs.readdirSync(dir) : []).filter(f => f.endsWith('.json')).sort().map(f => {
+  const b = JSON.parse(fs.readFileSync(path.join(dir, f), 'utf8'));
+  return { id: f.replace(/\.json$/, ''), name: b.name || f, description: 'Saved in the repo (data/designs/' + f + ')', build: b };
+});
+fs.mkdirSync(path.join(OUT, 'data/designs'), { recursive: true });
+fs.writeFileSync(path.join(OUT, 'data/designs/index.json'), JSON.stringify({ designs }) + '\n');
+console.log(`Built ${Object.keys(files).length} files and ${designs.length} repo designs into dist/`);

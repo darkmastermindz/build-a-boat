@@ -162,6 +162,19 @@ offset fore and aft (the **Staggered catamaran** layout).
 
 ### Current plan: packed triangle in box frames
 
+Update (2026-10-04): the boxes now **encapsulate** the drums.
+- **Chord fit:** the side rails sit inside each drum's diameter, so every
+  rail presses on the drum (side fit −2.6": about a 17" square box around a
+  22.5" drum). The drums can't roll.
+- **Platform:** a PVC platform on the box tops carries the foam deck.
+- **Noodles:** 16 yellow pool noodles fill the platform gaps, wrap the bow
+  (one noodle) and form the deck rail.
+- **Weight:** predicted 145 lb with 4 more pipe sticks to buy, close to the
+  limit.
+- **Stability:** side-to-side is low (GM +2"). An 8" pair gap gives about
+  +7".
+
+
 The team's second sketch, and now the default build, is the **Packed
 triangle** layout.
 - One drum sits at the bow on the centerline.

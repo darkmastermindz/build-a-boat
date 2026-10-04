@@ -42,6 +42,7 @@
   }
   const sameSpec = (a, b) => a.dia === b.dia && a.len === b.len && a.weight === b.weight;
   const PIPE_R = 0.95;                // 1-1/2" Sch 40 OD 1.9"
+  const NOODLE_D = 2.5, NOODLE_L = 52; // pool noodle diameter and length
   const PIPE_ID_AREA = Math.PI * (1.61 / 2) ** 2;
   const RAIL_OFFSET = 6;              // rails sit 6" either side of a pontoon line
   const STOCK = 120;                  // 10 ft pipe sticks
@@ -112,7 +113,8 @@
       layout: c => {
         // boxes meet at x = drumOffset: each drum sits its own half-length plus the end clearance away,
         // and the side-by-side pair sits its own radius plus the side clearance off the centerline
-        const eg = c.boxEndGap ?? 2, sg = c.boxSideGap ?? 1, gap = Math.min(14, Math.max(0, c.packGap || 0)) / 2;
+        // with chord-fit sides (negative side gap) the drums still keep 1" apart: their sides bulge past the box
+        const eg = c.boxEndGap ?? 2, sg = Math.max(0.5, c.boxSideGap ?? 1), gap = Math.min(14, Math.max(0, c.packGap || 0)) / 2;
         const [b, p, s] = [0, 1, 2].map(i => drumSpec(c, i));
         return [{ x: c.drumOffset + b.len / 2 + eg, z: 0 }, { x: c.drumOffset - p.len / 2 - eg, z: -(p.dia / 2 + sg + gap) }, { x: c.drumOffset - s.len / 2 - eg, z: s.dia / 2 + sg + gap }];
       },
@@ -155,7 +157,7 @@
   };
 
   const DEFAULT_CONFIG = {
-    preset: 'cat2', frameStyle: 'stacked', retention: 'bands', cageStyle: 'cradle', sidePanels: false, sideStyle: 'hull', hullBow: 18, packGap: 0, boxEndGap: 2, boxSideGap: 1, boxTopGap: 0, fittingTakeoff: 1.25, railsPerPontoon: 2, centerSpine: false, frameLength: 84, frameWidth: 72, beamCount: 4, pontoonSpacing: 47,
+    preset: 'cat2', frameStyle: 'stacked', retention: 'bands', cageStyle: 'cradle', sidePanels: false, sideStyle: 'hull', hullBow: 18, platform: false, platformSpacing: 16, bowNoodle: false, packGap: 0, boxEndGap: 2, boxSideGap: 1, boxTopGap: 0, fittingTakeoff: 1.25, railsPerPontoon: 2, centerSpine: false, frameLength: 84, frameWidth: 72, beamCount: 4, pontoonSpacing: 47,
     drumOffset: 0, drumSpread: 20, bow: true, bowRiser: 12, bowStrut: 18,
     deck: { length: 72, width: 24, thickness: 2.3 }, mastHeight: 30, noodleRail: true,
     crew: { count: 2, weightEach: 175, xOffset: 0, zOffset: 0 }, failedDrum: null,
@@ -298,10 +300,16 @@
   // when the bottoms line up), and the deck sits on the box tops. There is no
   // separate deck frame, and the drums are trapped without straps.
   function boxGeometry(c, drum, drums, r, mixed) {
-    const topY = 2 * r + PIPE_R + Math.max(0, c.boxTopGap || 0);   // top rails just above the tallest drum
-    const eg = Math.max(0.5, c.boxEndGap ?? 2), sg = Math.max(0.5, c.boxSideGap ?? 1);
-    const deckBottom = topY + PIPE_R, deckTop = deckBottom + c.deck.thickness;
-    const boxes = drums.map(d => ({ id: d.id, x0: d.x - d.ex - eg, x1: d.x + d.ex + eg, z0: d.z - d.ez - sg, z1: d.z + d.ez + sg, yb: d.y0 - PIPE_R, attach: [] }));
+    // Side fit: a positive boxSideGap leaves clearance beside the drum. A
+    // negative one pulls the side rails inside the drum's diameter, so each
+    // box side is a chord of the drum's circle: the four rails press on the
+    // drum (end view: a rectangle inscribed in the circle) and it can't roll.
+    const eg = Math.max(0.5, c.boxEndGap ?? 2), sgRaw = c.boxSideGap ?? 1;
+    const boxes = drums.map(d => {
+      const sg = d.axis === 'x' ? Math.max(-0.75 * d.r, sgRaw) : Math.max(0.5, sgRaw), hw = d.ez + sg, rr = d.r + PIPE_R, cy = d.y0 + d.r;
+      const chord = d.axis === 'x' && hw < rr, v = chord ? Math.sqrt(rr * rr - hw * hw) : rr;
+      return { id: d.id, x0: d.x - d.ex - eg, x1: d.x + d.ex + eg, z0: d.z - hw, z1: d.z + hw, yb: cy - v, yt: cy + v, chord, attach: [] };
+    });
     // join boxes with a minimum spanning tree on centre distance
     const ctr = b => [(b.x0 + b.x1) / 2, (b.z0 + b.z1) / 2];
     const dist = (a, b) => Math.hypot(ctr(a)[0] - ctr(b)[0], ctr(a)[1] - ctr(b)[1]);
@@ -342,18 +350,39 @@
         links.push({ dir: 'd', pa, pb, from: A, to: B, levels });
       }
     });
+    // boxes that meet on a line with corners a few inches apart: move those
+    // corners together, so no pipe stub shorter than ~4.5" is left between them
+    for (let i = 0; i < boxes.length; i++) for (let j = 0; j < boxes.length; j++) {
+      const A = boxes[i], B = boxes[j]; if (i === j) continue;
+      if (Math.abs(A.x1 - B.x0) < 0.5) [['z0', 'z0'], ['z0', 'z1'], ['z1', 'z0'], ['z1', 'z1']].forEach(([ka, kb]) => { const d2 = Math.abs(A[ka] - B[kb]); if (d2 > 1e-6 && d2 < 4.5) { const m = (A[ka] + B[kb]) / 2; A[ka] = m; B[kb] = m; } });
+      if (Math.abs(A.z1 - B.z0) < 0.5) [['x0', 'x0'], ['x0', 'x1'], ['x1', 'x0'], ['x1', 'x1']].forEach(([ka, kb]) => { const d2 = Math.abs(A[ka] - B[kb]); if (d2 > 1e-6 && d2 < 4.5) { const m = (A[ka] + B[kb]) / 2; A[ka] = m; B[kb] = m; } });
+    }
+    // chord fit: set each box's rail heights from its tighter side, so the rails touch the drum
+    boxes.forEach(b => { const d = drums.find(x => x.id === b.id); if (!b.chord || !d) return;
+      const hw = Math.min(d.z - b.z0, b.z1 - d.z), rr = d.r + PIPE_R, v = hw < rr ? Math.sqrt(rr * rr - hw * hw) : rr, cy = d.y0 + d.r; b.yb = cy - v; b.yt = cy + v; });
+    // boxes that touch share rail heights (the loosest of the group), so shared corners line up
+    const near2 = (a, b) => [a.x0, a.x1].some(x => [b.x0, b.x1].some(x2 => Math.abs(x - x2) < 0.5)) && [a.z0, a.z1].some(z => [b.z0, b.z1].some(z2 => Math.abs(z - z2) < 0.5));
+    const grp = boxes.map((_, i) => i), root = i => grp[i] === i ? i : (grp[i] = root(grp[i]));
+    boxes.forEach((a, i) => boxes.forEach((b, j) => { if (i < j && near2(a, b)) grp[root(i)] = root(j); }));
+    boxes.forEach((b, i) => { const g2 = boxes.filter((_, j) => root(j) === root(i)); b.yt = Math.max(...g2.map(x => x.yt)); b.yb = Math.min(...g2.map(x => x.yb)); });
+    const topY = Math.max(...boxes.map(b => b.yt)) + (boxes.some(b => b.chord) ? 0 : Math.max(0, c.boxTopGap || 0));
+    if (!boxes.some(b => b.chord)) boxes.forEach(b => { b.yt = topY; });
+    // PVC platform on the box tops for the foam deck to sit on: a rectangle the
+    // size of the deck with cross members, resting on the top rails
+    const platY = c.platform ? topY + 2 * PIPE_R : null;
+    const deckBottom = (c.platform ? platY : topY) + PIPE_R, deckTop = deckBottom + c.deck.thickness;
     const pieces = [];
     const add = (kind, a, b, id) => pieces.push({ kind, drum: id, a, b });
     // links, and where they land on each box's top/bottom edges
     links.forEach(l => l.levels.forEach(level => {
-      const ya = level === 'top' ? topY : l.from.yb, yb2 = level === 'top' ? topY : l.to.yb;
-      if (l.dir === 'x') { add('link', [l.xa, ya, l.z], [l.xb, yb2, l.z], l.from.id); l.from.attach.push({ level, edge: 'x1', t: l.z }); l.to.attach.push({ level, edge: 'x0', t: l.z }); }
-      else if (l.dir === 'z') { add('link', [l.x, ya, l.za], [l.x, yb2, l.zb], l.from.id); l.from.attach.push({ level, edge: 'z1', t: l.x }); l.to.attach.push({ level, edge: 'z0', t: l.x }); }
+      const ya = level === 'top' ? l.from.yt : l.from.yb, yb2 = level === 'top' ? l.to.yt : l.to.yb;
+      if (l.dir === 'x') { add('link', [l.from.x1, ya, l.z], [l.to.x0, yb2, l.z], l.from.id); l.from.attach.push({ level, edge: 'x1', t: l.z }); l.to.attach.push({ level, edge: 'x0', t: l.z }); }
+      else if (l.dir === 'z') { add('link', [l.x, ya, l.from.z1], [l.x, yb2, l.to.z0], l.from.id); l.from.attach.push({ level, edge: 'z1', t: l.x }); l.to.attach.push({ level, edge: 'z0', t: l.x }); }
       else add('link', [l.pa[0], ya, l.pa[1]], [l.pb[0], yb2, l.pb[1]], l.from.id);
     }));
     // box edges, split wherever a link lands
     boxes.forEach(b => ['top', 'bottom'].forEach(level => {
-      const y = level === 'top' ? topY : b.yb;
+      const y = level === 'top' ? b.yt : b.yb;
       const edgesOf = { z0: ['x', b.x0, b.x1, b.z0], z1: ['x', b.x0, b.x1, b.z1], x0: ['z', b.z0, b.z1, b.x0], x1: ['z', b.z0, b.z1, b.x1] };
       Object.entries(edgesOf).forEach(([name, [dir, lo, hi, fixed]]) => {
         const cuts2 = b.attach.filter(at => at.level === level && at.edge === name && at.t > lo + 0.5 && at.t < hi - 0.5).map(at => at.t);
@@ -363,15 +392,27 @@
           else add(level, [fixed, y, pts[k]], [fixed, y, pts[k + 1]], b.id);
         }
       });
-      if (level === 'bottom') [[b.x0, b.z0], [b.x0, b.z1], [b.x1, b.z0], [b.x1, b.z1]].forEach(([x, z]) => add('post', [x, b.yb, z], [x, topY, z], b.id));
+      if (level === 'bottom') [[b.x0, b.z0], [b.x0, b.z1], [b.x1, b.z0], [b.x1, b.z1]].forEach(([x, z]) => add('post', [x, b.yb, z], [x, b.yt, z], b.id));
     }));
+    let platform = null;
+    if (c.platform) {
+      const L = c.deck.length - 2 * PIPE_R, W = c.deck.width - 2 * PIPE_R, sp = Math.max(8, c.platformSpacing || 16), n = Math.max(1, Math.round(L / sp));
+      const xs2 = Array.from({ length: n + 1 }, (_, k) => -L / 2 + k * L / n);
+      [-W / 2, W / 2].forEach(z => add('platform', [-L / 2, platY, z], [L / 2, platY, z], -1));
+      xs2.forEach(x => add('platform', [x, platY, -W / 2], [x, platY, W / 2], -1));
+      // yellow pool noodles fill the bays between cross members, laid fore-aft
+      const bayLen = L / n - 2 * PIPE_R, across = Math.max(1, Math.floor((W - 2 * PIPE_R) / NOODLE_D));
+      platform = { y: platY, L, W, xs: xs2, bays: n, bayLen, across, noodleLen: n * across * bayLen };
+    }
     // curved hull: the side panels wrap the boxes as one boat-shaped skin; a
     // small pipe nose (two chords top and bottom, and a post) holds the point
-    const hull = c.sidePanels && c.sideStyle !== 'boxes' ? hullShape(boxes, Math.max(0, c.hullBow ?? 18)) : null;
+    // with chord-fit sides the drums bulge past their boxes, so the hull wraps the wider of the box and the drum
+    const footprint = boxes.map(b => { const d = drums.find(x => x.id === b.id); return d ? Object.assign({}, b, { z0: Math.min(b.z0, d.z - d.ez - 0.5), z1: Math.max(b.z1, d.z + d.ez + 0.5) }) : b; });
+    const hull = c.sidePanels && c.sideStyle !== 'boxes' ? hullShape(footprint, Math.max(0, c.hullBow ?? 18)) : null;
     if (hull && hull.tip > hull.xf + 3) {
       const bowBox = boxes.reduce((m, b) => b.x1 > m.x1 ? b : m, boxes[0]), yb = Math.min(...boxes.map(b => b.yb));
-      [yb, topY].forEach(y => [bowBox.z0, bowBox.z1].forEach(z => add('nose', [bowBox.x1, y, z], [hull.tip, y, 0], bowBox.id)));
-      add('nose', [hull.tip, yb, 0], [hull.tip, topY, 0], bowBox.id);
+      [bowBox.yb, bowBox.yt].forEach(y => [bowBox.z0, bowBox.z1].forEach(z => add('nose', [bowBox.x1, y, z], [hull.tip, y, 0], bowBox.id)));
+      add('nose', [hull.tip, bowBox.yb, 0], [hull.tip, bowBox.yt, 0], bowBox.id);
     }
     // a corner that lands partway along another box's edge splits that edge
     // (e.g. a box butted against the middle of a wider pair of boxes)
@@ -407,6 +448,7 @@
       if (Math.abs(a.z - b.z) < a.ez + b.ez && Math.abs(a.x - b.x) < a.ex + b.ex) overlaps.push([i, j]);
     }
     return {
+      platform, bowNoodle: hull && c.bowNoodle ? bowNoodleShape(hull, topY) : null,
       sidePanels: !c.sidePanels ? [] : hull ? [hullPanel(hull, Math.min(...boxes.map(b => b.yb)), topY)] : boxOutline(boxes, topY),
       hull: hull ? Object.assign(hull, { y0: Math.min(...boxes.map(b => b.yb)), y1: topY }) : null,
       config: c, drum, r, mixed, fitted: false, boxes: true, boxList: boxes, boxContacts: contacts, frameWidth: 2 * outerZ, railOffset: 0,
@@ -434,7 +476,7 @@
       let segs = [[f.lo, f.hi]];
       cover.forEach(([l, h]) => { segs = segs.flatMap(([a, b2]) => (h <= a || l >= b2) ? [[a, b2]] : [[a, Math.max(a, l)], [Math.min(b2, h), b2]].filter(([u, v]) => v - u > 0.5)); });
       segs.filter(([a, b2]) => b2 - a > 0.5).forEach(([a, b2]) => {
-        const y0 = f.b.yb, y1 = topY;
+        const y0 = f.b.yb, y1 = f.b.yt;
         const pt = t => f.axis === 'z' ? [f.fixed, 0, t] : [t, 0, f.fixed];
         const face = f.axis === 'z' ? (f.out > 0 ? 'bow end' : 'stern end') : (f.out > 0 ? 'starboard side' : 'port side');
         out.push({ a: pt(a), b: pt(b2), y0, y1, len: b2 - a, height: y1 - y0, face, box: f.b.id, n: out.filter(o => o.box === f.b.id && o.face === face).length });
@@ -471,6 +513,14 @@
     const outline = [...side, ...side.slice(0, -1).reverse().map(([x, z]) => [x, -z])];   // back down the other side to the stern
     let len = 0; for (let i = 0; i < outline.length; i++) { const a = outline[i], b = outline[(i + 1) % outline.length]; len += Math.hypot(b[0] - a[0], b[1] - a[1]); }
     return { outline, perimeter: len, xs, xw, xf, tip, half: h };
+  }
+  // one pool noodle wrapped around the bow along the top of the hull, centered on the point
+  function bowNoodleShape(hull, y) {
+    const o = hull.outline, tipI = o.reduce((m, p, i) => p[0] > o[m][0] ? i : m, 0), pts = [o[tipI]];
+    let a = 0, b = 0;
+    for (let i = tipI; a < NOODLE_L / 2 && i > 0; i--) { a += Math.hypot(o[i][0] - o[i - 1][0], o[i][1] - o[i - 1][1]); pts.unshift(o[i - 1]); }
+    for (let i = tipI; b < NOODLE_L / 2 && i < o.length - 1; i++) { b += Math.hypot(o[i + 1][0] - o[i][0], o[i + 1][1] - o[i][1]); pts.push(o[i + 1]); }
+    return { points: pts, y, len: a + b };
   }
   function hullPanel(hull, y0, y1) {
     return { hull: true, a: [hull.xs, 0, -hull.half], b: [hull.xs, 0, hull.half], y0, y1, len: hull.perimeter, height: y1 - y0, face: 'hull (one piece around the boat)', box: 0, n: 0 };
@@ -521,7 +571,12 @@
   // Extra zip-tie supports placed in the 3D view (config.extraTies) add to
   // the layout's tie count.
   function requirements(g, parts) {
-    const req = baseRequirements(g, parts), extra = Array.isArray(g.config.extraTies) ? g.config.extraTies.length : 0;
+    const req = baseRequirements(g, parts), c = g.config, extra = Array.isArray(c.extraTies) ? c.extraTies.length : 0;
+    // pool noodles: platform bays (pieces cut from 52" noodles), the bow wrap, and the deck-edge rail
+    const pl = g.platform, perNoodle = pl ? Math.max(1, Math.floor(NOODLE_L / Math.max(1, pl.bayLen))) : 1;
+    const noodles = { platform: pl ? Math.ceil(pl.bays * pl.across / perNoodle) : 0, bow: g.bowNoodle ? 1 : 0, rail: c.noodleRail ? 2 * Math.ceil(c.deck.length / NOODLE_L) : 0 };
+    noodles.total = noodles.platform + noodles.bow + noodles.rail;
+    req.noodles = noodles; if (noodles.total) req.items.noodle = noodles.total;
     if (extra) { req.extraTies = extra; req.tieCount += extra; req.items['zip-tie'] = Math.ceil(req.tieCount * 1.15); }
     return req;
   }
@@ -616,7 +671,7 @@
 
   function boxRequirements(g) {
     const c = g.config, k = c.fittingTakeoff || 0;
-    const cuts = g.cagePieces.map(pc => ({ label: `box ${pc.drum + 1} ${pc.kind}`, len: +(pc.len - 2 * k).toFixed(2), cage: true }));
+    const cuts = g.cagePieces.map(pc => ({ label: pc.drum < 0 ? pc.kind : `box ${pc.drum + 1} ${pc.kind}`, len: +(pc.len - 2 * k).toFixed(2), cage: true }));
     if (c.mastHeight > 0) cuts.push({ label: 'mast', len: c.mastHeight + 6 });
     // every joint: 2 pipes at an angle = elbow (3-way corners need side-outlet tees), 3+ = tee
     const fit = { elbow: 0, tee: 0, four: 0, coupling: 0 };
@@ -666,7 +721,7 @@
   // Consumables (paint, glue, sealant, tape, twine) are weighed by the share
   // of each container that ends up on the boat: the part's on_boat_share, or
   // a default per role. Everything else is weighed as listed.
-  const USED_ROLES = { pipe: 'pipe', elbow: 'elbow', tee: 'tee', 'side-tee': 'tee', 'five-way': 'tee', 'cleanout-tee': 'tee', cross: 'cross', coupling: 'coupling', 'zip-tie': 'zip-tie', xps: 'xps', coroplast: 'coroplast', panel: 'panel' };
+  const USED_ROLES = { pipe: 'pipe', elbow: 'elbow', tee: 'tee', 'side-tee': 'tee', 'five-way': 'tee', 'cleanout-tee': 'tee', cross: 'cross', coupling: 'coupling', 'zip-tie': 'zip-tie', xps: 'xps', coroplast: 'coroplast', panel: 'panel', noodle: 'noodle' };
   const CONSUMABLE_SHARE = { paint: 0.5, glue: 0.5, sealant: 0.5, epoxy: 0.75, cement: 0.25, tape: 0.25, rope: 0.25 };
   const onBoatShare = p => (p.on_boat_share != null && isFinite(+p.on_boat_share) ? Math.min(1, Math.max(0, +p.on_boat_share)) : CONSUMABLE_SHARE[p.role] ?? 1);
   function partWeights(build, g) {
@@ -688,7 +743,7 @@
       return { part: p, w: q * share * (+p.weight_lb_each || 0) };
     });
     // the layout needs more pipe or fittings than listed: weigh the shortfall too
-    const DEFAULT_EACH = { pipe: 5.1, elbow: 0.2, tee: 0.35, cross: 0.45, coupling: 0.15, xps: 3, coroplast: 6, panel: 3 };
+    const DEFAULT_EACH = { pipe: 5.1, elbow: 0.2, tee: 0.35, cross: 0.45, coupling: 0.15, xps: 3, coroplast: 6, panel: 3, noodle: 0.3 };
     Object.keys(DEFAULT_EACH).forEach(k => {
       const short = used[k] - (pool[k] || 0);
       if (short <= 1e-9) return;
@@ -709,6 +764,7 @@
     porthole: { label: 'Porthole window', buy: 'Porthole window vinyl decals, waterproof, set of 4', price: 11.99, per: 4, unit: 'set', stencil: 'Circle stencil set (portholes)' },
     star: { label: 'Nautical star', buy: 'Nautical star vinyl decal, waterproof', price: 5.99, per: 1, unit: 'decal', stencil: 'Nautical star stencil' },
     flames: { label: 'Flames', buy: 'Flame vinyl decals, waterproof, pair', price: 11.99, per: 2, unit: 'pair', stencil: 'Flame stencil set' },
+    strawhat: { label: 'Straw-hat skull', buy: 'Straw hat pirate skull vinyl decal, waterproof, 6-10 in', price: 8.99, per: 1, unit: 'decal', stencil: 'Skull stencil plus a hat stencil, reusable plastic' },
     name: { label: 'Boat name', buy: 'Waterproof vinyl letters, 3 in, black (letters and numbers set)', price: 7.98, per: 1, unit: 'pack', stencil: 'Letter stencil set, 3-4 in' },
   };
   function decalPlan(c, g) {
@@ -1142,7 +1198,7 @@
     else if (leaks.length) add('ok', 'Survives losing any one drum', '');
     // parts list vs geometry
     const have = inventory(build.parts);
-    const names = { drum: 'drums', pipe: '10 ft pipe sticks', elbow: 'elbows', cross: 'double sani tees (4-way)', tee: 'side-outlet fittings and tees (3-, 4- and 5-way)', coupling: 'couplings', 'zip-tie': 'zip ties', xps: 'XPS sheets (4 x 8 ft, 1" layers)', coroplast: 'Coroplast sheets (4 x 8 ft)', panel: 'side panels (26" x 8 ft)', 'spray-foam': 'spray-foam cans', cement: 'PVC cement kits' };
+    const names = { drum: 'drums', pipe: '10 ft pipe sticks', elbow: 'elbows', cross: 'double sani tees (4-way)', tee: 'side-outlet fittings and tees (3-, 4- and 5-way)', coupling: 'couplings', 'zip-tie': 'zip ties', xps: 'XPS sheets (4 x 8 ft, 1" layers)', coroplast: 'Coroplast sheets (4 x 8 ft)', panel: 'side panels (26" x 8 ft)', noodle: 'pool noodles', 'spray-foam': 'spray-foam cans', cement: 'PVC cement kits' };
     Object.entries(req.items).forEach(([role, need]) => {
       const h = have[role] || 0;
       if (need > h && role === 'pipe') {
@@ -1197,7 +1253,7 @@
   // What still has to be bought for the configured layout, given what's
   // already marked bought/installed, plus planned extras and a spare stick
   // when the cut list has little margin.
-  const DERIVED = ['drum', 'pipe', 'cross', 'tee', 'elbow', 'coupling', 'zip-tie', 'xps', 'coroplast', 'spray-foam', 'cement', 'panel'];
+  const DERIVED = ['drum', 'pipe', 'cross', 'tee', 'elbow', 'coupling', 'zip-tie', 'xps', 'coroplast', 'spray-foam', 'cement', 'panel', 'noodle'];
   function shoppingList(build, req, catalog, rules, linkOpts) {
     const parts = build.parts || [];
     const bought = inventory(parts.filter(isBought));

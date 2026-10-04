@@ -77,6 +77,16 @@ bob/
   catamaran** and **Packed triangle** layouts from the team's Onshape
   sketches. Boxes that touch share walls and crossbars, and their 4-pipe
   corners are counted as 4-way fittings.
+- **Side fit (chord)** (box frames): a negative *Side fit* pulls the box's
+  side rails inside the drum's diameter. Each side becomes a chord of the
+  drum's circle and all four rails press on the drum, so it can't roll.
+  - −2.6" makes a square box (rails at 45°). The current plan uses it.
+  - Pipe lengths follow; click a box pipe to adjust its fit.
+- **PVC platform + noodles**: a PVC grid on the box tops for the foam deck to
+  sit on, with cross members every 16".
+  - Yellow pool noodles fill the gaps between the cross members.
+  - One more yellow noodle wraps around the bow.
+  - The noodle count is in the parts check.
 - **Side panels** (box frames): the corrugated PVC roofing panels.
   - **Curved hull (default):** one boat-shaped piece around all the boxes,
     with a square transom and a pointed bow. The **Hull bow point** slider
@@ -139,6 +149,13 @@ bob/
     - Stickers show up as optional items in the Next shopping trip, with
       Home Depot, Lowe's and Amazon links.
   - 📏 Measure.
+  - **↶ Undo / ↷ Redo** (Ctrl+Z / Ctrl+Shift+Z). Dragging a slider counts
+    as one step.
+  - **🏴‍☠️ One Piece theme**: white hull, red stripe, the yellow noodle
+    "mane" around the bow, straw-hat skulls on both bow sides, the name on
+    the stern and a straw-hat Jolly Roger.
+    - It uses the white and red paints already bought.
+    - *Plain* removes it.
   - Ties, paint and decals are saved with the design and follow parts when you
     resize them.
 - **Crew**: 1–4 people, weight each, seat position and lean.
@@ -188,6 +205,17 @@ bob/
     `/api/profiles` (a Netlify Function backed by Netlify Blobs).
   - On a plain static server they're saved on your device instead.
   - Suggested designs come from `data/profiles.json`.
+- **⬇️ Export** (header): downloads every setting of the current design as
+  JSON: layout, parts, paint, decals, ties and theme.
+- **⇪ Propose PR** (header): opens a GitHub pull request with the design.
+  - *As the default design* replaces `data/build.json`.
+  - *As a new saved design* adds `data/designs/<name>.json`, which shows in
+    the dropdown under *Saved in the repo*.
+  - It needs a `GITHUB_TOKEN` environment variable in Netlify: a
+    fine-grained token with Contents and Pull requests write access to this
+    repo. Without it, the page downloads the file and opens GitHub's
+    upload/edit page, where you choose *Create a new branch and start a pull
+    request*.
 - **Set as default / Reset to default** (header):
   - **Set as default** makes the current design the one the simulator opens
     with. On the Netlify site that applies to everyone (`/api/default`);
@@ -221,6 +249,7 @@ Project: `bob-sim`. The build runs `npm test && npm run build`, publishes
 - `/`: the simulator. `/raft-render.html`: the original render.
   `/legacy.html`: the v1.0 simulator.
 - `GET /api/profiles`, `GET|PUT|DELETE /api/profiles/:id`: team profiles.
+- `POST /api/propose`: opens a PR with a design (needs `GITHUB_TOKEN`).
 - `GET|PUT|DELETE /api/default`: the team's default design (falls back to
   `data/build.json`).
 - Production deploys write to the global `profiles` blob store; previews use a
