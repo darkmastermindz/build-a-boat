@@ -95,12 +95,21 @@ bob/
     the center-to-center length and the cut length after fitting take-off.
     Drums show gallons, diameter, length and position. The deck shows its
     size.
+  - **Click a part to adjust it.** The popup gets sliders for the settings
+    that drive that part, and the frame is rebuilt around the drums so the
+    other pipes follow:
+    - drums: their own diameter, length and weight, position, pair gap;
+    - box pipes: end, side and top clearance;
+    - frame pipes: frame length, beam length and spacing, take-off;
+    - deck: size; mast: height; crew: weight and seat.
+    - The selected part is highlighted, and an open measurement stays
+      attached to its points and updates as you slide.
   - **📏 Measure**, below the 3D view, measures between two clicked points.
     Points snap to pipe ends and midpoints, fitting and drum centers, drum
     ends and deck corners (shown yellow).
   - It gives the straight-line distance plus the fore-aft, up and across
-    parts. Measurements are temporary: Esc clears them, and so does changing
-    the design.
+    parts. Turning 📏 off keeps the finished measurement on screen while you
+    adjust parts, and Esc clears it.
 - **Crew**: 1–4 people, weight each, seat position and lean.
 - **Physics**: solves heave, trim and heel for horizontal drums, then reports
   draft, frame clearance, reserve buoyancy and stability (GM) both ways.
