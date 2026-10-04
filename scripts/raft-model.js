@@ -894,20 +894,46 @@
     return out;
   }
   const wetFrac = (h, ps) => ps.vertical ? Math.max(0, Math.min(1, (h - (ps.y - ps.dl / 2)) / ps.dl)) : Math.max(0, Math.min(1, (h - (ps.y - PIPE_R)) / (2 * PIPE_R)));
-  function forces(sl, d, t, p, ps) {
-    let F = 0, Mx = 0, Mz = 0;
+  // Buoyancy and its moments for a water plane y = d − x·t − z·p (boat frame).
+  // My is the lift-weighted height of the centre of buoyancy.
+  // An optional wave adds a surface height η(x, z) above that plane (inches, measured
+  // vertically). Each slice then floats at its own local water level: the quasi-static
+  // "boat balanced on a wave" method (wave pressure taken as hydrostatic, no orbital
+  // accelerations), valid when the wave is longer than the boat's slices.
+  // In a wave the water under a sloping surface accelerates downhill. Its pressure gradient also
+  // pushes the boat sideways (the Froude–Krylov force, ρ g V · slope), so the boat feels gravity at
+  // right angles to the local surface. Sx/Sz sum lift × local slope; Sxy/Szy weight it by height.
+  function forces(sl, d, t, p, ps, eta) {
+    let F = 0, Mx = 0, Mz = 0, My = 0, Sx = 0, Sz = 0, Sxy = 0, Szy = 0;
+    const E = 0.5;   // inches, for the local surface slope across a drum
+    // η is measured along the earth vertical at the earth position under the slice. In the
+    // tilted boat frame that is a height η·√(1 + t² + p²) at (x·cos θ, z·cos φ).
+    const sec = Math.sqrt(1 + t * t + p * p), cx = 1 / Math.sqrt(1 + t * t), cz = 1 / Math.sqrt(1 + p * p);
+    const wv = eta ? (x, z) => eta(x * cx, z * cz) * sec : null;
     for (const s of sl) {
-      const b = segArea(d - s.x * t - s.z * p - s.y0, s.r) * s.dl * WATER;
-      F += b; Mx += b * s.x; Mz += b * s.z;
+      const e0 = wv ? wv(s.x, s.z) : 0;
+      const h = d - s.x * t - s.z * p - s.y0 + e0, b = segArea(h, s.r) * s.dl * WATER;
+      F += b; Mx += b * s.x; Mz += b * s.z; My += b * (s.y0 + segCentroidY(h, s.r));
+      if (wv && b > 0) {
+        const ax = (wv(s.x + E, s.z) - wv(s.x - E, s.z)) / (2 * E), az = (wv(s.x, s.z + E) - wv(s.x, s.z - E)) / (2 * E), yc = s.y0 + segCentroidY(h, s.r);
+        Sx += b * ax; Sz += b * az; Sxy += b * ax * yc; Szy += b * az * yc;
+      }
+      // the water line also tilts across the drum's own width w: depth h − slope·u at offset u
+      // moves the slice's lift sideways by ∫ u·(−slope·u) du = −slope·w³/12 (its own waterplane inertia)
+      const w = segWidth(h, s.r), own = w * w * w / 12 * s.dl * WATER;
+      if (s.axis === 'x') Mz += (-p + (wv ? (wv(s.x, s.z + E) - wv(s.x, s.z - E)) / (2 * E) : 0)) * own;
+      else Mx += (-t + (wv ? (wv(s.x + E, s.z) - wv(s.x - E, s.z)) / (2 * E) : 0)) * own;
     }
     for (const q of ps || []) {
-      const b = wetFrac(d - q.x * t - q.z * p, q) * q.vol * WATER;
-      F += b; Mx += b * q.x; Mz += b * q.z;
+      const b = wetFrac(d - q.x * t - q.z * p + (wv ? wv(q.x, q.z) : 0), q) * q.vol * WATER;
+      F += b; Mx += b * q.x; Mz += b * q.z; My += b * q.y;
+      if (wv && b > 0) { const ax = (wv(q.x + E, q.z) - wv(q.x - E, q.z)) / (2 * E), az = (wv(q.x, q.z + E) - wv(q.x, q.z - E)) / (2 * E); Sx += b * ax; Sz += b * az; Sxy += b * ax * q.y; Szy += b * az * q.y; }
     }
-    return { F, Mx, Mz };
+    return { F, Mx, Mz, My, Sx, Sz, Sxy, Szy };
   }
 
-  function solve(g, items) {
+  function solve(g, items, eta, opts) {
+    const maxAngle = opts && opts.maxAngleDeg || 25;   // flat water: beyond 25° it is going over
     const sl = slicesOf(g), ps = pipeSlices(g);
     const W = items.reduce((s, i) => s + i.w, 0);
     const xg = items.reduce((s, i) => s + i.w * i.x, 0) / W;
@@ -919,10 +945,18 @@
     if (!sl.length || W >= maxLb * 0.995) return Object.assign(base, { ok: false, reason: 'sinks' });
     const span = Math.max(1, ...sl.map(s => Math.abs(s.x)), ...sl.map(s => Math.abs(s.z)));
     // initial heave by bisection at level trim
-    let lo = 0, hi = 2 * r;
-    for (let i = 0; i < 50; i++) { const m = (lo + hi) / 2; forces(sl, m, 0, 0, ps).F < W ? lo = m : hi = m; }
-    let v = [lo, 0, 0];
-    const resid = x => { const f = forces(sl, x[0], x[1], x[2], ps); return [(f.F - W) / W, (f.Mx - W * xg) / (W * span), (f.Mz - W * zg) / (W * span)]; };
+    let lo = -4 * r, hi = 4 * r;   // wide bracket: a wave can lift or drop the whole boat
+    for (let i = 0; i < 60; i++) { const m = (lo + hi) / 2; forces(sl, m, 0, 0, ps, eta).F < W ? lo = m : hi = m; }
+    let v = opts && opts.init ? opts.init.slice() : [lo, 0, 0];
+    // Equilibrium: lift equals weight, and the centre of buoyancy B lies on the same
+    // vertical as the centre of gravity G. The water plane's normal in the boat frame
+    // is (t, 1, p), so B − G ∥ (t, 1, p):  xB − xG = t·(yB − yG),  zB − zG = p·(yB − yG).
+    // (Leaving out the yB − yG terms would use BM instead of GM and under-predict heel.)
+    // With a wave, the Froude–Krylov push b·slope acting at each slice's height adds Σ b·α·(y − yG):
+    // a boat on a uniformly sloping surface then balances aligned with it (righting acts relative
+    // to the local surface, as in the beam-sea roll moment W·GM·k·ζ).
+    const resid = x => { const f = forces(sl, x[0], x[1], x[2], ps, eta), yB = f.F > 0 ? f.My / f.F : 0;
+      return [(f.F - W) / W, (f.Mx - f.F * (xg + x[1] * (yB - KG)) + (f.Sxy - f.Sx * KG)) / (W * span), (f.Mz - f.F * (zg + x[2] * (yB - KG)) + (f.Szy - f.Sz * KG)) / (W * span)]; };
     let res = resid(v), ok = false;
     for (let it = 0; it < 80; it++) {
       const n0 = Math.hypot(...res);
@@ -947,10 +981,10 @@
     if (!ok && Math.hypot(...res) < 1e-4) ok = true;
     const [d, t, p] = v;
     const pitchDeg = Math.atan(t) * 180 / Math.PI, rollDeg = Math.atan(p) * 180 / Math.PI;
-    if (!ok || Math.abs(pitchDeg) > 25 || Math.abs(rollDeg) > 25) {
+    if (!ok || Math.abs(pitchDeg) > maxAngle || Math.abs(rollDeg) > maxAngle) {
       return Object.assign(base, { ok: false, reason: 'capsizes', d, pitchDeg, rollDeg });
     }
-    const hAt = (x, z) => d - x * t - z * p;
+    const hAt = (x, z) => d - x * t - z * p + (eta ? eta(x / Math.sqrt(1 + t * t), z / Math.sqrt(1 + p * p)) * Math.sqrt(1 + t * t + p * p) : 0);
     // per-drum immersion and waterplane / stability
     let V = 0, KBm = 0, A = 0, Ax = 0, Az = 0, Ixx = 0, Izz = 0, Ix0 = 0, Iz0 = 0;
     const perDrum = {};
@@ -987,7 +1021,10 @@
       ok: true, d, t, p, pitchDeg, rollDeg, perDrum,
       maxDraft: Math.max(...drafts), meanDraft: d,
       minFreeboard: Math.min(...freeboards), bowFreeboard, sternFreeboard,
+      deckClearance: Math.min(...corners.map(([x, z]) => g.deckTop - hAt(x, z)), g.hull ? g.deckTop - hAt(g.hull.tip, 0) : Infinity),
       gmRoll, gmPitch, KB, waterplaneArea: A,
+      // negative GM: the angles found are a balance point it tips away from, not where it rests
+      stableRoll: gmRoll > 0, stablePitch: gmPitch > 0,
       buoyancyCenterX: (() => { const live = g.drums.filter(x => !x.failed), v = live.map(x => x.r * x.r * x.len); const tv = v.reduce((a2, b2) => a2 + b2, 0); return tv ? live.reduce((s2, x, i) => s2 + x.x * v[i], 0) / tv : 0; })(),
     });
   }
@@ -1096,12 +1133,128 @@
   const SF_OK = 2.5, SF_MIN = 1.5;        // target and minimum safety factors
   const PADDLER_W = 75;                   // sustained watts per paddler
   const TIE_LB = len => (+len || 8) > 14 ? 175 : 50;   // cable tie tensile rating
+  const NU_WATER = 1.0e-6 * 10.7639;         // kinematic viscosity of water at 20 °C: 1.0 cSt = 1.0e-6 m²/s, in ft²/s
+
+  // ── Sources: where each formula and constant comes from ──
+  // Educational references first (Wikipedia, Khan Academy, Brilliant, Wolfram), then
+  // papers, standards and manufacturer data for the numbers a textbook doesn't give.
+  const SOURCES = {
+    archimedes: { kind: 'Wikipedia', title: "Archimedes' principle", url: 'https://en.wikipedia.org/wiki/Archimedes%27_principle' },
+    khanBuoyancy: { kind: 'Khan Academy', title: 'Buoyant force and Archimedes\' principle', url: 'https://en.khanacademy.org/science/in-in-class9th-physics-india/in-in-gravity/in-in-pressure-in-liquids-archimedes-principle/a/buoyant-force-and-archimedes-principle-article' },
+    brilliantFluids: { kind: 'Brilliant', title: 'Fluid mechanics (buoyant force F = ρVg)', url: 'https://brilliant.org/wiki/fluid-mechanics/' },
+    waterProps: { kind: 'Wikipedia', title: 'Properties of water (density 62.43 lb/ft³ at 4 °C; 998 kg/m³ at 20 °C)', url: 'https://en.wikipedia.org/wiki/Properties_of_water' },
+    wolframWater: { kind: 'Wolfram Alpha', title: '62.4 lb/ft³ in lb/in³', url: 'https://www.wolframalpha.com/input?i=62.4+lb%2Fft%5E3+in+lb%2Fin%5E3' },
+    wolframSlug: { kind: 'Wolfram Alpha', title: '1.94 slug/ft³ in kg/m³', url: 'https://www.wolframalpha.com/input?i=1.94+slug%2Fft%5E3+in+kg%2Fm%5E3' },
+    circSeg: { kind: 'Wikipedia', title: 'Circular segment (area, chord)', url: 'https://en.wikipedia.org/wiki/Circular_segment' },
+    circSegMW: { kind: 'Wolfram MathWorld', title: 'Circular segment (area, centroid ȳ = 4R sin³(θ/2) ÷ 3(θ − sin θ))', url: 'https://mathworld.wolfram.com/CircularSegment.html' },
+    centroids: { kind: 'Wikipedia', title: 'List of centroids', url: 'https://en.wikipedia.org/wiki/List_of_centroids' },
+    metacentric: { kind: 'Wikipedia', title: 'Metacentric height (GM = KB + BM − KG, BM = I/V)', url: 'https://en.wikipedia.org/wiki/Metacentric_height' },
+    secondMoment: { kind: 'Wikipedia', title: 'Second moment of area', url: 'https://en.wikipedia.org/wiki/Second_moment_of_area' },
+    parallelAxis: { kind: 'Wikipedia', title: 'Parallel axis theorem (I = I꜀ + A d²)', url: 'https://en.wikipedia.org/wiki/Parallel_axis_theorem' },
+    brilliantInertia: { kind: 'Brilliant', title: 'Moment of inertia', url: 'https://brilliant.org/wiki/calculating-moment-of-inertia-of-point-masses/' },
+    capsizing: { kind: 'Wikipedia', title: 'Capsizing (righting arm GZ beyond small angles)', url: 'https://en.wikipedia.org/wiki/Capsizing' },
+    floatingCylinder: { kind: 'Paper', title: 'Stability of a floating cylinder, Int. J. Mech. Sci. (2003)', url: 'https://www.sciencedirect.com/science/article/abs/pii/S0020722503002374' },
+    catamaranTrials: { kind: 'Paper', title: 'Stability Assessment of a Catamaran Using Sea Trials, J. Mar. Sci. Eng. 12 (2024) 1436: wider hull spacing, larger righting arm', url: 'https://doi.org/10.3390/jmse12081436' },
+    khanCOM: { kind: 'Khan Academy', title: 'What is center of mass?', url: 'https://www.khanacademy.org/science/physics/linear-momentum/center-of-mass/a/what-is-center-of-mass' },
+    khanTorque: { kind: 'Khan Academy', title: 'Torque and equilibrium', url: 'https://en.khanacademy.org/science/ap-physics-1/ap-torque-angular-momentum/torque-and-equilibrium-ap/a/torque-and-equilibrium' },
+    dragEq: { kind: 'Wikipedia', title: 'Drag equation (F = ½ ρ v² C_d A)', url: 'https://en.wikipedia.org/wiki/Drag_equation' },
+    dragCoef: { kind: 'Wikipedia', title: 'Drag coefficient (table of shapes; cylinder 1.1–1.2 at Re 2×10⁴–10⁵)', url: 'https://en.wikipedia.org/wiki/Drag_coefficient' },
+    hoerner: { kind: 'Book', title: 'Hoerner, Fluid-Dynamic Drag (1965): flat-faced cylinder end-on, C_d 1.17 at l/d = 0 falling to ~0.81 for l/d > 2', url: 'https://archive.org/details/FluidDynamicDragHoerner1965' },
+    dragCrisis: { kind: 'Wikipedia', title: 'Drag crisis (cylinder C_d drops for Re ≈ 2×10⁵–5×10⁵)', url: 'https://en.wikipedia.org/wiki/Drag_crisis' },
+    reynolds: { kind: 'Wikipedia', title: 'Reynolds number (Re = v D ÷ ν)', url: 'https://en.wikipedia.org/wiki/Reynolds_number' },
+    viscosity: { kind: 'Wikipedia', title: 'Viscosity (water ≈ 1 cSt at 20 °C)', url: 'https://en.wikipedia.org/wiki/Viscosity' },
+    wolframMph: { kind: 'Wolfram Alpha', title: '1 mph in ft/s', url: 'https://www.wolframalpha.com/input?i=1+mph+in+ft%2Fs' },
+    wolframPower: { kind: 'Wolfram Alpha', title: '1 ft·lbf/s in watts', url: 'https://www.wolframalpha.com/input?i=1+ft+lbf%2Fs+in+W' },
+    humanPower: { kind: 'Wikipedia', title: 'Human power (~75 W all day for a non-athlete; 100–150 W for an hour)', url: 'https://en.wikipedia.org/wiki/Human_power' },
+    kayakPower: { kind: 'Paper', title: 'Prediction of simulated 1000 m kayak ergometer performance in young athletes (≈130 W over 1000 m)', url: 'https://www.ncbi.nlm.nih.gov/pmc/articles/PMC7855298/' },
+    sectionModulus: { kind: 'Wikipedia', title: 'Section modulus (hollow circle S = π(D⁴ − d⁴) ÷ 32D; σ = M ÷ S)', url: 'https://en.wikipedia.org/wiki/Section_modulus' },
+    nps: { kind: 'Wikipedia', title: 'Nominal Pipe Size (1-1/2": OD 1.900", Sch 40 wall 0.145")', url: 'https://en.wikipedia.org/wiki/Nominal_Pipe_Size' },
+    bendingMoment: { kind: 'Wikipedia', title: 'Bending moment', url: 'https://en.wikipedia.org/wiki/Bending_moment' },
+    shearMoment: { kind: 'Wikipedia', title: 'Shear and moment diagram (simply supported beams)', url: 'https://en.wikipedia.org/wiki/Shear_and_moment_diagram' },
+    eulerBernoulli: { kind: 'Wikipedia', title: 'Euler–Bernoulli beam theory', url: 'https://en.wikipedia.org/wiki/Euler%E2%80%93Bernoulli_beam_theory' },
+    pvcSpears: { kind: 'Datasheet', title: 'Spears: physical properties of PVC pipe, cell class 12454 (flexural strength 14,450 psi at 73 °F)', url: 'https://www.spearsmfg.com/IP-4/03%20Physical%20Properties%20of%20PVC%20&%20CPVC%20Pipe.pdf' },
+    pvcCellClass: { kind: 'Standard', title: 'Uni-Bell: PVC pipe materials, cell class explained (ASTM D1784)', url: 'https://www.uni-bell.org/portals/0/ResourceFile/pvc-pipe-materials-cell-class-explained.pdf' },
+    pvcDerate: { kind: 'Standard', title: 'PIPA TN003: temperature derating of PVC (0.62 at 100 °F / 38 °C)', url: 'https://www.pipa.com.au/wp-content/uploads/2018/09/tn003.pdf' },
+    suddenLoad: { kind: 'Reference', title: 'RoyMech: impact loading (a suddenly applied load gives twice the static stress)', url: 'https://www.roymech.co.uk/Useful_Tables/Fatigue/Mechanics_Impact.html' },
+    safetyFactor: { kind: 'Wikipedia', title: 'Factor of safety', url: 'https://en.wikipedia.org/wiki/Factor_of_safety' },
+    cableTies: { kind: 'Standard', title: 'NEMA cable tie application guide (loop tensile ratings 18, 50, 120, 175 lb)', url: 'https://www.advancedcableties.com/cable-management-solutions/act-proud-member-nema/nema-application-guide-mechanical-properties/' },
+    usnwc: { kind: 'Wikipedia', title: 'U.S. National Whitewater Center (channel lengths, drops, slopes, flows, named rapids)', url: 'https://en.wikipedia.org/wiki/U.S._National_Whitewater_Center' },
+    s2o: { kind: 'Designer', title: 'S2O Design: U.S. National Whitewater Center project', url: 'https://s2odesign.com/projects/the-u-s-national-whitewater-center/' },
+    isrd: { kind: 'Wikipedia', title: 'International scale of river difficulty (Class II waves up to 3 ft; Class III irregular waves)', url: 'https://en.wikipedia.org/wiki/International_scale_of_river_difficulty' },
+    class3waves: { kind: 'Reference', title: 'Class III rapids: irregular waves 3–5 ft', url: 'https://www.airkayaks.com/class-3-rapids-skills-you-need-to-know/' },
+    slalomWidth: { kind: 'Wikipedia', title: 'Kraków-Kolna canoe slalom course (Olympic-standard channel 12 m wide)', url: 'https://en.wikipedia.org/wiki/Krak%C3%B3w-Kolna_Canoe_Slalom_Course' },
+    canoeSlalom: { kind: 'Wikipedia', title: 'Canoe slalom (course current at least 2 m/s)', url: 'https://en.wikipedia.org/wiki/Canoe_slalom' },
+    manning: { kind: 'Wikipedia', title: 'Manning formula (V = (1/n) R^(2/3) S^(1/2), SI)', url: 'https://en.wikipedia.org/wiki/Manning_formula' },
+    roughness: { kind: 'Wikipedia', title: 'Hydraulic roughness (boulders raise n)', url: 'https://en.wikipedia.org/wiki/Hydraulic_roughness' },
+    froude: { kind: 'Wikipedia', title: 'Froude number (Fr = v ÷ √(g h))', url: 'https://en.wikipedia.org/wiki/Froude_number' },
+    khanBernoulli: { kind: 'Khan Academy', title: "Bernoulli's equation (energy along the flow)", url: 'https://www.khanacademy.org/science/physics/fluids/fluid-dynamics/v/fluids-part-9' },
+    hydraulicJump: { kind: 'Wikipedia', title: 'Hydraulic jump (Bélanger equation; jump length ≈ 4–6.2 × downstream depth)', url: 'https://en.wikipedia.org/wiki/Hydraulic_jump' },
+    jumpRect: { kind: 'Wikipedia', title: 'Hydraulic jumps in rectangular channels', url: 'https://en.wikipedia.org/wiki/Hydraulic_jumps_in_rectangular_channels' },
+    dispersion: { kind: 'Wikipedia', title: 'Dispersion (water waves): ω² = g k tanh(k h)', url: 'https://en.wikipedia.org/wiki/Dispersion_(water_waves)' },
+    miche: { kind: 'Wikipedia', title: 'Miche criterion (breaking: H/L ≤ 0.142 tanh(k h))', url: 'https://en.wikipedia.org/wiki/Miche_criterion' },
+    froudeKrylov: { kind: 'Wikipedia', title: 'Froude–Krylov force (pressure of the undisturbed wave on the hull)', url: 'https://en.wikipedia.org/wiki/Froude%E2%80%93Krylov_force' },
+    waveSlope: { kind: 'Paper', title: 'Effective wave slope: beam-sea roll moment = W·GM·k·ζ (ScienceDirect, Ocean Eng.)', url: 'https://www.sciencedirect.com/science/article/pii/S0029801826008371' },
+    hogSag: { kind: 'Wikipedia', title: 'Hogging and sagging (a hull balanced on a wave)', url: 'https://en.wikipedia.org/wiki/Hogging_and_sagging' },
+    shipStrength: { kind: 'Wikipedia', title: 'Strength of ships (static balance on a design wave)', url: 'https://en.wikipedia.org/wiki/Strength_of_ships' },
+    resonance: { kind: 'Wikipedia', title: 'Resonance (undamped magnification 1 ÷ |1 − r²|)', url: 'https://en.wikipedia.org/wiki/Resonance' },
+    khanSHM: { kind: 'Khan Academy', title: 'Equation for simple harmonic oscillators (period)', url: 'https://www.khanacademy.org/science/ap-college-physics-1/xf557a762645cccc5:oscillations/xf557a762645cccc5:simple-harmonic-oscillators/v/euqation-for-simple-harmonic-oscillators' },
+    videoBYOB2017: { kind: 'Video', title: 'Build Your Own Boat competition, 2017 compilation (USNWC)', url: 'https://www.youtube.com/watch?v=FpRtdIrZW1s' },
+    videoBYOB: { kind: 'Video', title: 'Build Your Own Boat at US National Whitewater Center', url: 'https://www.youtube.com/watch?v=Vw2WUAATFZk' },
+    newsBYOB2022: { kind: 'News', title: 'WBTV QC Life: the 2022 Build Your Own Boat competition (photos)', url: 'https://qclife.wbtv.com/2022/10/16/whitewater-center-held-build-your-own-boat-competition-this-weekend/' },
+  };
+  // Which sources back each "show the work" entry (exact id, or the id with its trailing number removed).
+  const WORK_REFS = {
+    'buoy.max': ['archimedes', 'khanBuoyancy', 'brilliantFluids', 'waterProps', 'wolframWater'],
+    'buoy.load': ['khanCOM', 'archimedes'],
+    'buoy.reserve': ['archimedes', 'khanBuoyancy'],
+    'buoy.sf': ['safetyFactor', 'archimedes'],
+    'buoy.drum': ['circSeg', 'circSegMW', 'archimedes', 'khanTorque'],
+    'buoy.frame': ['archimedes', 'brilliantFluids'],
+    'buoy.emergency': ['archimedes', 'khanBuoyancy', 'waterProps'],
+    'drag.area': ['dragEq', 'circSeg'],
+    'drag.force': ['dragEq', 'dragCoef', 'hoerner', 'wolframSlug', 'wolframMph'],
+    'drag.speed': ['dragEq', 'humanPower', 'kayakPower', 'wolframPower'],
+    'drag.broadside': ['dragEq', 'dragCoef', 'dragCrisis', 'reynolds', 'viscosity'],
+    'wt.cg': ['khanCOM', 'khanTorque'],
+    'wt.fwd': ['khanCOM'],
+    'wt.cgw': ['metacentric', 'secondMoment', 'parallelAxis', 'brilliantInertia', 'centroids', 'capsizing', 'floatingCylinder', 'catamaranTrials'],
+    'st.deck-rail': ['shearMoment', 'bendingMoment', 'sectionModulus', 'nps', 'pvcSpears', 'suddenLoad', 'safetyFactor'],
+    'st.uplift': ['shearMoment', 'eulerBernoulli', 'sectionModulus', 'nps', 'pvcSpears', 'archimedes', 'safetyFactor'],
+    'st.platform': ['shearMoment', 'bendingMoment', 'sectionModulus', 'nps', 'pvcSpears', 'suddenLoad', 'safetyFactor'],
+    'st.nose': ['shearMoment', 'bendingMoment', 'sectionModulus', 'nps', 'pvcSpears', 'suddenLoad', 'safetyFactor'],
+    'st.deck-ties': ['cableTies', 'archimedes', 'safetyFactor'],
+    'ww.channel': ['manning', 'roughness', 'froude', 'usnwc', 's2o', 'slalomWidth', 'canoeSlalom'],
+    'ww.waves': ['dispersion', 'miche', 'isrd', 'class3waves', 'froudeKrylov', 'waveSlope', 'hogSag', 'shipStrength', 'metacentric'],
+    'ww.drop': ['khanBernoulli', 'froude', 'hydraulicJump', 'jumpRect', 'isrd', 'froudeKrylov'],
+    'ww.period': ['metacentric', 'khanSHM', 'resonance', 'brilliantInertia'],
+    'ww.pin': ['dragEq', 'dragCoef', 'dragCrisis'],
+  };
+  const refsFor = id => {
+    const ids = WORK_REFS[id] || WORK_REFS[id.replace(/\d+$/, '')];
+    if (!ids) throw new Error(`No sources listed for the work entry "${id}"`);   // every number shown must say where it comes from
+    return ids.map(k => { if (!SOURCES[k]) throw new Error(`Unknown source "${k}" for "${id}"`); return Object.assign({ id: k }, SOURCES[k]); });
+  };
+  // The numbers the model assumes, next to what the sources say and how the choice leans.
+  const ASSUMPTIONS = [
+    { name: 'Water weight', used: '62.4 lb/ft³', source: '62.43 lb/ft³ at 4 °C, 62.32 at 20 °C', effect: 'Lift is about 0.1% high in summer water: negligible.', refs: ['waterProps', 'wolframWater'] },
+    { name: 'Water density for drag', used: `${RHO} slug/ft³`, source: '1.940 slug/ft³ = 1000 kg/m³', effect: 'Matches.', refs: ['wolframSlug'] },
+    { name: '1-1/2" Sch 40 PVC size', used: `OD ${PVC.D}", ID ${PVC.d}"`, source: 'OD 1.900", wall 0.145" → ID 1.610"', effect: 'Matches.', refs: ['nps'] },
+    { name: 'PVC flexural strength', used: `${PVC.flex} psi`, source: '14,450 psi at 73 °F (cell class 12454); about 0.62× that at 100 °F', effect: '3% low (safe side) at 73 °F. Sun-heated pipe is weaker and is not derated here.', refs: ['pvcSpears', 'pvcCellClass', 'pvcDerate'] },
+    { name: 'Drag coefficient, drum end-on', used: '0.9', source: '1.17 for a flat disc, falling to ~0.81 for length/diameter > 2 (a drum is ~1.5)', effect: 'Within the range, toward the high (safe) side for speed.', refs: ['hoerner', 'dragCoef'] },
+    { name: 'Drag coefficient, broadside', used: '1.1', source: '1.1–1.2 for a smooth cylinder at Re 2×10⁴–10⁵; lower past the drag crisis (Re > 2×10⁵)', effect: 'The broadside Reynolds number here is ~10⁶, so the real push is probably lower; 1.1 is a high-side estimate for pinning.', refs: ['dragCoef', 'dragCrisis', 'reynolds'] },
+    { name: 'Drag coefficient, pointed hull', used: '0.5', source: 'No direct source: a streamlined bow is well below a flat face (1.17) and above a streamlined body', effect: 'Engineering estimate; wave-making and skin friction are left out.', refs: ['dragCoef'] },
+    { name: 'Paddler power', used: `${PADDLER_W} W each`, source: '~75 W all day (non-athlete); 100–150 W for an hour; ~130 W for young athletes over 1000 m', effect: 'Low (safe side) for a short race: real top speed is likely a little higher.', refs: ['humanPower', 'kayakPower'] },
+    { name: 'Slamming load factor', used: `× ${DYNAMIC}`, source: 'A load applied suddenly (no drop) gives 2× the static stress; a drop from a height gives more: 1 + √(1 + 2h/δ)', effect: 'Covers sitting down hard, not jumping onto the deck.', refs: ['suddenLoad'] },
+    { name: 'Safety factor targets', used: `${SF_OK} target, ${SF_MIN} minimum`, source: 'No universal value: chosen by the designer for the uncertainty in loads and materials', effect: 'A judgement call for a one-off amateur build.', refs: ['safetyFactor'] },
+    { name: 'Cable tie strength', used: '50 lb (8"), 175 lb (heavy 36")', source: 'Standard loop tensile ratings 18, 50, 120, 175 lb', effect: 'Matches the standard classes.', refs: ['cableTies'] },
+    { name: 'Water viscosity (Reynolds number)', used: '1.0 cSt', source: '≈ 1 cSt at 20 °C', effect: 'Used only to say which drag regime applies.', refs: ['viscosity', 'reynolds'] },
+  ].map(a => Object.assign({}, a, { refs: a.refs.map(k => { if (!SOURCES[k]) throw new Error(`Unknown source "${k}"`); return Object.assign({ id: k }, SOURCES[k]); }) }));
   function engineering(build, g, sol, items, req) {
-    const c = g.config, out = { buoyancy: null, drag: null, weight: null, structure: [], work: {} };
+    const c = g.config, out = { buoyancy: null, drag: null, weight: null, structure: [], work: {}, assumptions: ASSUMPTIONS };
     if (!sol || !sol.ok) return out;
     const water = sol.d, crew = c.crew;
     // "show the work": for each number, the formula, the numbers plugged in, and why
-    const n = (v, d = 1) => (+v).toFixed(d), work = (id, formula, steps, why) => { out.work[id] = { formula, steps, why }; };
+    const n = (v, d = 1) => (+v).toFixed(d), work = (id, formula, steps, why) => { out.work[id] = { formula, steps, why, refs: refsFor(id) }; };
     const WATER_TXT = 'water weighs 62.4 lb/ft³ = 0.0361 lb/in³';
     // buoyancy
     const drums = g.drums.filter(d => !d.failed).map(d => {
@@ -1111,7 +1264,7 @@
     const parts = build.parts || [];
     const deckFoam = c.deck.length * c.deck.width * Math.max(0, c.deck.thickness - 0.3) * WATER;   // XPS lift if swamped
     const noodleFoam = (req.items.noodle || 0) * Math.PI * (NOODLE_D / 2) ** 2 * NOODLE_L * WATER;
-    const pipeFoam = req.pipeLength_in * Math.PI * (PVC.D / 2) ** 2 * WATER * 0.45;          // foam-filled PVC nets ~45% lift
+    const pipeFoam = req.pipeLength_in * Math.PI * (PVC.D / 2) ** 2 * WATER;   // gross lift of foam-filled pipe (its weight is counted in the structure)
     const drumWeight = g.drums.reduce((t, d) => t + d.spec.weight, 0), boatW = sol.W - crew.count * crew.weightEach;
     out.buoyancy = {
       max: sol.maxLb, load: sol.W, reserve: sol.maxLb - sol.W, sf: sol.maxLb / sol.W, drums,
@@ -1135,7 +1288,7 @@
     work('buoy.emergency', 'Foam lift = deck XPS + pool noodles + foam-filled pipe', [
       `Deck: ${c.deck.length} × ${c.deck.width} × (${c.deck.thickness} − 0.3 skins) in³ × 0.0361 = ${n(deckFoam, 0)} lb`,
       `Noodles: ${req.items.noodle || 0} × π × 1.25² × 52 in³ × 0.0361 = ${n(noodleFoam, 0)} lb`,
-      `Pipe: ${n(req.pipeLength_in, 0)}" × π × 0.95² × 0.0361 × 45% net = ${n(pipeFoam, 0)} lb`,
+      `Pipe: ${n(req.pipeLength_in, 0)}" × π × 0.95² × 0.0361 = ${n(pipeFoam, 0)} lb (gross: the pipe's own weight is on the other side, in the structure)`,
       `Total ${n(B.emergency, 0)} lb vs structure without drums ${n(boatW, 0)} − ${n(drumWeight, 0)} = ${n(B.structure, 0)} lb`],
       'The rules say everything must float even when broken. If every drum leaked, the foam would still have to hold up the frame and deck.');
     // drag: the underwater shape seen from ahead and from the side
@@ -1154,13 +1307,15 @@
     const frontHull = hull ? 2 * hull.half * skirt : 0, sideHull = hull ? (hull.tip - hull.xs) * skirt : 0;
     const CdDrum = 0.9, CdHull = hull && hull.tip - hull.xf > 6 ? 0.5 : 1.0, CdSide = 1.1;
     const CdA = (CdDrum * frontDrums + CdHull * frontHull) / 144, CdAside = CdSide * (sideDrums + sideHull) / 144;   // ft²
-    const force = (CdAft, mph) => { const v = mph * 1.4667; return 0.5 * RHO * v * v * CdAft; };   // lbf
-    const power = crew.count * PADDLER_W, vMax = Math.cbrt(power / 1.356 / (0.5 * RHO * Math.max(1e-6, CdA)));   // ft/s
+    const MPH = 5280 / 3600, force = (CdAft, mph) => { const v = mph * MPH; return 0.5 * RHO * v * v * CdAft; };   // lbf
+    const reynoldsD = 2 * Math.max(...g.drums.filter(d => !d.failed).map(d => d.r)) / 12;   // ft: drum diameter, the cylinder's size across the flow
+    const power = crew.count * PADDLER_W, vMax = Math.cbrt(power / 1.35582 / (0.5 * RHO * Math.max(1e-6, CdA)));   // ft/s
     out.drag = {
       frontArea: (frontDrums + frontHull) / 144, sideArea: (sideDrums + sideHull) / 144, CdA, CdAside,
-      at: [1, 2, 3].map(mph => ({ mph, lb: force(CdA, mph), watts: force(CdA, mph) * mph * 1.4667 * 1.356 })),
-      broadside: [3, 5, 8].map(mph => ({ mph, lb: force(CdAside, mph) })),
-      speed: vMax / 1.4667, power, frontDrums: frontDrums / 144, frontHull: frontHull / 144, sideDrums: sideDrums / 144, sideHull: sideHull / 144, CdDrum, CdHull, CdSide, note: hull ? 'The hull skirt below the waterline adds frontal area; the pointed bow cuts its drag coefficient to about 0.5.' : 'Blunt drum ends (drag coefficient about 0.9).',
+      at: [1, 2, 3].map(mph => ({ mph, lb: force(CdA, mph), watts: force(CdA, mph) * mph * MPH * 1.35582 })),
+      broadside: [3, 5, 8].map(mph => ({ mph, lb: force(CdAside, mph), Re: mph * MPH * reynoldsD / NU_WATER })),
+      reynoldsD, nu: NU_WATER,
+      speed: vMax / MPH, power, frontDrums: frontDrums / 144, frontHull: frontHull / 144, sideDrums: sideDrums / 144, sideHull: sideHull / 144, CdDrum, CdHull, CdSide, note: hull ? 'The hull skirt below the waterline adds frontal area; the pointed bow cuts its drag coefficient to about 0.5.' : 'Blunt drum ends (drag coefficient about 0.9).',
     };
     const Dg = out.drag;
     work('drag.area', 'Frontal area = drum cross-sections below the waterline (seen from ahead, overlaps counted once) + hull skirt width × depth under water', [
@@ -1170,12 +1325,13 @@
       'Drag depends on how much the boat pushes against water head-on. Only what is below the waterline counts.');
     work('drag.force', 'F = ½ · ρ · v² · Cd · A   (ρ = 1.94 slug/ft³, v in ft/s, 1 mph = 1.467 ft/s)', [
       `Cd·A = ${CdDrum} × ${n(Dg.frontDrums, 2)} (blunt drum ends) + ${CdHull} × ${n(Dg.frontHull, 2)} (${CdHull < 1 ? 'pointed bow' : 'blunt hull'}) = ${n(CdA, 2)} ft²`,
-      ...Dg.at.map(x => `${x.mph} mph: ½ × 1.94 × ${n(x.mph * 1.4667, 2)}² × ${n(CdA, 2)} = ${n(x.lb, 1)} lb; power = F × v = ${n(x.lb, 1)} × ${n(x.mph * 1.4667, 2)} × 1.356 = ${n(x.watts, 0)} W`)],
+      ...Dg.at.map(x => `${x.mph} mph: ½ × 1.94 × ${n(x.mph * MPH, 2)}² × ${n(CdA, 2)} = ${n(x.lb, 1)} lb; power = F × v = ${n(x.lb, 1)} × ${n(x.mph * MPH, 2)} × 1.356 = ${n(x.watts, 0)} W`)],
       'Water drag grows with the square of speed, and the power to push it with the cube. Skin friction along the sides is left out, so real drag is a little higher.');
-    work('drag.speed', 'P = F · v = ½ ρ Cd A v³  →  v = ∛(P ÷ (½ ρ Cd A))', [`P = ${crew.count} paddlers × ${PADDLER_W} W = ${power} W = ${n(power / 1.356, 0)} ft·lb/s`, `v = ∛(${n(power / 1.356, 0)} ÷ (0.5 × 1.94 × ${n(CdA, 2)})) = ${n(vMax, 2)} ft/s = ${n(vMax / 1.4667, 1)} mph`],
+    work('drag.speed', 'P = F · v = ½ ρ Cd A v³  →  v = ∛(P ÷ (½ ρ Cd A))', [`P = ${crew.count} paddlers × ${PADDLER_W} W = ${power} W = ${n(power / 1.35582, 0)} ft·lb/s`, `v = ∛(${n(power / 1.35582, 0)} ÷ (0.5 × 1.94 × ${n(CdA, 2)})) = ${n(vMax, 2)} ft/s = ${n(vMax / MPH, 1)} mph`],
       'A fit recreational paddler sustains about 75 W. Top speed is where the paddlers\' power equals the drag power.');
-    work('drag.broadside', 'F = ½ · ρ · v² · Cd · A_side   (Cd ≈ 1.1 broadside)', [`Cd·A_side = 1.1 × ${n(Dg.sideArea, 2)} = ${n(CdAside, 2)} ft²`, ...Dg.broadside.map(x => `${x.mph} mph: ½ × 1.94 × ${n(x.mph * 1.4667, 2)}² × ${n(CdAside, 2)} = ${n(x.lb, 0)} lb`)],
-      'Turned sideways in the current, the long side faces the flow. This is the push that pins a boat against a rock, so keep the bow into the rapids.');
+    work('drag.broadside', 'F = ½ · ρ · v² · Cd · A_side   (Cd ≈ 1.1 broadside);  Re = v · D ÷ ν', [`Cd·A_side = 1.1 × ${n(Dg.sideArea, 2)} = ${n(CdAside, 2)} ft²`, ...Dg.broadside.map(x => `${x.mph} mph: ½ × 1.94 × ${n(x.mph * MPH, 2)}² × ${n(CdAside, 2)} = ${n(x.lb, 0)} lb`),
+      ...Dg.broadside.map(x => `Re at ${x.mph} mph = ${n(x.mph * MPH, 2)} ft/s × ${n(reynoldsD, 3)} ft ÷ ${NU_WATER.toExponential(3)} ft²/s = ${x.Re.toExponential(1)}${x.Re > 2e5 ? ' (past the drag crisis: a smooth drum would see less drag)' : ''}`)],
+      'Turned sideways in the current, the long side faces the flow. This is the push that pins a boat against a rock, so keep the bow into the rapids. Cd 1.1 is the textbook value for a cylinder below the drag crisis; at these Reynolds numbers the ribbed drums probably see less, so the push shown is on the high side.');
     // weight distribution
     const groups = {};
     items.forEach(it => { const k = it.label === 'cage' ? 'frame' : it.label; groups[k] = groups[k] || { w: 0, mx: 0 }; groups[k].w += it.w; groups[k].mx += it.w * it.x; });
@@ -1206,17 +1362,19 @@
       const tops = g.cagePieces.filter(pc => pc.kind === 'top');
       const boxLen = Math.max(...g.boxList.map(b => b.x1 - b.x0));
       const lenRails = tops.filter(pc => Math.abs(pc.a[2] - pc.b[2]) < 0.1);
-      const longest = lenRails.reduce((m, pc) => pc.len > (m ? m.len : 0) ? pc : m, null);
-      chk('deck-rail', 'Box top rail under the deck (crew)', (crewP / 2) * (longest ? longest.len : boxLen) / 4,
-        `One crew member (${crew.weightEach} lb × ${DYNAMIC} for slamming) at mid-span, shared by the two top rails of a box, span ${(longest ? longest.len : boxLen).toFixed(1)}".`, longest ? [longest] : [],
-        { formula: 'Simply supported, centre load: M = (P/2) · L ÷ 4', steps: [`P = ${crew.weightEach} lb × ${DYNAMIC} (slamming) = ${crewP} lb, split over 2 rails = ${crewP / 2} lb`, `L = ${n(longest ? longest.len : boxLen, 1)}" between the corner posts`, `M = ${crewP / 2} × ${n(longest ? longest.len : boxLen, 1)} ÷ 4 = ${n((crewP / 2) * (longest ? longest.len : boxLen) / 4, 0)} in·lb`],
+      // the rail spans post to post: tees along it (links, butting boxes) don't hold it up
+      const longBox = g.boxList.reduce((m, b) => (b.x1 - b.x0) > (m.x1 - m.x0) ? b : m, g.boxList[0]);
+      const longRails = lenRails.filter(pc => pc.drum === longBox.id);
+      chk('deck-rail', 'Box top rail under the deck (crew)', (crewP / 2) * boxLen / 4,
+        `One crew member (${crew.weightEach} lb × ${DYNAMIC} for slamming) at mid-span, shared by the two top rails of a box, span ${boxLen.toFixed(1)}" post to post.`, longRails,
+        { formula: 'Simply supported, centre load: M = (P/2) · L ÷ 4', steps: [`P = ${crew.weightEach} lb × ${DYNAMIC} (slamming) = ${crewP} lb, split over 2 rails = ${crewP / 2} lb`, `L = ${n(boxLen, 1)}" between the corner posts (the longest box)`, `M = ${crewP / 2} × ${n(boxLen, 1)} ÷ 4 = ${n((crewP / 2) * boxLen / 4, 0)} in·lb`],
           why: 'The deck spreads a person over the two top rails of the box below; each rail acts as a beam between its corner posts.' });
       const big = g.drums.reduce((m, d) => d.r > m.r ? d : m, g.drums[0]);
       const uplift = Math.PI * big.r * big.r * big.len * WATER - big.spec.weight, span = big.len + 2 * (c.boxEndGap ?? 2);
       const upRails = lenRails.filter(pc => pc.drum === big.id);
-      chk('uplift', 'Drum uplift on its box (drum pushed fully under a wave)', (uplift / 2) * span / 8,
+      chk('uplift', 'Drum uplift on its box (drum pushed fully under a wave)', (uplift / 2) * (2 * span - big.len) / 8,
         `A fully submerged drum pushes up ${uplift.toFixed(0)} lb, spread along its two top rails (span ${span.toFixed(1)}").`, upRails,
-        { formula: 'Uniform load over the span: M = (U/2) · L ÷ 8', steps: [`U = π × ${n(big.r, 2)}² × ${n(big.len, 1)} × 0.0361 − ${big.spec.weight} lb drum = ${n(uplift, 0)} lb`, `Per rail U/2 = ${n(uplift / 2, 0)} lb along L = ${n(span, 1)}"`, `M = ${n(uplift / 2, 0)} × ${n(span, 1)} ÷ 8 = ${n((uplift / 2) * span / 8, 0)} in·lb`],
+        { formula: 'Load W spread over the middle length a of a span L: M = W · (2L − a) ÷ 8', steps: [`U = π × ${n(big.r, 2)}² × ${n(big.len, 1)} × 0.0361 − ${big.spec.weight} lb drum = ${n(uplift, 0)} lb`, `Per rail W = U/2 = ${n(uplift / 2, 0)} lb over the drum length a = ${n(big.len, 1)}", span L = ${n(span, 1)}"`, `M = ${n(uplift / 2, 0)} × (2 × ${n(span, 1)} − ${n(big.len, 1)}) ÷ 8 = ${n((uplift / 2) * (2 * span - big.len) / 8, 0)} in·lb`],
           why: 'When a wave shoves a drum fully under, its whole lift presses up on the rails that trap it.' });
       if (g.platform) {
         const pl = g.platform; let worst = null;
@@ -1283,6 +1441,288 @@
       out.push({ level: s.level, title: `Structure: ${s.name} (safety factor ${s.sf.toFixed(1)})`, detail: s.detail, work: 'st.' + s.id, at: pc ? pc.a.map((v, i) => (v + pc.b[i]) / 2) : [0, top, 0], pieces: s.pieces.map(p => ({ a: p.a, b: p.b })) });
     });
     return out;
+  }
+
+
+  // ── Whitewater: U.S. National Whitewater Center, Class II and III features ──
+  // Channel data from the USNWC page (Wikipedia) and the designer (S2O). Class wave
+  // heights from the International Scale of River Difficulty. The channel width, Manning
+  // roughness and drop heights are not published: they are explicit, editable assumptions.
+  const G_SI = 9.80665, IN_PER_M = 1 / 0.0254, FT_PER_M = 1 / 0.3048, G_IN = G_SI * IN_PER_M;
+  const WW_CHANNELS = {
+    competition: { name: 'Competition channel (the race course)', length_m: 300, drop_m: 6.4, slope: 0.021, flow_m3s: 15,
+      features: [
+        { id: 'upper-waves', name: 'Upper channel wave train', cls: 'II', type: 'waves' },
+        { id: 'bridge-drop', name: 'Bridge Drop', cls: 'III', type: 'drop' },
+        { id: 'class3-waves', name: 'Wave train below Bridge Drop', cls: 'III', type: 'waves' },
+      ], notModeled: 'Big Drop (Class IV) is also on the race course and is not simulated here.' },
+    wilderness: { name: 'Wilderness channel', length_m: 550, drop_m: 6.4, slope: 0.012, flow_m3s: 19,
+      features: [
+        { id: 'entrance-exam', name: 'Entrance Exam', cls: 'II', type: 'waves' },
+        { id: 'huey-lewis', name: 'Huey Lewis', cls: 'II', type: 'waves' },
+        { id: 'bread-butter', name: 'Bread and Butter', cls: 'II', type: 'waves' },
+        { id: 'sunset', name: 'Sunset', cls: 'III', type: 'drop' },
+        { id: 'm-wave', name: 'M-Wave', cls: 'III', type: 'waves' },
+      ], notModeled: '' },
+  };
+  // Class II: "waves up to 3 ft" (ISRD). Class III: "irregular waves 3–5 ft"; the top of each range is used.
+  const WW_CLASS = { II: { waveFt: 3, dropFt: 1 }, III: { waveFt: 5, dropFt: 3 } };
+  // Riding a wave face tilts the boat with the water, so only a failed balance or more than
+  // 60° counts as going over (flat water uses 25°).
+  const WAVE_SOLVE = { maxAngleDeg: 60 };
+  const WW_DEFAULTS = { channel: 'competition', width_m: 12, manningN: 0.045, classes: ['II', 'III'], dropFt: { II: 1, III: 3 }, waveFt: { II: 3, III: 5 }, phases: 16, rollerFactor: 6 };
+
+  // Normal depth from Manning, rectangular channel (SI): Q = (1/n) · b h · (b h ÷ (b + 2h))^(2/3) · √S
+  function manningDepth(Q, b, n, S) {
+    if (!(Q > 0 && b > 0 && n > 0 && S > 0)) throw new Error('manningDepth needs positive Q, b, n and S');
+    const q = h => (1 / n) * b * h * Math.pow(b * h / (b + 2 * h), 2 / 3) * Math.sqrt(S);
+    let lo = 1e-6, hi = 50;
+    for (let i = 0; i < 200; i++) { const m = (lo + hi) / 2; q(m) < Q ? lo = m : hi = m; }
+    return (lo + hi) / 2;
+  }
+  // A wave that stands still on the riverbed travels upstream at the current speed U:
+  // (ω − U k)² = g k tanh(k h) with ω = 0  →  U² = (g/k) tanh(k h)  →  tanh(x)/x = Fr², x = k h.
+  // tanh(x)/x < 1, so a standing wave train needs subcritical flow (Fr < 1). Returns k (1/m) or null.
+  function standingWaveK(U, h) {
+    const Fr2 = U * U / (G_SI * h);
+    if (!(Fr2 < 1)) return null;
+    let lo = 1e-9, hi = 2 / Fr2;   // tanh(x)/x ≤ 1/x, so the root is below 1/Fr²
+    for (let i = 0; i < 200; i++) { const m = (lo + hi) / 2; Math.tanh(m) / m > Fr2 ? lo = m : hi = m; }
+    return ((lo + hi) / 2) / h;
+  }
+  // Supercritical depth at the foot of a drop of Δz, from energy: h + q²/(2 g h²) = E (losses ignored, so a fast, conservative jet).
+  function supercriticalDepth(q, E) {
+    const hc = Math.cbrt(q * q / G_SI);
+    if (E < 1.5 * hc - 1e-12) throw new Error('Specific energy below the critical minimum');
+    let lo = 1e-6, hi = hc;
+    for (let i = 0; i < 200; i++) { const m = (lo + hi) / 2; (m + q * q / (2 * G_SI * m * m)) > E ? lo = m : hi = m; }
+    return (lo + hi) / 2;
+  }
+  const belanger = (h1, Fr1) => h1 / 2 * (Math.sqrt(1 + 8 * Fr1 * Fr1) - 1);
+
+  function whitewaterHydraulics(o) {
+    const ch = WW_CHANNELS[o.channel];
+    if (!ch) throw new Error(`Unknown channel "${o.channel}"`);
+    const h = manningDepth(ch.flow_m3s, o.width_m, o.manningN, ch.slope), U = ch.flow_m3s / (o.width_m * h);
+    return { channel: ch, h_m: h, U_ms: U, q_m2s: ch.flow_m3s / o.width_m, Fr: U / Math.sqrt(G_SI * h) };
+  }
+
+  function whitewater(build, rules, opts) {
+    const o = Object.assign({}, WW_DEFAULTS, opts || {});
+    ['width_m', 'manningN', 'phases', 'rollerFactor'].forEach(k => { if (!(o[k] > 0)) throw new Error(`whitewater: ${k} must be positive`); });
+    const a = analyze(build, rules, { skipLeak: true });
+    const g = a.geometry, items = massItems(build, g), still = a.solution, E = a.engineering;
+    const hy = whitewaterHydraulics(o), ch = hy.channel;
+    const work = {}, warnings = [], features = [];
+    const n = (v, d = 1) => (+v).toFixed(d);
+    const W = (id, formula, steps, why) => { work[id] = { formula, steps, why, refs: refsFor(id.replace(/:.*/, '')) }; };
+    const warn = (level, feature, title, detail, workId) => warnings.push({ level, category: 'whitewater', feature, title, detail, work: workId });
+    if (!still.ok) {
+      warn('error', null, 'The boat does not float in flat water', 'Fix flat-water flotation before simulating rapids.');
+      return { options: o, hydraulics: hy, features, warnings, work, assumptions: WW_ASSUMPTIONS(o), sources: SOURCES };
+    }
+    W('ww.channel', 'Manning (SI): Q = (1/n) · A · R^(2/3) · √S, A = b·h, R = b·h ÷ (b + 2h);  U = Q ÷ A;  Fr = U ÷ √(g h)', [
+      `${ch.name}: Q = ${ch.flow_m3s} m³/s, slope S = ${ch.slope} (${ch.drop_m} m drop over ${ch.length_m} m)`,
+      `Assumed width b = ${o.width_m} m and roughness n = ${o.manningN}`,
+      `Normal depth h = ${n(hy.h_m, 3)} m (${n(hy.h_m * FT_PER_M, 2)} ft), solved by bisection`,
+      `U = ${ch.flow_m3s} ÷ (${o.width_m} × ${n(hy.h_m, 3)}) = ${n(hy.U_ms, 2)} m/s (${n(hy.U_ms * 2.23694, 1)} mph)`,
+      `Fr = ${n(hy.U_ms, 2)} ÷ √(9.81 × ${n(hy.h_m, 3)}) = ${n(hy.Fr, 2)} (${hy.Fr < 1 ? 'subcritical: standing waves can form' : 'supercritical'})`],
+      'The channel average: how fast and deep the water runs between features. The boat drifts at about this speed. Width and roughness are not published, so they are assumptions you can change.');
+
+    // natural periods (no added mass of water, so the real periods are somewhat longer)
+    const Wt = items.reduce((t, i) => t + i.w, 0), yg = still.KG;
+    const rP = Math.sqrt(items.reduce((t, i) => t + i.w * ((i.x - still.xg) ** 2 + (i.y - yg) ** 2), 0) / Wt);
+    const rR = Math.sqrt(items.reduce((t, i) => t + i.w * ((i.z - still.zg) ** 2 + (i.y - yg) ** 2), 0) / Wt);
+    const Tp = still.gmPitch > 0 ? 2 * Math.PI * rP / Math.sqrt(G_IN * still.gmPitch) : null;
+    const Tr = still.gmRoll > 0 ? 2 * Math.PI * rR / Math.sqrt(G_IN * still.gmRoll) : null;
+    W('ww.period', 'T = 2π · r ÷ √(g · GM)  (r = radius of gyration about the centre of gravity)', [
+      `Pitch: r = √(Σ w·(Δx² + Δy²) ÷ W) = ${n(rP, 1)}", GM = ${n(still.gmPitch, 1)}" → T = ${Tp ? n(Tp, 2) + ' s' : 'none (unstable)'}`,
+      `Roll: r = √(Σ w·(Δz² + Δy²) ÷ W) = ${n(rR, 1)}", GM = ${n(still.gmRoll, 1)}" → T = ${Tr ? n(Tr, 2) + ' s' : 'none (unstable)'}`,
+      'g = 386.1 in/s². The water dragged along with the drums (added mass) is left out, so the real periods are somewhat longer.'],
+      'Every floating body rocks at its own natural period, like a pendulum. Waves met at that period pump the motion up (resonance).');
+
+    const L = g.config.frameLength, boatLenM = (g.hull ? g.hull.tip - Math.min(...g.drums.map(d => d.x - d.ex)) : L) / IN_PER_M;
+    // Newton from flat water can miss on a big wave: grow the wave in steps, starting each from the last answer.
+    // Newton can miss a balance on a big wave even when one exists, so: start from the previous
+    // position's answer; failing that, grow the wave in steps from flat water. Only when every
+    // start fails is it reported as no balance (capsizes or goes under).
+    const at = sol => sol && sol.ok ? { init: [sol.d, sol.t, sol.p] } : {};
+    const solveRamped = (etaOf, prev) => {
+      if (prev && prev.ok) { const s1 = solve(g, items, etaOf(1), Object.assign({}, WAVE_SOLVE, at(prev))); if (s1.ok) return s1; }
+      for (const start of [null, prev]) {
+        let sol = start && start.ok ? start : null;
+        for (let i = 1; i <= 12; i++) { sol = solve(g, items, etaOf(i / 12), Object.assign({}, WAVE_SOLVE, at(sol))); if (!sol.ok) break; }
+        if (sol.ok) return sol;
+      }
+      return solve(g, items, etaOf(1), WAVE_SOLVE);
+    };
+    const crestScan = (eta, phases) => {   // balance the boat on the surface at each phase, carrying the answer along
+      const out = [];
+      let prev = null;
+      for (let i = 0; i < phases; i++) { const ph = 2 * Math.PI * i / phases, sol = solveRamped(e => eta(ph, e), prev); out.push({ phase: ph, sol }); prev = sol; }
+      return out;
+    };
+    const pinLb = U_ms => { const v = U_ms * FT_PER_M; return 0.5 * RHO * v * v * E.drag.CdAside; };
+
+    ch.features.filter(f => o.classes.includes(f.cls)).forEach(f => {
+      const res = { id: f.id, name: f.name, cls: f.cls, type: f.type, level: 'ok', notes: [] };
+      const lv = (l) => { const rank = { ok: 0, info: 1, warn: 2, error: 3 }; if (rank[l] > rank[res.level]) res.level = l; };
+      if (f.type === 'waves') {
+        const Hc = o.waveFt[f.cls] / FT_PER_M, U = hy.U_ms, h = hy.h_m, k = standingWaveK(U, h);
+        if (!k) { res.level = 'warn'; res.notes.push('Supercritical flow: no standing wave train at these settings.'); warn('warn', f.id, `${f.name}: no standing waves at Fr ${n(hy.Fr, 2)}`, 'Fast, shallow flow (Fr ≥ 1) jumps before it forms waves. Try a wider channel or rougher bed.', 'ww.channel'); features.push(res); return; }
+        // The class sets the height H. A wave can be no steeper than the breaking limit H/λ = 0.142
+        // (Miche, deep water: the steepest case, since the local depth at a feature isn't known),
+        // so the wavelength is the longer of the current's standing wavelength and H ÷ 0.142.
+        const lamFlow = 2 * Math.PI / k, lamMin = Hc / 0.142, lam = Math.max(lamFlow, lamMin), breaking = lamFlow < lamMin, H = Hc;
+        const kIn = 2 * Math.PI / lam / IN_PER_M, Hin = H * IN_PER_M;
+        const head = crestScan((ph, e) => (x) => e * Hin / 2 * Math.cos(kIn * x - ph), o.phases);
+        const beam = crestScan((ph, e) => (x, z) => e * Hin / 2 * Math.cos(kIn * z - ph), o.phases);
+        const all = [...head, ...beam], capsize = all.filter(r => !r.sol.ok);
+        const okH = head.filter(r => r.sol.ok), okB = beam.filter(r => r.sol.ok);
+        const maxPitch = Math.max(0, ...okH.map(r => Math.abs(r.sol.pitchDeg))), maxRoll = Math.max(0, ...okB.map(r => Math.abs(r.sol.rollDeg)));
+        const minDeck = Math.min(Infinity, ...all.filter(r => r.sol.ok).map(r => r.sol.deckClearance));
+        const minFrame = Math.min(Infinity, ...all.filter(r => r.sol.ok).map(r => r.sol.minFreeboard));
+        const lostRoll = okB.some(r => !r.sol.stableRoll) || okH.some(r => !r.sol.stableRoll);
+        const buried = all.filter(r => r.sol.ok).some(r => Object.values(r.sol.perDrum).some(pd => pd.max >= 2 * g.r - 1e-6));
+        const Te = lam / U, ampP = Tp ? 1 / Math.abs(1 - (Tp / Te) ** 2) : null, ampR = Tr ? 1 / Math.abs(1 - (Tr / Te) ** 2) : null;
+        Object.assign(res, { H_m: H, lambda_m: lam, lambdaFlow_m: lamFlow, breaking, U_ms: U, depth_m: h, maxSlopeDeg: Math.atan(Math.PI * H / lam) * 180 / Math.PI,
+          maxPitchDeg: maxPitch, maxRollDeg: maxRoll, minDeckClearance_in: minDeck, minFrameClearance_in: minFrame, capsizePhases: capsize.length,
+          encounterPeriod_s: Te, pitchPeriod_s: Tp, rollPeriod_s: Tr, pitchAmplification: ampP, rollAmplification: ampR, drumBuried: buried, pinForce_lb: pinLb(U),
+          motion: head.map(r => ({ phase: r.phase, ok: r.sol.ok, d: r.sol.d, t: r.sol.t, p: r.sol.p, pitchDeg: r.sol.pitchDeg })), motionBeam: beam.map(r => ({ phase: r.phase, ok: r.sol.ok, d: r.sol.d, t: r.sol.t, p: r.sol.p, rollDeg: r.sol.rollDeg })) });
+        const wid = 'ww.waves:' + f.id;
+        W(wid, 'Standing wave: U² = (g/k)·tanh(k h), λ = 2π/k;  breaking at H ≤ 0.142·λ·tanh(k h);  boat balanced on η = (H/2)·cos(k x − φ)', [
+          `Class ${f.cls} wave height (top of the class range): ${o.waveFt[f.cls]} ft = ${n(Hc, 2)} m`,
+          `Current U = ${n(U, 2)} m/s, depth h = ${n(h, 3)} m → k = ${n(k, 3)} 1/m, standing wavelength ${n(lamFlow, 2)} m (${n(lamFlow * FT_PER_M, 1)} ft)`,
+          `Steepest a ${n(H, 2)} m wave can be: H/λ = 0.142 → λ ≥ ${n(lamMin, 2)} m. Used λ = ${n(lam, 2)} m (${n(lam * FT_PER_M, 1)} ft)${breaking ? ': at the breaking limit, so expect a breaking, foaming crest' : ''}; the boat is ${n(boatLenM, 2)} m long`,
+          `Steepest surface slope atan(π H ÷ λ) = ${n(res.maxSlopeDeg, 1)}°`,
+          `Balanced at ${o.phases} positions on head waves (crests across the boat) and beam waves (crests along it):`,
+          `Largest trim ${n(maxPitch, 1)}°, largest heel ${n(maxRoll, 1)}°, lowest frame clearance ${n(minFrame, 1)}", lowest deck clearance ${n(minDeck, 1)}" (after the breaking crest)`,
+          capsize.length ? `${capsize.length} of ${all.length} positions have no balance: it capsizes or goes under` : 'Every position balances',
+          `Meeting the waves: T_e = λ ÷ U = ${n(Te, 2)} s vs natural pitch ${Tp ? n(Tp, 2) + ' s' : '—'} and roll ${Tr ? n(Tr, 2) + ' s' : '—'}; undamped magnification 1 ÷ |1 − (T_n/T_e)²| = ${ampP ? n(ampP, 2) : '—'} (pitch), ${ampR ? n(ampR, 2) : '—'} (roll)`],
+          'The waves stand still while the boat drifts through them at the current speed. A Class III wave at the top of its range is taller than the channel-average flow can hold, so it is treated as the steepest wave of that height that can exist. Each drum slice floats at its own local water level (the classic way to balance a hull on a wave), and the water accelerating down each slope pushes the boat too (Froude–Krylov), so it rights itself relative to the local surface. Wave dynamics, fast flow in the crest and splash are left out.');
+        if (capsize.length) { lv('error'); warn('error', f.id, `${f.name} (Class ${f.cls}): capsizes or goes under on ${capsize.length} of ${all.length} wave positions`, 'Lower the crew, spread the drums, or add flotation before this rapid.', wid); }
+        if (minDeck < 0) { lv('warn'); warn('warn', f.id, `${f.name} (Class ${f.cls}): water over the deck (${n(-minDeck, 1)}" deep at worst)`, breaking ? 'The deck edge dips under the breaking crest. Expect to take on water; keep weight back and paddle hard through it.' : 'The deck edge dips under the wave. Raise the deck or add bow flotation.', wid); }
+        else if (minFrame < 0) { lv('info'); res.notes.push('Frame rails go under at the worst wave position.'); }
+        if (lostRoll) { lv('warn'); warn('warn', f.id, `${f.name} (Class ${f.cls}): loses side-to-side stability on the wave`, 'At some positions the righting arm goes negative. Keep the crew low and centred.', wid); }
+        const amp = Math.max(ampP || 0, ampR || 0);
+        if (amp >= 2) { lv('warn'); warn('warn', f.id, `${f.name} (Class ${f.cls}): waves arrive near the boat's natural ${ampP >= ampR ? 'pitch' : 'roll'} period (×${n(amp, 1)})`, `Waves every ${n(Te, 2)} s rock it at its own rhythm, so the motion builds. Paddling faster or slower through the train changes the timing.`, 'ww.period'); }
+        if (buried) { lv('info'); res.notes.push('A drum goes fully under at a crest: the drum uplift check applies.'); }
+        if (maxPitch > 20 || maxRoll > 20) { lv('warn'); warn('warn', f.id, `${f.name} (Class ${f.cls}): ${n(Math.max(maxPitch, maxRoll), 0)}° of ${maxPitch >= maxRoll ? 'trim' : 'heel'} on the wave`, 'Crew will need to brace and hold on.', wid); }
+      } else {
+        // drop into a hydraulic jump (hole)
+        const dz = o.dropFt[f.cls] / FT_PER_M, q = hy.q_m2s, h0 = hy.h_m, U0 = hy.U_ms;
+        const E1 = h0 + U0 * U0 / (2 * G_SI) + dz, h1 = supercriticalDepth(q, E1), U1 = q / h1, Fr1 = U1 / Math.sqrt(G_SI * h1);
+        const h2 = belanger(h1, Fr1), U2 = q / h2, jumpH = h2 - h1, Lr = o.rollerFactor * h2, retentive = h0 >= h2;
+        const keeper = retentive && boatLenM < Lr;
+        const face = (s0, e) => (x) => { const u = (x - s0) / (Lr * IN_PER_M); return e * jumpH * IN_PER_M * (u <= 0 ? 0 : u >= 1 ? 1 : (1 - Math.cos(Math.PI * u)) / 2); };
+        const pos = []; for (let i = 0; i <= o.phases; i++) pos.push(-L / 2 - (Lr * IN_PER_M) * i / o.phases);
+        let prevS = null; const scan = pos.map(s0 => { const sol = solveRamped(e => face(s0, e), prevS); prevS = sol; return { s0, sol }; }), okS = scan.filter(r => r.sol.ok), cap = scan.length - okS.length;
+        const minDeck = Math.min(Infinity, ...okS.map(r => r.sol.deckClearance)), maxPitch = Math.max(0, ...okS.map(r => Math.abs(r.sol.pitchDeg)));
+        Object.assign(res, { drop_m: dz, h1_m: h1, U1_ms: U1, Fr1, h2_m: h2, U2_ms: U2, jumpHeight_m: jumpH, roller_m: Lr, tailwater_m: h0, retentive, keeper,
+          maxPitchDeg: maxPitch, minDeckClearance_in: minDeck, capsizePositions: cap, pinForce_lb: pinLb(U1), boatLength_m: boatLenM,
+          motion: scan.map(r => ({ s0: r.s0, ok: r.sol.ok, d: r.sol.d, t: r.sol.t, p: r.sol.p })) });
+        const wid = 'ww.drop:' + f.id;
+        W(wid, 'Energy: h₀ + U₀²/2g + Δz = h₁ + q²/(2g h₁²);  Fr₁ = U₁/√(g h₁);  Bélanger: h₂/h₁ = ½(√(1 + 8 Fr₁²) − 1);  roller ≈ 6 h₂', [
+          `Class ${f.cls} drop Δz = ${o.dropFt[f.cls]} ft = ${n(dz, 2)} m (assumed); q = Q ÷ b = ${n(q, 3)} m²/s`,
+          `Above: h₀ = ${n(h0, 3)} m, U₀ = ${n(U0, 2)} m/s → energy E = ${n(E1, 3)} m (losses ignored: the fastest jet)`,
+          `Foot of the drop: h₁ = ${n(h1, 3)} m, U₁ = ${n(U1, 2)} m/s (${n(U1 * 2.23694, 1)} mph), Fr₁ = ${n(Fr1, 2)}`,
+          `Jump: h₂ = ${n(h1, 3)}/2 × (√(1 + 8 × ${n(Fr1, 2)}²) − 1) = ${n(h2, 3)} m; face height h₂ − h₁ = ${n(jumpH, 2)} m (${n(jumpH * FT_PER_M, 1)} ft); U₂ = ${n(U2, 2)} m/s`,
+          `Roller length ≈ ${o.rollerFactor} × h₂ = ${n(Lr, 2)} m (${n(Lr * FT_PER_M, 1)} ft) vs boat ${n(boatLenM, 2)} m`,
+          `Tailwater h₀ = ${n(h0, 3)} m ${retentive ? '≥' : '<'} h₂ = ${n(h2, 3)} m → ${retentive ? 'the jump stays put: a retentive hole' : 'the jump is pushed downstream: it flushes into waves'}`,
+          `Boat balanced at ${scan.length} positions climbing the face: largest trim ${n(maxPitch, 1)}°, lowest deck clearance ${n(minDeck, 1)}"${cap ? `, ${cap} positions with no balance` : ''}`],
+          'Water speeds up down the drop, then slams into slower water and piles up in a hydraulic jump (the hole). A hole longer than the boat that the tailwater holds in place can keep a boat surfing in it. Drop heights at the venue are not published; measure or estimate them from video and change the setting.');
+        if (cap) { lv('error'); warn('error', f.id, `${f.name} (Class ${f.cls}): capsizes or goes under climbing the hole`, 'The face is too steep for the boat. Add bow flotation or move weight aft.', wid); }
+        if (minDeck < 0) { lv('warn'); warn('warn', f.id, `${f.name} (Class ${f.cls}): bow buries in the hole (${n(-minDeck, 1)}" of water over the deck)`, 'Hit it straight and fast with the crew leaning back; a pointed, raised bow helps.', wid); }
+        if (keeper) { lv('error'); warn('error', f.id, `${f.name} (Class ${f.cls}): retentive hole longer than the boat (${n(Lr * FT_PER_M, 0)} ft vs ${n(boatLenM * FT_PER_M, 0)} ft)`, 'The boat can get stuck surfing in it. Hit it with speed and paddle through.', wid); }
+        else if (retentive) { lv('warn'); warn('warn', f.id, `${f.name} (Class ${f.cls}): retentive hole`, 'The boat is longer than the roller, so it should punch through with speed.', wid); }
+      }
+      // broadside pin against a rock or wall at the feature's speed
+      const U = f.type === 'drop' ? res.U1_ms : res.U_ms;
+      if (U) {
+        W('ww.pin:' + f.id, 'F = ½ · ρ · v² · (Cd · A_side)', [`v = ${n(U, 2)} m/s = ${n(U * FT_PER_M, 2)} ft/s`, `Cd·A_side = ${n(E.drag.CdAside, 2)} ft² (from the drag numbers)`, `F = ½ × ${RHO} × ${n(U * FT_PER_M, 2)}² × ${n(E.drag.CdAside, 2)} = ${n(res.pinForce_lb, 0)} lb`],
+          'If the boat turns sideways and pins on a rock or wall, the current pushes it with this force. It is flagged when it is more than the whole loaded boat weighs (a rule of thumb, not a strength limit).');
+        if (res.pinForce_lb > still.W) { lv('warn'); warn('warn', f.id, `${f.name} (Class ${f.cls}): ${n(res.pinForce_lb, 0)} lb broadside pinning force, more than the loaded boat weighs (${n(still.W, 0)} lb)`, 'Turned sideways against a rock or wall, the current holds the boat there. Keep it pointed downstream.', 'ww.pin:' + f.id); }
+      }
+      features.push(res);
+    });
+    if (!warnings.some(w => w.level === 'error' || w.level === 'warn')) warn('ok', null, 'No whitewater warnings at these settings', 'The boat balances on every wave and hole position tested.');
+    return { options: o, hydraulics: { h_m: hy.h_m, U_ms: hy.U_ms, q_m2s: hy.q_m2s, Fr: hy.Fr, channel: { name: ch.name, length_m: ch.length_m, drop_m: ch.drop_m, slope: ch.slope, flow_m3s: ch.flow_m3s, notModeled: ch.notModeled } },
+      periods: { pitch_s: Tp, roll_s: Tr, rPitch_in: rP, rRoll_in: rR }, boat: { weight_lb: still.W, draft_in: still.d, gmRoll_in: still.gmRoll, gmPitch_in: still.gmPitch, length_m: boatLenM, drums: g.drums.length },
+      features, warnings, work, assumptions: WW_ASSUMPTIONS(o), sources: SOURCES };
+  }
+  const srcs = ks => ks.map(k => { if (!SOURCES[k]) throw new Error(`Unknown source "${k}"`); return Object.assign({ id: k }, SOURCES[k]); });
+  const WW_ASSUMPTIONS = o => [
+    { name: 'Channel data', used: 'Competition: 300 m, 6.4 m drop, 2.1%, 15 m³/s. Wilderness: 550 m, 6.4 m, 1.2%, 19 m³/s', source: 'Published', effect: 'Sourced.', refs: srcs(['usnwc', 's2o']) },
+    { name: 'Channel width', used: `${o.width_m} m`, source: 'Not published for USNWC; Olympic slalom channels are about 12 m', effect: 'Narrower → deeper, faster water and shorter waves.', refs: srcs(['slalomWidth']) },
+    { name: 'Manning roughness n', used: `${o.manningN}`, source: 'Boulder-lined channels are rough (n roughly 0.04–0.07)', effect: 'Lower n → faster, shallower water.', refs: srcs(['manning', 'roughness']) },
+    { name: 'Class wave heights', used: `II: ${o.waveFt.II} ft, III: ${o.waveFt.III} ft`, source: 'II: up to 3 ft; III: irregular, 3–5 ft', effect: 'Top of each range (worst case).', refs: srcs(['isrd', 'class3waves']) },
+    { name: 'Drop heights', used: `II: ${o.dropFt.II} ft, III: ${o.dropFt.III} ft`, source: 'Not published', effect: 'Estimate from video or on site; higher drops give bigger holes.', refs: srcs(['videoBYOB2017', 'videoBYOB', 'newsBYOB2022']) },
+    { name: 'Hole roller length', used: `${o.rollerFactor} × downstream depth`, source: '4 to 6.2 × downstream depth', effect: 'High side: a longer hole is more likely to hold the boat.', refs: srcs(['hydraulicJump']) },
+    { name: 'Wave forces', used: 'Quasi-static: each slice floats at the local water level, plus the Froude–Krylov push down the slope', source: 'Hull balanced on a wave; beam-sea roll moment W·GM·k·ζ', effect: 'Leaves out wave-motion dynamics, fast flow in crests, splash and impact; real motion can be larger.', refs: srcs(['hogSag', 'froudeKrylov', 'waveSlope']) },
+    { name: 'Pinning flag', used: 'Broadside force > loaded weight', source: 'Rule of thumb (no standard)', effect: 'A comparison, not a strength limit.', refs: srcs(['dragEq']) },
+    { name: 'Wave steepness', used: 'Class height at H/λ ≤ 0.142 (deep-water breaking limit)', source: 'Miche criterion', effect: 'Steepest case for that height, so trim and deck wetting are on the high side.', refs: srcs(['miche']) },
+    { name: 'Capsize on a wave', used: 'No balance, or more than 60° of trim or heel', source: 'Modeling choice: riding a 24° wave face is not capsizing', effect: 'Flat-water checks still use 25°.', refs: srcs(['capsizing']) },
+    { name: 'Natural periods', used: 'No added mass', source: 'T = 2π r ÷ √(g GM)', effect: 'Real periods are somewhat longer, which shifts resonance.', refs: srcs(['metacentric', 'resonance']) },
+  ];
+
+  // Plain-language summary for download and the report.
+  function whitewaterMarkdown(ww, meta) {
+    const n = (v, d = 1) => v == null || !isFinite(v) ? '—' : (+v).toFixed(d), icon = { error: '❌', warn: '⚠️', info: 'ℹ️', ok: '✅' };
+    const H = ww.hydraulics, f = ww.features;
+    return `# Whitewater simulation: ${H.channel.name}
+
+${meta && meta.generated ? `Generated ${meta.generated}. ` : ''}Classes simulated: ${ww.options.classes.join(', ')}. Boat: ${n(ww.boat.weight_lb, 0)} lb loaded, ${ww.boat.drums} drums, ${n(ww.boat.length_m * FT_PER_M, 1)} ft long, roll GM ${n(ww.boat.gmRoll_in, 1)}", pitch GM ${n(ww.boat.gmPitch_in, 1)}".
+
+## Warnings
+
+${ww.warnings.map(w => `- ${icon[w.level]} **${w.title}**${w.detail ? ` — ${w.detail}` : ''}`).join('\n')}
+
+## Channel
+
+${H.channel.length_m} m long, ${H.channel.drop_m} m drop (slope ${H.channel.slope}), ${H.channel.flow_m3s} m³/s. With a ${ww.options.width_m} m width and Manning n ${ww.options.manningN}: depth ${n(H.h_m, 2)} m, current ${n(H.U_ms, 2)} m/s (${n(H.U_ms * 2.23694, 1)} mph), Froude number ${n(H.Fr, 2)}.${H.channel.notModeled ? ' ' + H.channel.notModeled : ''}
+
+Natural periods (no added mass): pitch ${n(ww.periods.pitch_s, 2)} s, roll ${n(ww.periods.roll_s, 2)} s.
+
+## Features
+
+| Feature | Class | Type | Key numbers | Result |
+|---|---|---|---|---|
+${f.map(x => `| ${x.name} | ${x.cls} | ${x.type} | ${x.type === 'waves' ? (x.lambda_m ? `H ${n(x.H_m * FT_PER_M, 1)} ft${x.breaking ? ' (breaking)' : ''}, λ ${n(x.lambda_m * FT_PER_M, 1)} ft, trim ${n(x.maxPitchDeg, 0)}°, heel ${n(x.maxRollDeg, 0)}°, deck clearance ${n(x.minDeckClearance_in, 1)}"` : 'no standing waves') : `drop ${n(x.drop_m * FT_PER_M, 1)} ft, jet ${n(x.U1_ms * 2.23694, 1)} mph, hole ${n(x.jumpHeight_m * FT_PER_M, 1)} ft high × ${n(x.roller_m * FT_PER_M, 0)} ft long, ${x.retentive ? 'retentive' : 'flushing'}`}; pin ${n(x.pinForce_lb, 0)} lb | ${icon[x.level]} |`).join('\n')}
+
+## How each number was worked out
+
+${Object.entries(ww.work).map(([id, w]) => `### ${id}
+
+**${w.formula}**
+
+${w.steps.map((t, i) => `${i + 1}. ${t}`).join('\n')}
+
+${w.why}
+
+Sources: ${w.refs.map(r => `[${r.kind}: ${r.title}](${r.url})`).join(' · ')}`).join('\n\n')}
+
+## Assumptions
+
+| Assumption | Used | Sources say | Effect |
+|---|---|---|---|
+${ww.assumptions.map(x => `| ${x.name} | ${x.used} | ${x.source} | ${x.effect} |`).join('\n')}
+
+## Limits
+
+- Quasi-static: the boat is balanced on the water surface at each position. Fast flow, splash, impacts and paddling are left out.
+- Wave and drop sizes come from the class definitions and estimates, not measurements at the venue.
+- Use this to compare designs and spot weak points, not as a guarantee. Wear the venue's PFDs and helmets.
+`;
+  }
+  // The downloadable JSON artifact: inputs, results, assumptions and sources (no parts receipts or personal data).
+  function whitewaterArtifact(build, ww, meta) {
+    return {
+      kind: 'bob-whitewater-simulation', version: 1, generated: meta && meta.generated || null,
+      design: { preset: build.config.preset, config: build.config },
+      options: ww.options, hydraulics: ww.hydraulics, periods: ww.periods, boat: ww.boat,
+      features: ww.features, warnings: ww.warnings, work: ww.work, assumptions: ww.assumptions,
+      sources: Object.entries(ww.sources).map(([id, s]) => Object.assign({ id }, s)),
+    };
   }
 
   // ── Analysis + recommendations ──
@@ -1394,8 +1834,8 @@
       if (sol.gmPitch < 0) add('warn', `Fore-aft unstable: see-saws on the drums (GM ${sol.gmPitch.toFixed(0)}")`, `The drums are only ${Math.max(...g.drums.map(d => d.ex * 2)).toFixed(1)}" long fore-aft under a ${c.frameLength}" frame and the crew sits high, so the boat rocks bow-down or stern-down until the frame hits the water. Spread drums fore-aft (Triangle or Pontoon preset), keep the crew low and centered, or shorten the frame.`);
       else if (sol.gmPitch < 12) add('warn', `Low fore-aft stability (GM ${sol.gmPitch.toFixed(0)}")`, 'Spread drums further fore-aft or keep the crew low.');
     }
-    if (!fwd.ok || fwd.bowFreeboard < 2) add('warn', 'Nose-dive risk with crew at the bow', !fwd.ok ? 'Moving the crew forward overwhelms the bow.' : `Bow clearance drops to ${fwd.bowFreeboard.toFixed(1)}". Consider the Triangle or Pontoon preset, a drum further forward, or crew seated aft of center.`);
-    if (!side.ok || Math.abs(side.rollDeg) > 8) add('warn', 'Leaning crew heels the boat hard', side.ok ? `${Math.abs(side.rollDeg).toFixed(0)}° heel with crew at the deck edge.` : 'Crew at the deck edge capsizes it.');
+    if (!fwd.ok || fwd.bowFreeboard < 2) add('warn', 'Nose-dive risk with crew at the bow', !fwd.ok ? 'Moving the crew forward overwhelms the bow.' : `Bow clearance drops to ${fwd.bowFreeboard.toFixed(1)}" (${Math.abs(fwd.pitchDeg).toFixed(0)}° bow-down)${fwd.stableRoll ? '' : ', and with the bow drum buried the boat also loses side-to-side stability'}. Consider the Triangle or Pontoon preset, a drum further forward, or crew seated aft of center.`);
+    if (!side.ok || !side.stableRoll || Math.abs(side.rollDeg) > 8) add('warn', 'Leaning crew heels the boat hard', side.ok ? (side.stableRoll ? `${Math.abs(side.rollDeg).toFixed(0)}° heel with crew at the deck edge.` : 'With crew at the deck edge it tips until the frame or a drum catches.') : 'Crew at the deck edge capsizes it.');
     const fails = leaks.filter(l => !l.sol.ok);
     if (leaks.length && fails.length) add('warn', `Losing one drum ${fails.length === leaks.length ? 'sinks or capsizes the boat' : 'is unsafe for some drums'}`, 'No redundancy. Seal and test the bung caps, or add a drum. Foam-filled rails and the XPS deck still float the wreck.');
     else if (leaks.length) add('ok', 'Survives losing any one drum', '');
@@ -1676,6 +2116,7 @@
   return {
     WATER, DRUM, DRUM_SIZES, drumSpec, drumLabel, PIPE_R, RAIL_OFFSET, PRESETS, DEFAULT_CONFIG, inventory,
     STATUSES, isBought, engineering, PVC, SF_OK, SF_MIN, CONSUMABLE_SHARE, onBoatShare, paintPlan, decalPlan, DECALS, PAINT_LB_PER_SQFT, withDefaults, geometry, requirements, shoppingList, storeLinks, fitFrame, rankPresets, PRIORITIES, weights, massItems, crewPositions, solve, checkRules, analyze, comparePresets,
-    segArea, drumMaxLb,
+    segArea, segWidth, segCentroidY, drumMaxLb, SOURCES, WORK_REFS, ASSUMPTIONS, RHO, NU_WATER, PADDLER_W, DYNAMIC,
+    whitewater, whitewaterMarkdown, whitewaterArtifact, whitewaterHydraulics, manningDepth, standingWaveK, supercriticalDepth, belanger, WW_CHANNELS, WW_CLASS, WW_DEFAULTS, G_SI,
   };
 });

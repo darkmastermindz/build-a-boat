@@ -59,6 +59,7 @@ bob/
 │   ├── raft-model.js        # Shared geometry, hydrostatics, rules and recommendations (browser + Node)
 │   └── generate-report.js   # Markdown build report from build.json
 ├── tests/raft-model.test.js # node --test
+├── tests/engineering.test.js # physics checked against hand calculations
 ├── docs/design.md           # Design notes, rules compliance, findings
 ├── PLAN.md                  # Roadmap to the final build
 └── reports/latest-report.md # Latest generated report
@@ -197,6 +198,31 @@ bob/
 - **Show the work:** click any engineering row to expand its formula, every
   number plugged in, and the reasoning behind it. Structural issues on the
   model have a *Show the work* button too, and the report includes all of it.
+- **Sources:** every worked calculation links to where its formula comes from:
+  Wikipedia, Khan Academy, Brilliant and Wolfram first, then papers, standards
+  and datasheets. *Assumptions and sources* (bottom of the engineering panel)
+  lists each assumed constant next to what the sources say. The tests check
+  that each constant stays inside its source's range.
+- **🌊 Whitewater** (button under the 3D view): simulates the U.S. National
+  Whitewater Center's Class II and III rapids on the competition (race) or
+  wilderness channel.
+  - **Channel:** current speed and depth come from the published flow and
+    slope, using the Manning formula. Width and roughness are assumptions you
+    can change.
+  - **Waves:** the boat is balanced on Class II (3 ft) and Class III (5 ft)
+    standing waves at every position, head-on and sideways. Each drum slice
+    floats at its local water level, plus the downhill (Froude–Krylov) push.
+    The waves are never steeper than the breaking limit.
+  - **Drops:** each drop leads into a hydraulic jump (energy plus the Bélanger
+    equation). The check reports hole height and length, and whether the hole
+    holds the boat.
+  - **Also checked:** resonance with the boat's natural pitch and roll periods,
+    and the broadside pinning force.
+  - Warnings get their own category, in the panel and in the Check tab. Each
+    one shows its work and sources.
+  - Click a feature to watch the boat ride it in 3D.
+  - Download a JSON artifact (inputs, results, assumptions, sources) and a
+    Markdown summary.
 - **⚠️ Issues** (button under the 3D view): numbered markers on the boat for
   every warning and error, placed where each problem is.
   - Pipes that fail a structural check turn orange or red.
