@@ -59,6 +59,7 @@ bob/
 │   ├── raft-model.js        # Shared geometry, hydrostatics, rules and recommendations (browser + Node)
 │   └── generate-report.js   # Markdown build report from build.json
 ├── tests/raft-model.test.js # node --test
+├── tests/engineering.test.js # physics checked against hand calculations
 ├── docs/design.md           # Design notes, rules compliance, findings
 ├── PLAN.md                  # Roadmap to the final build
 └── reports/latest-report.md # Latest generated report
