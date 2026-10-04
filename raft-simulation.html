@@ -130,6 +130,13 @@
   .eng .bar{height:6px;border-radius:3px;background:var(--line);overflow:hidden;margin-top:3px}
   .eng .bar i{display:block;height:100%;background:var(--accent)}
   .sf-ok{color:var(--ok)}.sf-warn{color:var(--warn)}.sf-error{color:var(--err)}
+  .plabel{position:absolute;z-index:3;transform:translate(-50%,-50%);background:rgba(17,17,17,.82);color:#fff;border-radius:5px;padding:0 4px;font:600 10.5px ui-monospace,Menlo,Consolas,monospace;cursor:pointer;white-space:nowrap}
+  .plabel.j{background:rgba(160,90,0,.88)}
+  .plabel.o{background:rgba(30,90,150,.88)}
+  .plabel.hit{outline:2px solid #ffd400;z-index:5;font-size:12.5px}
+  .idbar{position:absolute;top:10px;left:50%;transform:translateX(-50%);z-index:4;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:6px 10px;font-size:12.5px;display:flex;gap:8px;align-items:center;flex-wrap:wrap;max-width:calc(100% - 24px);box-shadow:0 4px 14px rgba(0,0,0,.12)}
+  .idbar .row2{display:flex;gap:4px;margin:0}
+  .idbar input{width:150px}
   .imark{position:absolute;z-index:4;transform:translate(-50%,-50%);width:24px;height:24px;border-radius:50%;border:2px solid #fff;color:#fff;font:700 12px Barlow,sans-serif;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 2px 6px rgba(0,0,0,.35)}
   .imark.error{background:var(--err)}.imark.warn{background:#d08a14}
   .ilist{position:absolute;left:12px;bottom:56px;z-index:4;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:8px 10px;width:min(340px,70%);max-height:40%;overflow:auto;font-size:12.5px;box-shadow:0 4px 14px rgba(0,0,0,.12)}
@@ -381,6 +388,13 @@
     <div class="mlabel" id="mlabel" hidden></div>
     <div class="mhint" id="mhint" hidden role="status"></div>
     <div id="imarks"></div>
+    <div id="plabels" hidden></div>
+    <div class="idbar" id="idBar" hidden>
+      <b>🏷️ Part IDs</b>
+      <select id="idShow" aria-label="Which labels to show"><option value="pipes">Pipes (P)</option><option value="joints">Joints (J)</option><option value="parts">Drums, panels, deck, noodles, crew</option><option value="all">Everything</option></select>
+      <form id="idFind" class="row2"><input id="idQuery" placeholder="Find e.g. P12, J3, D1" aria-label="Find a part by ID" autocomplete="off"><button class="btn ghost sm">Find</button></form>
+      <div id="idMsg" class="small muted"></div>
+    </div>
     <div class="ilist" id="ilist" hidden></div>
     <div class="tools ww" id="wwPanel" hidden>
       <b>🌊 Whitewater (U.S. National Whitewater Center)</b>
@@ -833,7 +847,7 @@ function renderCheck(){
   $('reqTable').replaceChildren(el('tr', {}, el('th', {}, 'Item'), el('th', { class:'num' }, 'Need'), el('th', { class:'num' }, 'Listed'), el('th', {}, '')),
     ...Object.entries(A.requirements.items).map(([k, need]) => { const h = have[k]||0; return el('tr', {}, el('td', {}, names[k]||k), el('td', { class:'num' }, need), el('td', { class:'num' }, h), el('td', {}, el('span', { class: 'dot ' + (h < need ? 'warn' : 'ok') }))); }));
   $('cutTable').replaceChildren(el('tr', {}, el('th', {}, '#'), el('th', {}, 'Cuts'), el('th', { class:'num' }, 'Offcut')),
-    ...A.requirements.sticks.map((s, i) => el('tr', {}, el('td', {}, i+1), el('td', {}, s.cuts.map(c => `${c.label} ${c.len}"`).join(' · ')), el('td', { class:'num' }, f0(s.left) + '"'))));
+    ...A.requirements.sticks.map((s, i) => el('tr', {}, el('td', {}, i+1), el('td', {}, s.cuts.map(c => `${c.id ? c.id + ' ' : ''}${c.label} ${c.len}"`).join(' · ')), el('td', { class:'num' }, f0(s.left) + '"'))));
 }
 let cmpPriority = (() => { try { return localStorage.getItem('bob-cmp-priority') || 'balanced'; } catch (e) { return 'balanced'; } })();
 function useLayout(r){
@@ -915,9 +929,10 @@ function initScene(){
   LAYERS.forEach(k => bar.append(el('button', { 'aria-pressed':'true', onclick: e => { const on = e.target.getAttribute('aria-pressed') !== 'true'; e.target.setAttribute('aria-pressed', on); G[k].visible = on; } }, k[0].toUpperCase() + k.slice(1))));
   bar.append(el('button', { class: 'measure', id: 'measureBtn', 'aria-pressed': 'false', title: 'Measure between two points (snaps to pipe ends, midpoints, centers and corners). Esc to exit.', onclick: () => setMeasure(!measureOn) }, '📏 Measure'));
   bar.append(el('button', { class: 'measure', id: 'issuesBtn', 'aria-pressed': 'false', title: 'Show the warnings and errors on the boat', onclick: () => toggleIssues() }, '⚠️ Issues'));
+  bar.append(el('button', { class: 'measure', id: 'idBtn', 'aria-pressed': 'false', 'aria-controls': 'idBar', title: 'Show an ID label on every pipe, joint and part (P12, J3, D1…) so you can reference it', onclick: () => toggleIds() }, '🏷️ IDs'));
   bar.append(el('button', { class: 'measure', id: 'wwBtn', 'aria-pressed': 'false', 'aria-controls': 'wwPanel', title: 'Simulate the U.S. National Whitewater Center Class II and III rapids', onclick: () => toggleWW() }, '🌊 Whitewater'));
   bar.append(el('button', { class: 'measure', id: 'toolsBtn', 'aria-pressed': 'false', 'aria-controls': 'tools', title: 'Show tools: zip-tie supports, paint, measure', onclick: () => toggleTools() }, '🧰 Tools'));
-  orbit(); initPicking(); initTools(); initWW(); resize(); addEventListener('resize', resize);
+  orbit(); initPicking(); initTools(); initWW(); initIds(); resize(); addEventListener('resize', resize);
   loop(0);
 }
 // a vertical band following a closed 2-D outline (x, z), pushed `off` inches outward
@@ -952,7 +967,9 @@ function buildBoat(){
     mesh.userData = { kind: m === MAT.noodle ? 'noodle' : grp === G.deck ? 'mast' : 'pipe', a: a.toArray(), b: b.toArray(), len, rad: rad || R, bow: bowPipe };
     grp.add(mesh); return mesh;
   };
-  const joint = p => { const s = new THREE.Mesh(new THREE.SphereGeometry(1.3, 16, 12), MAT.fit); s.position.set(...p); s.userData = { kind: 'fitting', p }; G.frame.add(s); };
+  const JL = new Map(g.labels.joints.map(j => [j.at.map(v => v.toFixed(1)).join(','), j]));
+  const joint = p => { const s = new THREE.Mesh(new THREE.SphereGeometry(1.3, 16, 12), MAT.fit); s.position.set(...p); const j = JL.get(p.map(v => v.toFixed(1)).join(','));
+    s.userData = { kind: 'fitting', p, id: j && j.id, joint: j }; G.frame.add(s); };
   // drums
   g.drums.forEach(d => {
     const m = d.failed ? MAT.failed : MAT.drum, dr = d.r, dl = d.len, cy = d.y0 + dr, cross = d.axis === 'z';
@@ -961,7 +978,7 @@ function buildBoat(){
     const ring = mesh => { if (!cross) mesh.rotation.y = Math.PI/2; return mesh; };
     const cyl = new THREE.Mesh(new THREE.CylinderGeometry(dr, dr, dl, 44), m);
     if (cross) cyl.rotation.x = Math.PI/2; else cyl.rotation.z = Math.PI/2;
-    cyl.position.set(d.x, cy, d.z); cyl.userData = { kind: 'drum', d }; G.drums.add(cyl);
+    cyl.position.set(d.x, cy, d.z); cyl.userData = { kind: 'drum', d, id: 'D' + (d.id + 1) }; G.drums.add(cyl);
     [-dl/6, dl/6].forEach(o => { const rib = ring(new THREE.Mesh(new THREE.TorusGeometry(dr+.15, .35, 8, 44), d.failed ? MAT.failed : MAT.drumDark)); rib.position.set(...along(o)); rib.userData = cyl.userData; G.drums.add(rib); });
     const bung = new THREE.Mesh(new THREE.CylinderGeometry(1.2, 1.2, .6, 14), MAT.fit);
     if (cross) bung.rotation.x = Math.PI/2; else bung.rotation.z = Math.PI/2;
@@ -973,40 +990,40 @@ function buildBoat(){
       const sp = along(o); span.position.set(sp[0], g.railY + R + .3, sp[2]); G.lash.add(span); });
   });
   // cage: lower cradle rails, end ties and posts up to the deck frame
-  if (g.cage) g.cagePieces.forEach(pc => { const m = pipe(pc.a, pc.b, G.frame); m.userData.piece = pc.kind; joint(pc.a); joint(pc.b); });
+  if (g.cage) g.cagePieces.forEach(pc => { const m = pipe(pc.a, pc.b, G.frame); m.userData.piece = pc.kind; m.userData.id = pc.id; joint(pc.a); joint(pc.b); });
   // platform bays filled with pool noodles, laid fore-aft
   if (g.platform) { const pl = g.platform; for (let k = 0; k < pl.bays; k++) for (let j = 0; j < pl.across; j++) {
     const z = -pl.W / 2 + R + 1.25 + j * 2.5 + ((pl.W - 2 * R) - pl.across * 2.5) / 2;
-    pipe([pl.xs[k] + R + .2, pl.y + .3, z], [pl.xs[k + 1] - R - .2, pl.y + .3, z], G.deck, 1.25, MAT.noodle); } }
+    pipe([pl.xs[k] + R + .2, pl.y + .3, z], [pl.xs[k + 1] - R - .2, pl.y + .3, z], G.deck, 1.25, MAT.noodle).userData.id = 'N' + (k * pl.across + j + 1); } }
   // one pool noodle wrapped around the bow along the top of the hull
   if (g.bowNoodle && g.hull) {
     const off = offsetOutline(g.hull.outline, R + 1.4), key = p => p[0].toFixed(3) + ',' + p[1].toFixed(3);
     const idx = new Map(g.hull.outline.map((p, i) => [key(p), i]));
     const pts = g.bowNoodle.points.map(p => off[idx.get(key(p))]).filter(Boolean).map(([x, z]) => new THREE.Vector3(x, g.bowNoodle.y + .4, z));
     if (pts.length > 1) { const mesh = new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts), 48, 1.25, 10), MAT.noodle);
-      mesh.userData = { kind: 'noodle', bow: true, len: g.bowNoodle.len, rad: 1.25, a: pts[0].toArray(), b: pts[pts.length - 1].toArray() }; G.deck.add(mesh); }
+      mesh.userData = { kind: 'noodle', id: 'N0', bow: true, len: g.bowNoodle.len, rad: 1.25, a: pts[0].toArray(), b: pts[pts.length - 1].toArray() }; G.deck.add(mesh); }
   }
   // side panels on the outer box faces, just outside the rails
   (g.sidePanels || []).forEach((sp, i) => {
-    if (sp.hull) { const mesh = hullBand(g.hull.outline, sp.y0, sp.y1, R + .15, MAT.panel); mesh.userData = { kind: 'panel', i, sp, c: [(g.hull.xs + g.hull.tip) / 2, (sp.y0 + sp.y1) / 2, 0] }; G.sides.add(mesh); return; }
+    if (sp.hull) { const mesh = hullBand(g.hull.outline, sp.y0, sp.y1, R + .15, MAT.panel); mesh.userData = { kind: 'panel', i, sp, id: sp.id, c: [(g.hull.xs + g.hull.tip) / 2, (sp.y0 + sp.y1) / 2, 0] }; G.sides.add(mesh); return; }
     const mesh = new THREE.Mesh(new THREE.PlaneGeometry(sp.len, sp.height), MAT.panel);
     const out = /bow/.test(sp.face) ? [1, 0] : /stern/.test(sp.face) ? [-1, 0] : /starboard/.test(sp.face) ? [0, 1] : [0, -1];
     mesh.position.set((sp.a[0] + sp.b[0]) / 2 + out[0] * (R + .1), (sp.y0 + sp.y1) / 2, (sp.a[2] + sp.b[2]) / 2 + out[1] * (R + .1));
     if (sp.a[0] === sp.b[0]) mesh.rotation.y = Math.PI / 2;
-    mesh.userData = { kind: 'panel', i, sp, c: mesh.position.toArray() };
+    mesh.userData = { kind: 'panel', i, sp, id: sp.id, c: mesh.position.toArray() };
     G.sides.add(mesh);
   });
   // rails + beams + ties
-  g.rails.forEach(rl => pipe([rl.x0, g.railY, rl.z], [rl.x1, g.railY, rl.z], G.frame));
-  g.beams.forEach(x => {
-    pipe([x, g.beamY, -g.frameWidth/2], [x, g.beamY, g.frameWidth/2], G.frame);
+  g.rails.forEach(rl => { pipe([rl.x0, g.railY, rl.z], [rl.x1, g.railY, rl.z], G.frame).userData.id = rl.id; });
+  g.beams.forEach((x, bi) => {
+    pipe([x, g.beamY, -g.frameWidth/2], [x, g.beamY, g.frameWidth/2], G.frame).userData.id = (g.labels.pipes.find(q => q.ref.beam === bi) || {}).id;
     if (g.fitted) { g.rails.forEach(rl => joint([x, g.railY, rl.z])); return; }
     g.rails.forEach(rl => [-1,1].forEach(k => { const t = new THREE.Mesh(new THREE.TorusGeometry(1.6, .18, 6, 18), MAT.tie); t.position.set(x, g.railY + R, rl.z); t.rotation.set(0, k*Math.PI/4, Math.PI/2); G.lash.add(t); }));
   });
   // deck sandwich
   const dk = c.deck;
   const deck = new THREE.Mesh(new THREE.BoxGeometry(dk.length, dk.thickness, dk.width), [MAT.xps, MAT.xps, MAT.skin, MAT.skin, MAT.xps, MAT.xps]);
-  deck.position.set(0, g.deckBottom + dk.thickness/2, 0); deck.userData = { kind: 'deck', c: [0, g.deckBottom + dk.thickness/2, 0], size: [dk.length, dk.thickness, dk.width] }; G.deck.add(deck);
+  deck.position.set(0, g.deckBottom + dk.thickness/2, 0); deck.userData = { kind: 'deck', id: 'K1', c: [0, g.deckBottom + dk.thickness/2, 0], size: [dk.length, dk.thickness, dk.width] }; G.deck.add(deck);
   // bow
   if (g.bow) {
     const L2 = c.frameLength/2, topY = g.bow.topY, bx = g.bow.x1, oz = g.outerZ;
@@ -1021,11 +1038,11 @@ function buildBoat(){
     const guard = new THREE.Mesh(geo, MAT.guard); guard.userData = { kind: 'guard' }; G.bow.add(guard);
     if (c.noodleRail) pipe([bx, topY + R + 1.2, -oz], [bx, topY + R + 1.2, oz], G.bow, 1.25, MAT.noodle);
   }
-  if (c.noodleRail) [-1,1].forEach(s => pipe([-dk.length/2, g.deckTop + 1.25, s*(dk.width/2 - 1.25)], [dk.length/2, g.deckTop + 1.25, s*(dk.width/2 - 1.25)], G.deck, 1.25, MAT.noodle));
+  if (c.noodleRail) [-1,1].forEach((s, i) => { pipe([-dk.length/2, g.deckTop + 1.25, s*(dk.width/2 - 1.25)], [dk.length/2, g.deckTop + 1.25, s*(dk.width/2 - 1.25)], G.deck, 1.25, MAT.noodle).userData.id = 'NR' + (i + 1); });
   // mast + Jolly Roger
   if (c.mastHeight > 0) {
     const mx = dk.length/2 - 8;
-    pipe([mx, g.deckTop, 0], [mx, g.deckTop + c.mastHeight, 0], G.deck);
+    pipe([mx, g.deckTop, 0], [mx, g.deckTop + c.mastHeight, 0], G.deck).userData.id = 'M1';
     const fh = Math.min(14, c.mastHeight * .45), fw = fh * 1.5;
     const flag = new THREE.Mesh(new THREE.PlaneGeometry(fw, fh), new THREE.MeshStandardMaterial({ map: flagTexture(c.flag), side: THREE.DoubleSide, roughness: .9 }));
     flag.position.set(mx - fw/2 - R, g.deckTop + c.mastHeight - fh/2, 0); flag.userData = { kind: 'flag', w: fw, h: fh }; G.deck.add(flag);
@@ -1036,7 +1053,7 @@ function buildBoat(){
     const torso = new THREE.Mesh(new THREE.CylinderGeometry(6, 7, 20, 14), MAT.pfd); torso.position.set(p.x, y0 + 12, p.z); G.crew.add(torso);
     const legs = new THREE.Mesh(new THREE.BoxGeometry(18, 5, 12), MAT.skinTone); legs.position.set(p.x + 9, y0 + 2.5, p.z); G.crew.add(legs);
     const head = new THREE.Mesh(new THREE.SphereGeometry(4.6, 16, 12), MAT.helmet); head.position.set(p.x, y0 + 27, p.z); G.crew.add(head);
-    torso.userData = legs.userData = head.userData = cu;
+    cu.id = 'C' + (i + 1); torso.userData = legs.userData = head.userData = cu;
   });
   const s = A.solution;
   boat.position.y = -(s.ok ? s.d : 2*r + 4);
@@ -1096,8 +1113,62 @@ function loop(t){
     pivot.position.y = Math.sin(t * .0012 - .4) * .35;
     if (!pts.size && t - idle > 6000 && t - idle < 12000) { th += .0018; place(); }
   }
-  positionMeasureLabel(); positionIssues();
+  positionMeasureLabel(); positionIssues(); positionIds();
   renderer.render(scene, camera); requestAnimationFrame(loop);
+}
+
+// ── Part IDs ─────────────────────────────────
+// Labels from the model (M.geometry → labels): P pipes, J joints, D drums, S side panels,
+// N noodles, K deck, M mast, C crew. Find jumps to a part and opens its popup.
+let idsOn = false, idHit = null;
+function idItems(){
+  const L = A.geometry.labels, show = $('idShow').value, mid = q => q.a.map((v, k) => (v + q.b[k]) / 2);
+  const out = [];
+  if (show === 'pipes' || show === 'all') L.pipes.forEach(q => out.push({ id: q.id, at: mid(q), cls: '' }));
+  if (show === 'joints' || show === 'all') L.joints.forEach(j => out.push({ id: j.id, at: j.at, cls: 'j' }));
+  if (show === 'parts' || show === 'all') [...L.drums, ...L.panels, ...L.noodles, ...L.others].forEach(o => out.push({ id: o.id, at: o.at, cls: 'o' }));
+  return out;
+}
+function renderIds(){
+  const box = $('plabels'); box.hidden = !idsOn;
+  if (!idsOn || !A.geometry) { box.replaceChildren(); return; }
+  box.replaceChildren(...idItems().map(it => el('span', { class: 'plabel ' + it.cls + (it.id === idHit ? ' hit' : ''), 'data-at': JSON.stringify(it.at), title: 'Click for details', onclick: () => findId(it.id) }, it.id)));
+  positionIds();
+}
+function positionIds(){
+  if (!idsOn) return;
+  const cv = renderer.domElement;
+  [...$('plabels').children].forEach(mk => {
+    const v = boat.localToWorld(new THREE.Vector3(...JSON.parse(mk.dataset.at))).project(camera);
+    mk.style.left = ((v.x + 1) / 2 * cv.clientWidth) + 'px'; mk.style.top = ((1 - v.y) / 2 * cv.clientHeight) + 'px';
+    mk.style.display = v.z < 1 ? '' : 'none';
+  });
+}
+function toggleIds(force){
+  idsOn = force ?? !idsOn;
+  $('idBtn').setAttribute('aria-pressed', idsOn); $('idBar').hidden = !idsOn;
+  try { localStorage.setItem('bob-ids', idsOn ? $('idShow').value : ''); } catch (e) {}
+  renderIds();
+}
+// Find a part by ID: highlight its label and open its popup at it.
+function findId(q){
+  const id = String(q || '').trim().toUpperCase(); if (!id) return;
+  let mesh = null; boat.traverse(o => { if (!mesh && o.isMesh && o.userData && o.userData.id === id) mesh = o; });
+  if (!mesh) { $('idMsg').textContent = `No part ${id} in this design.`; return; }
+  const L = A.geometry.labels, all = [...L.pipes, ...L.joints, ...L.drums, ...L.panels, ...L.noodles, ...L.others];
+  if (!all.some(o => o.id === id)) { $('idMsg').textContent = `No part ${id} in this design.`; return; }
+  idHit = id; $('idMsg').textContent = '';
+  const want = id[0] === 'P' ? 'pipes' : id[0] === 'J' ? 'joints' : 'parts';
+  if ($('idShow').value !== 'all' && $('idShow').value !== want) $('idShow').value = want;
+  renderIds();
+  const box = new THREE.Box3().setFromObject(mesh), c = box.getCenter(new THREE.Vector3()).project(camera), cv = renderer.domElement;
+  const ud = mesh.userData;
+  pinPart({ ud, x: (c.x + 1) / 2 * cv.clientWidth + 12, y: (1 - c.y) / 2 * cv.clientHeight + 12 });
+}
+function initIds(){
+  $('idShow').onchange = () => { try { localStorage.setItem('bob-ids', $('idShow').value); } catch (e) {} renderIds(); };
+  $('idFind').onsubmit = e => { e.preventDefault(); findId($('idQuery').value); };
+  try { const v = localStorage.getItem('bob-ids'); if (v) { $('idShow').value = v; toggleIds(true); } } catch (e) {}
 }
 
 // ── Whitewater simulation ─────────────────────
@@ -1233,7 +1304,14 @@ const inch = v => `${v.toFixed(1)}"`;
 const ftIn = v => { const f = Math.floor(v / 12 + 1e-9), i = v - f * 12; return f ? `${f}' ${i.toFixed(1)}"` : `${i.toFixed(1)}"`; };
 const dist3 = (a, b) => Math.hypot(a[0] - b[0], a[1] - b[1], a[2] - b[2]);
 const pipeDir = ud => { const dx = Math.abs(ud.a[0] - ud.b[0]), dy = Math.abs(ud.a[1] - ud.b[1]), dz = Math.abs(ud.a[2] - ud.b[2]); return dy > Math.max(dx, dz) ? 'upright' : dx > dz ? 'fore-aft' : 'crosswise'; };
+// every part's popup starts with its ID; a joint also lists its fitting type and the pipes it joins
 function partInfo(ud){
+  const info = partInfoBase(ud);
+  if (!info || !ud.id) return info;
+  if (ud.kind === 'fitting' && ud.joint) return { title: `${ud.id} · ${ud.joint.type} fitting`, lines: [`Joins ${ud.joint.pipes.join(', ')}`, ...info.lines] };
+  return Object.assign({}, info, { title: `${ud.id} · ${info.title}` });
+}
+function partInfoBase(ud){
   const g = A.geometry, c = g.config, k = c.frameStyle === 'stacked' ? 0 : (c.fittingTakeoff || 0);
   switch (ud.kind) {
     case 'pipe': { const L = ud.len;
@@ -1419,7 +1497,7 @@ function showHover(h){
 function afterBuild(){
   const parts = scenePartList();
   mA = reanchor(mA, parts); mB = mB && mA ? reanchor(mB, parts) : null; hoverSnap = null;
-  drawTies(parts); applyPaint(parts); drawDecals(parts); drawIssues();
+  drawTies(parts); applyPaint(parts); drawDecals(parts); drawIssues(); renderIds();
   drawMeasure(); refreshPin(parts); renderToolSummary();
 }
 // ── Tools: zip-tie supports and paint ──
@@ -1456,7 +1534,7 @@ function drawTies(parts){
     const ud = resolvePart(a, parts), r = ud && ud.kind === 'drum' ? 2.2 : ud && ud.rad ? ud.rad + .35 : 1.4;
     const t = new THREE.Mesh(new THREE.TorusGeometry(r, .3, 6, 20), TIE_MAT);
     t.position.set(...a.point); t.quaternion.setFromUnitVectors(new THREE.Vector3(0, 0, 1), tieAxis(ud));
-    t.userData = { kind: 'tie', i }; G.lash.add(t);
+    t.userData = { kind: 'tie', i, id: 'T' + (i + 1) }; G.lash.add(t);
   });
 }
 const PAINT_MATS = new Map();
