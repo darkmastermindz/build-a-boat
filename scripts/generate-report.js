@@ -98,6 +98,59 @@ Open \`raft-simulation.html\` → Check → Next shopping trip and enter a ZIP c
 |--------|-------|
 ${physics}
 
+## Engineering
+
+${(() => {
+  const E = a.engineering; if (!E || !E.buoyancy) return 'No numbers: the boat does not float or balance as configured.';
+  const B = E.buoyancy, D = E.drag, Wt = E.weight;
+  return `### Buoyancy
+
+| | |
+|---|---|
+| Total lift (every drum under) | ${f0(B.max)} lb |
+| Boat + crew | ${f0(B.load)} lb |
+| Reserve | ${f0(B.reserve)} lb (safety factor ${B.sf.toFixed(1)}×) |
+${B.drums.map(d => `| Drum ${d.id + 1} | ${f0(d.lb)} of ${f0(d.capacity)} lb (${f0(d.used * 100)}% used), ${f1(d.depth)}" under |`).join('\n')}
+| Carried by submerged foam-filled pipe | ${f0(B.frameLift)} lb |
+| Foam lift if swamped | ${f0(B.emergency)} lb vs ${f0(B.structure)} lb of structure |
+
+### Drag
+
+| | |
+|---|---|
+| Underwater area, ahead / side | ${D.frontArea.toFixed(2)} / ${D.sideArea.toFixed(2)} sq ft |
+${D.at.map(x => `| Paddling ${x.mph} mph | ${f1(x.lb)} lb, ${f0(x.watts)} W |`).join('\n')}
+| Top speed (${D.power} W) | ${D.speed.toFixed(1)} mph |
+${D.broadside.map(x => `| Broadside to a ${x.mph} mph current | ${f0(x.lb)} lb |`).join('\n')}
+
+### Weight distribution
+
+| | |
+|---|---|
+| Centre of gravity (fore-aft, height, across) | ${f1(Wt.cg.x)}", ${f1(Wt.cg.y)}", ${f1(Wt.cg.z)}" |
+| Forward / aft | ${f0(Wt.forward * 100)}% / ${f0(100 - Wt.forward * 100)}% |
+| CG above the waterline | ${f1(Wt.cgAboveWater)}" |
+${Wt.groups.map(gr => `| ${gr.name} | ${f0(gr.lb)} lb at ${f0(gr.x)}" |`).join('\n')}
+
+### Structure (1-1/2" Sch 40 PVC, crew × 2 for slamming)
+
+| Check | Stress | Safety factor | |
+|---|---|---|---|
+${E.structure.map(sx => `| ${sx.name} | ${sx.stress ? f0(sx.stress) + ' psi' : '—'} | ${isFinite(sx.sf) ? sx.sf.toFixed(1) : '∞'} | ${icon[sx.level]} |`).join('\n')}
+
+Targets: safety factor ${M.SF_OK}+ (minimum ${M.SF_MIN}). PVC flexural strength ~${M.PVC.flex} psi.
+
+### How each number was worked out
+
+${Object.entries(E.work).map(([id, w]) => `<details><summary><code>${id}</code>: ${w.formula}</summary>
+
+${w.steps.map((t, i) => `${i + 1}. ${t}`).join('\n')}
+
+${w.why}
+
+</details>`).join('\n')}`;
+})()}
+
 ## Competition rules
 
 ${a.rules.map(r => `- ${icon[r.level]} **${r.title}**${r.detail ? ` — ${r.detail}` : ''}`).join('\n')}
