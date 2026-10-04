@@ -120,6 +120,13 @@ bob/
     `/api/profiles` (a Netlify Function backed by Netlify Blobs).
   - On a plain static server they're saved on your device instead.
   - Suggested designs come from `data/profiles.json`.
+- **Set as default / Reset to default** (header):
+  - **Set as default** makes the current design the one the simulator opens
+    with. On the Netlify site that applies to everyone (`/api/default`);
+    elsewhere it applies to this device only.
+  - **Reset to default** discards your changes and goes back to that
+    design.
+  - With no default set, the simulator opens `data/build.json`.
 
 ## 📋 Workflow toward the final build
 
@@ -146,6 +153,8 @@ Project: `bob-sim`. The build runs `npm test && npm run build`, publishes
 - `/`: the simulator. `/raft-render.html`: the original render.
   `/legacy.html`: the v1.0 simulator.
 - `GET /api/profiles`, `GET|PUT|DELETE /api/profiles/:id`: team profiles.
+- `GET|PUT|DELETE /api/default`: the team's default design (falls back to
+  `data/build.json`).
 - Production deploys write to the global `profiles` blob store; previews use a
   deploy-scoped store, so test saves never reach production.
 - Anyone with the URL can save or delete profiles. To restrict that, turn on
