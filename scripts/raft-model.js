@@ -441,7 +441,14 @@
     if (per > 0) return Math.ceil(pieces / per);
     return Math.ceil(pieces * len * wid * 1.15 / (SHEET.w * SHEET.l));
   }
+  // Extra zip-tie supports placed in the 3D view (config.extraTies) add to
+  // the layout's tie count.
   function requirements(g, parts) {
+    const req = baseRequirements(g, parts), extra = Array.isArray(g.config.extraTies) ? g.config.extraTies.length : 0;
+    if (extra) { req.extraTies = extra; req.tieCount += extra; req.items['zip-tie'] = Math.ceil(req.tieCount * 1.15); }
+    return req;
+  }
+  function baseRequirements(g, parts) {
     if (g.boxes) return boxRequirements(g, parts);
     const c = g.config;
     const r = g.r;
@@ -591,9 +598,10 @@
     used.coroplast = deckSheets * 2;                         // top and bottom skins
     const pool = {};
     parts.forEach(p => { const k = USED_ROLES[p.role]; if (k) pool[k] = (pool[k] || 0) + (inventory([p])[k] || 0); });
+    const plan = paintPlan(c, parts);
     const rows = parts.filter(p => p.role !== 'drum').map(p => {
       const q = +p.quantity || 0, k = USED_ROLES[p.role];
-      const share = k ? (pool[k] ? Math.min(1, used[k] / pool[k]) : 1) : onBoatShare(p);
+      const share = k ? (pool[k] ? Math.min(1, used[k] / pool[k]) : 1) : (plan && p.role === 'paint' ? 0 : onBoatShare(p));
       return { part: p, w: q * share * (+p.weight_lb_each || 0) };
     });
     // the layout needs more pipe or fittings than listed: weigh the shortfall too
@@ -605,7 +613,25 @@
       const each = pool[k] ? listed.reduce((t, p) => t + (+p.quantity || 0) * (+p.weight_lb_each || 0), 0) / pool[k] : DEFAULT_EACH[k];   // per pipe stick, fitting or sheet
       rows.push({ part: { name: `more ${k} (not on the list yet)`, role: k, status: 'planned' }, w: short * each });
     });
+    if (plan) rows.push({ part: { name: `paint on ${plan.area.toFixed(1)} sq ft (painted in the 3D view)`, role: 'paint', status: parts.some(p => p.role === 'paint' && isBought(p)) ? 'bought' : 'planned' }, w: plan.area * PAINT_LB_PER_SQFT });
     return rows;
+  }
+
+  // Paint applied in the 3D view: config.paint = [{ paint: part name, color, area_sqft }].
+  // Dried spray paint weighs about 0.02 lb per sq ft per coat; a 12 oz can covers
+  // about 15 sq ft (a part's coverage_sqft overrides it).
+  const PAINT_LB_PER_SQFT = 0.02, CAN_SQFT = 15;
+  function paintPlan(c, parts) {
+    const list = Array.isArray(c && c.paint) ? c.paint.filter(x => +x.area_sqft > 0) : [];
+    if (!list.length) return null;
+    const by = {};
+    list.forEach(x => { const k = x.paint || x.color; (by[k] = by[k] || { paint: x.paint, color: x.color, area: 0, parts: 0 }); by[k].area += +x.area_sqft; by[k].parts++; });
+    const colors = Object.values(by).map(b => {
+      const part = (parts || []).find(p => p.name === b.paint);
+      const cover = part && +part.coverage_sqft > 0 ? +part.coverage_sqft : CAN_SQFT;
+      return Object.assign(b, { cans: Math.ceil(b.area / cover - 1e-9), have: part ? +part.quantity || 0 : 0, bought: !!(part && isBought(part)) });
+    });
+    return { area: colors.reduce((t, b) => t + b.area, 0), colors };
   }
 
   const isBought = p => p.status === 'bought' || p.status === 'installed';
@@ -917,6 +943,13 @@
     const spent = parts.filter(p => p.status === 'bought' || p.status === 'installed').reduce((s, p) => s + (+p.quantity || 0) * (+p.unit_cost_usd || 0), 0);
     const recs = recommend({ build, g, req, wt, sol, fwd, side, leaks, rulesOut, crewW });
     if (g.cageUnsupported) recs.push({ level: 'warn', title: 'The cage is only modeled for lengthwise drums', detail: 'Crosswise drums use zip-tie bands here. Switch to a lengthwise layout to compare a caged build.' });
+    const plan = paintPlan(g.config, build.parts);
+    if (plan) {
+      const short = plan.colors.filter(b => b.cans > b.have);
+      recs.push({ level: short.length ? 'warn' : 'info', title: `Paint plan: ${plan.area.toFixed(1)} sq ft painted (~${(plan.area * PAINT_LB_PER_SQFT).toFixed(1)} lb)`,
+        detail: plan.colors.map(b => `${b.paint || b.color}: ${b.area.toFixed(1)} sq ft on ${b.parts} part${b.parts > 1 ? 's' : ''}, ~${b.cans} can${b.cans > 1 ? 's' : ''} for one coat (${b.have} on the list)`).join('; ') + '.' + (short.length ? ' Buy more of: ' + short.map(b => b.paint || b.color).join(', ') + '.' : '') });
+    }
+    if (g.config.extraTies && g.config.extraTies.length) recs.push({ level: 'info', title: `${g.config.extraTies.length} extra zip-tie supports added in the 3D view`, detail: 'Counted in the zip-tie total and weight. Keep each tie 18" or less and trim flush.' });
     if (wt.undecided > 0) {
       const max = (rules && rules.max_boat_weight_lb) || 150, all = wt.total + wt.undecided;
       recs.push({ level: all >= max ? 'warn' : 'info', title: `Not counted yet: ${wt.undecided.toFixed(1)} lb of parts whose use isn't decided`,
@@ -1262,7 +1295,7 @@
 
   return {
     WATER, DRUM, DRUM_SIZES, drumSpec, drumLabel, PIPE_R, RAIL_OFFSET, PRESETS, DEFAULT_CONFIG, inventory,
-    CONSUMABLE_SHARE, onBoatShare, withDefaults, geometry, requirements, shoppingList, storeLinks, fitFrame, rankPresets, PRIORITIES, weights, massItems, crewPositions, solve, checkRules, analyze, comparePresets,
+    CONSUMABLE_SHARE, onBoatShare, paintPlan, PAINT_LB_PER_SQFT, withDefaults, geometry, requirements, shoppingList, storeLinks, fitFrame, rankPresets, PRIORITIES, weights, massItems, crewPositions, solve, checkRules, analyze, comparePresets,
     segArea, drumMaxLb,
   };
 });

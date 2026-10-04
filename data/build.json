@@ -362,7 +362,9 @@
       "weight_measured": false,
       "unit_cost_usd": 7.48,
       "status": "bought",
-      "notes": "Lowe's 2026-10-03. Bonds to plastic: drums, PVC, Coroplast."
+      "notes": "Lowe's 2026-10-03. Bonds to plastic: drums, PVC, Coroplast.",
+      "color_hex": "#1c1c1c",
+      "coverage_sqft": 15
     },
     {
       "name": "Krylon Fusion spray paint, matte red pepper, 12 oz",
@@ -374,7 +376,9 @@
       "weight_measured": false,
       "unit_cost_usd": 7.48,
       "status": "bought",
-      "notes": "Lowe's 2026-10-03."
+      "notes": "Lowe's 2026-10-03.",
+      "color_hex": "#9e1b1b",
+      "coverage_sqft": 15
     },
     {
       "catalog_id": "X004",
@@ -464,7 +468,9 @@
       "weight_measured": false,
       "unit_cost_usd": 7.48,
       "status": "bought",
-      "notes": "Lowe's 2026-10-03."
+      "notes": "Lowe's 2026-10-03.",
+      "color_hex": "#eeeeea",
+      "coverage_sqft": 15
     },
     {
       "name": "Krylon Fusion spray paint, gloss sunbeam (yellow), 12 oz",
@@ -476,7 +482,9 @@
       "weight_measured": false,
       "unit_cost_usd": 7.48,
       "status": "bought",
-      "notes": "Lowe's 2026-10-03."
+      "notes": "Lowe's 2026-10-03.",
+      "color_hex": "#f4c20d",
+      "coverage_sqft": 15
     },
     {
       "name": "Rust-Oleum multicolor textured spray paint (stone), 12 oz",
@@ -488,7 +496,9 @@
       "weight_measured": false,
       "unit_cost_usd": 11.98,
       "status": "bought",
-      "notes": "Lowe's 2026-10-03."
+      "notes": "Lowe's 2026-10-03.",
+      "color_hex": "#8e8577",
+      "coverage_sqft": 12
     },
     {
       "name": "Krylon chalky finish clear coat, 11 oz",
