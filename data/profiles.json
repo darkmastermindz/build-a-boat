@@ -9,10 +9,10 @@
       "summary": {
         "preset": "tri3pack",
         "drums": 3,
-        "weight": 137.7,
+        "weight": 138.3,
         "loadPct": 31,
         "crew": 2,
-        "cost": 780.73,
+        "cost": 875.93,
         "sticks": 8
       },
       "build": {
@@ -125,6 +125,19 @@
             "unit_cost_usd": 1.85,
             "status": "bought",
             "notes": "2 × 12-pack from Amazon. Enter the actual price.",
+            "foam_filled": true
+          },
+          {
+            "name": "1-1/2\" furniture-grade 5-way fitting (4-packs)",
+            "role": "five-way",
+            "category": "frame",
+            "material": "pvc",
+            "quantity": 16,
+            "weight_lb_each": 0.4,
+            "weight_measured": false,
+            "unit_cost_usd": 5.95,
+            "status": "bought",
+            "notes": "Amazon, ordered 2026-10-03: 2 x 4-pack (5 Way PVC Fittings), 1 x EPHECH 4-pack, 1 x ANPTGHT 4-pack; $95.19 for all 16 incl. tax. Weight is an estimate: weigh one. Fits any box joint; plug unused outlets.",
             "foam_filled": true
           },
           {
@@ -445,10 +458,10 @@
       "summary": {
         "preset": "cat2",
         "drums": 2,
-        "weight": 106,
+        "weight": 106.3,
         "loadPct": 46,
         "crew": 2,
-        "cost": 780.73,
+        "cost": 875.93,
         "sticks": 5
       },
       "build": {
@@ -561,6 +574,19 @@
             "unit_cost_usd": 1.85,
             "status": "bought",
             "notes": "2 × 12-pack from Amazon. Enter the actual price.",
+            "foam_filled": true
+          },
+          {
+            "name": "1-1/2\" furniture-grade 5-way fitting (4-packs)",
+            "role": "five-way",
+            "category": "frame",
+            "material": "pvc",
+            "quantity": 16,
+            "weight_lb_each": 0.4,
+            "weight_measured": false,
+            "unit_cost_usd": 5.95,
+            "status": "bought",
+            "notes": "Amazon, ordered 2026-10-03: 2 x 4-pack (5 Way PVC Fittings), 1 x EPHECH 4-pack, 1 x ANPTGHT 4-pack; $95.19 for all 16 incl. tax. Weight is an estimate: weigh one. Fits any box joint; plug unused outlets.",
             "foam_filled": true
           },
           {
@@ -881,10 +907,10 @@
       "summary": {
         "preset": "cat2",
         "drums": 2,
-        "weight": 103.4,
+        "weight": 103.7,
         "loadPct": 46,
         "crew": 2,
-        "cost": 780.73,
+        "cost": 875.93,
         "sticks": 5
       },
       "build": {
@@ -997,6 +1023,19 @@
             "unit_cost_usd": 1.85,
             "status": "bought",
             "notes": "2 × 12-pack from Amazon. Enter the actual price.",
+            "foam_filled": true
+          },
+          {
+            "name": "1-1/2\" furniture-grade 5-way fitting (4-packs)",
+            "role": "five-way",
+            "category": "frame",
+            "material": "pvc",
+            "quantity": 16,
+            "weight_lb_each": 0.4,
+            "weight_measured": false,
+            "unit_cost_usd": 5.95,
+            "status": "bought",
+            "notes": "Amazon, ordered 2026-10-03: 2 x 4-pack (5 Way PVC Fittings), 1 x EPHECH 4-pack, 1 x ANPTGHT 4-pack; $95.19 for all 16 incl. tax. Weight is an estimate: weigh one. Fits any box joint; plug unused outlets.",
             "foam_filled": true
           },
           {
@@ -1317,10 +1356,10 @@
       "summary": {
         "preset": "tri3bow",
         "drums": 3,
-        "weight": 126,
+        "weight": 126.3,
         "loadPct": 32,
         "crew": 2,
-        "cost": 745.73,
+        "cost": 840.93,
         "sticks": 5
       },
       "build": {
@@ -1433,6 +1472,19 @@
             "unit_cost_usd": 1.85,
             "status": "bought",
             "notes": "2 × 12-pack from Amazon. Enter the actual price.",
+            "foam_filled": true
+          },
+          {
+            "name": "1-1/2\" furniture-grade 5-way fitting (4-packs)",
+            "role": "five-way",
+            "category": "frame",
+            "material": "pvc",
+            "quantity": 16,
+            "weight_lb_each": 0.4,
+            "weight_measured": false,
+            "unit_cost_usd": 5.95,
+            "status": "bought",
+            "notes": "Amazon, ordered 2026-10-03: 2 x 4-pack (5 Way PVC Fittings), 1 x EPHECH 4-pack, 1 x ANPTGHT 4-pack; $95.19 for all 16 incl. tax. Weight is an estimate: weigh one. Fits any box joint; plug unused outlets.",
             "foam_filled": true
           },
           {
@@ -1753,10 +1805,10 @@
       "summary": {
         "preset": "quad4pontoon",
         "drums": 4,
-        "weight": 142,
+        "weight": 142.3,
         "loadPct": 25,
         "crew": 2,
-        "cost": 734.77,
+        "cost": 829.97,
         "sticks": 5
       },
       "build": {
@@ -1869,6 +1921,19 @@
             "unit_cost_usd": 1.85,
             "status": "bought",
             "notes": "2 × 12-pack from Amazon. Enter the actual price.",
+            "foam_filled": true
+          },
+          {
+            "name": "1-1/2\" furniture-grade 5-way fitting (4-packs)",
+            "role": "five-way",
+            "category": "frame",
+            "material": "pvc",
+            "quantity": 16,
+            "weight_lb_each": 0.4,
+            "weight_measured": false,
+            "unit_cost_usd": 5.95,
+            "status": "bought",
+            "notes": "Amazon, ordered 2026-10-03: 2 x 4-pack (5 Way PVC Fittings), 1 x EPHECH 4-pack, 1 x ANPTGHT 4-pack; $95.19 for all 16 incl. tax. Weight is an estimate: weigh one. Fits any box joint; plug unused outlets.",
             "foam_filled": true
           },
           {
@@ -2176,10 +2241,10 @@
       "summary": {
         "preset": "stagger2",
         "drums": 2,
-        "weight": 111.9,
+        "weight": 112.6,
         "loadPct": 43,
         "crew": 2,
-        "cost": 780.73,
+        "cost": 875.93,
         "sticks": 6
       },
       "build": {
@@ -2292,6 +2357,19 @@
             "unit_cost_usd": 1.85,
             "status": "bought",
             "notes": "2 × 12-pack from Amazon. Enter the actual price.",
+            "foam_filled": true
+          },
+          {
+            "name": "1-1/2\" furniture-grade 5-way fitting (4-packs)",
+            "role": "five-way",
+            "category": "frame",
+            "material": "pvc",
+            "quantity": 16,
+            "weight_lb_each": 0.4,
+            "weight_measured": false,
+            "unit_cost_usd": 5.95,
+            "status": "bought",
+            "notes": "Amazon, ordered 2026-10-03: 2 x 4-pack (5 Way PVC Fittings), 1 x EPHECH 4-pack, 1 x ANPTGHT 4-pack; $95.19 for all 16 incl. tax. Weight is an estimate: weigh one. Fits any box joint; plug unused outlets.",
             "foam_filled": true
           },
           {
@@ -2612,10 +2690,10 @@
       "summary": {
         "preset": "tri3stern",
         "drums": 3,
-        "weight": 142.4,
+        "weight": 143,
         "loadPct": 31,
         "crew": 2,
-        "cost": 745.73,
+        "cost": 840.93,
         "sticks": 9
       },
       "build": {
@@ -2728,6 +2806,19 @@
             "unit_cost_usd": 1.85,
             "status": "bought",
             "notes": "2 × 12-pack from Amazon. Enter the actual price.",
+            "foam_filled": true
+          },
+          {
+            "name": "1-1/2\" furniture-grade 5-way fitting (4-packs)",
+            "role": "five-way",
+            "category": "frame",
+            "material": "pvc",
+            "quantity": 16,
+            "weight_lb_each": 0.4,
+            "weight_measured": false,
+            "unit_cost_usd": 5.95,
+            "status": "bought",
+            "notes": "Amazon, ordered 2026-10-03: 2 x 4-pack (5 Way PVC Fittings), 1 x EPHECH 4-pack, 1 x ANPTGHT 4-pack; $95.19 for all 16 incl. tax. Weight is an estimate: weigh one. Fits any box joint; plug unused outlets.",
             "foam_filled": true
           },
           {
@@ -3051,7 +3142,7 @@
         "weight": 146.2,
         "loadPct": 25,
         "crew": 2,
-        "cost": 734.77,
+        "cost": 829.97,
         "sticks": 8
       },
       "build": {
@@ -3164,6 +3255,19 @@
             "unit_cost_usd": 1.85,
             "status": "bought",
             "notes": "2 × 12-pack from Amazon. Enter the actual price.",
+            "foam_filled": true
+          },
+          {
+            "name": "1-1/2\" furniture-grade 5-way fitting (4-packs)",
+            "role": "five-way",
+            "category": "frame",
+            "material": "pvc",
+            "quantity": 16,
+            "weight_lb_each": 0.4,
+            "weight_measured": false,
+            "unit_cost_usd": 5.95,
+            "status": "bought",
+            "notes": "Amazon, ordered 2026-10-03: 2 x 4-pack (5 Way PVC Fittings), 1 x EPHECH 4-pack, 1 x ANPTGHT 4-pack; $95.19 for all 16 incl. tax. Weight is an estimate: weigh one. Fits any box joint; plug unused outlets.",
             "foam_filled": true
           },
           {

@@ -1,6 +1,6 @@
 {
   "name": "Team BOB pirate raft",
-  "updated": "2026-10-03",
+  "updated": "2026-10-04",
   "notes": "The team's actual build. Edit it in raft-simulation.html (Parts tab), export it, and commit it here. Status: planned | bought | installed. Frame config inferred from purchases (3 double sani tees, 5 sticks): one rail per drum line plus a center spine, 5 beams. Confirm against the mockup.",
   "config": {
     "preset": "tri3pack",
@@ -109,6 +109,19 @@
       "unit_cost_usd": 1.85,
       "status": "bought",
       "notes": "2 \u00d7 12-pack from Amazon. Enter the actual price.",
+      "foam_filled": true
+    },
+    {
+      "name": "1-1/2\" furniture-grade 5-way fitting (4-packs)",
+      "role": "five-way",
+      "category": "frame",
+      "material": "pvc",
+      "quantity": 16,
+      "weight_lb_each": 0.4,
+      "weight_measured": false,
+      "unit_cost_usd": 5.95,
+      "status": "bought",
+      "notes": "Amazon, ordered 2026-10-03: 2 x 4-pack (5 Way PVC Fittings), 1 x EPHECH 4-pack, 1 x ANPTGHT 4-pack; $95.19 for all 16 incl. tax. Weight is an estimate: weigh one. Fits any box joint; plug unused outlets.",
       "foam_filled": true
     },
     {
@@ -478,6 +491,28 @@
           "Zernmiarder 1-1/2\" 4-way side-outlet tee, 12-pack",
           2,
           null
+        ]
+      ]
+    },
+    {
+      "store": "Amazon",
+      "date": "2026-10-03",
+      "total_usd": 95.19,
+      "lines": [
+        [
+          "5 Way PVC Fittings 1-1/2\", 4-pack",
+          2,
+          22.46
+        ],
+        [
+          "EPHECH 1-1/2\" 5-way furniture-grade fitting, 4-pack",
+          1,
+          22.46
+        ],
+        [
+          "ANPTGHT 1-1/2\" 5-way furniture-grade fitting, 4-pack",
+          1,
+          27.81
         ]
       ]
     }
