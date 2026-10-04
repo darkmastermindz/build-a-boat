@@ -298,6 +298,68 @@ Real behavior in rapids depends on speed, waves and crew movement. Use the
 numbers to compare layouts, not as guarantees. A pool or lake float test
 before race day is the real check.
 
+## Formula sources and open questions
+
+Each worked calculation in the simulator and the report links to its sources.
+The full list lives in `SOURCES` and `ASSUMPTIONS` in `scripts/raft-model.js`.
+How the assumed constants compare with the sources:
+
+| Assumption | Used | Sources say | Leans |
+|---|---|---|---|
+| PVC flexural strength | 14,000 psi | 14,450 psi at 73 °F ([Spears, cell class 12454](https://www.spearsmfg.com/IP-4/03%20Physical%20Properties%20of%20PVC%20&%20CPVC%20Pipe.pdf)) | Safe at 73 °F; **not derated for sun-heated pipe** (0.62× at 100 °F, [PIPA TN003](https://www.pipa.com.au/wp-content/uploads/2018/09/tn003.pdf)) |
+| Drum end-on drag | Cd 0.9 | 1.17 (disc) to 0.81 (l/d > 2) ([Hoerner](https://archive.org/details/FluidDynamicDragHoerner1965)) | Within range |
+| Broadside drag | Cd 1.1 | 1.1–1.2 below the [drag crisis](https://en.wikipedia.org/wiki/Drag_crisis); our Re ≈ 10⁶ is past it | High (safe) for pinning force |
+| Pointed hull drag | Cd 0.5 | No direct source | Estimate |
+| Paddler power | 75 W | 75 W all day, 100–150 W for an hour ([Human power](https://en.wikipedia.org/wiki/Human_power)) | Low (safe) for speed |
+| Slamming factor | × 2 | 2× for a suddenly applied load ([RoyMech](https://www.roymech.co.uk/Useful_Tables/Fatigue/Mechanics_Impact.html)) | Does not cover jumping onto the deck |
+| Safety factor targets | 2.5 / 1.5 | No universal value ([Factor of safety](https://en.wikipedia.org/wiki/Factor_of_safety)) | Judgement call |
+
+Stability uses [metacentric height](https://en.wikipedia.org/wiki/Metacentric_height),
+GM = KB + I/V − KG. The solver itself is not limited to small angles: it slices
+each drum into [circular segments](https://mathworld.wolfram.com/CircularSegment.html)
+and balances lift and moments at the actual tilt. A wider drum spacing raises
+the righting arm, as in this [catamaran sea-trial study](https://doi.org/10.3390/jmse12081436).
+
+## Whitewater simulation (USNWC)
+
+**What's published.** Channel figures come from the
+[USNWC page](https://en.wikipedia.org/wiki/U.S._National_Whitewater_Center)
+and [S2O Design](https://s2odesign.com/projects/the-u-s-national-whitewater-center/):
+
+| Channel | Length | Drop | Slope | Flow |
+|---|---|---|---|---|
+| Competition | 300 m | 6.4 m | 2.1% | 15 m³/s |
+| Wilderness | 550 m | 6.4 m | 1.2% | 19 m³/s |
+
+The named rapids are from the same page:
+- **Competition channel:** Bridge Drop (III) and Big Drop (IV).
+- **Wilderness channel:** Entrance Exam, Huey Lewis, Bread and Butter (II), Sunset (III) and M-Wave (III+).
+
+Wave heights per class come from the
+[International Scale of River Difficulty](https://en.wikipedia.org/wiki/International_scale_of_river_difficulty).
+
+**Not published (editable assumptions):**
+- channel width (12 m, like other Olympic slalom channels);
+- Manning n (0.045);
+- drop heights (1 ft for Class II, 3 ft for Class III).
+
+**Video and photos.** These clips show how home-built boats handle the channel:
+- [2017 compilation](https://www.youtube.com/watch?v=FpRtdIrZW1s)
+- [Build Your Own Boat at USNWC](https://www.youtube.com/watch?v=Vw2WUAATFZk)
+- [WBTV 2022 photos](https://qclife.wbtv.com/2022/10/16/whitewater-center-held-build-your-own-boat-competition-this-weekend/)
+
+They were blocked from the development environment. Please watch them and
+estimate the drop heights and wave spacing, then set them in the panel.
+
+**First results for the current design** (competition channel, default settings):
+- **Class II waves (21 ft apart at the breaking limit):** 23° trim and 28° heel, with about 3" of water over the deck at worst.
+- **Roll resonance:** roll GM is low (2.2"), so it briefly loses roll stability on crests, and its 2.7 s roll period sits near the 3.0 s spacing between waves.
+- **Bridge Drop:** makes a 2.7 ft hole that flushes rather than holds; the boat is pushed with 1,600 lb if pinned sideways.
+
+**Limits.**
+- The model is quasi-static. Splash, impacts, paddling and wave dynamics are left out.
+- Big Drop (Class IV) is on the race course but not simulated.
+
 ## Open items
 
 1. Organizers: are daisy-chained zip-tie drum bands OK under the 18" rule?
