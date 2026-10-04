@@ -192,6 +192,61 @@
 
   // ── Geometry ──
   function geometry(cfgIn) {
+    const g = buildGeometry(cfgIn);
+    labelParts(g);
+    return g;
+  }
+
+  // ── Part IDs: a short label on every pipe, joint and part, to reference in conversation ──
+  // P = pipe, J = joint (fitting), D = drum, S = side panel, N = pool noodle, K = deck, M = mast.
+  // Numbered by position, bow first, then top to bottom, then port to starboard, so the
+  // same design always gets the same labels. Changing the design renumbers them.
+  const r1 = v => Math.round(v * 10) / 10;
+  const byPlace = (pa, pb) => r1(pb[0]) - r1(pa[0]) || r1(pb[1]) - r1(pa[1]) || r1(pa[2]) - r1(pb[2]);
+  function labelParts(g) {
+    const pipes = [];
+    const addPipe = (kind, a, b, ref, drum) => pipes.push({ kind, a, b, len: Math.hypot(b[0] - a[0], b[1] - a[1], b[2] - a[2]), drum, ref });
+    (g.cagePieces || []).forEach(pc => addPipe(pc.kind, pc.a, pc.b, pc, pc.drum));
+    (g.rails || []).forEach(rl => addPipe('rail', [rl.x0, g.railY, rl.z], [rl.x1, g.railY, rl.z], rl));
+    (g.beams || []).forEach((x, i) => addPipe('beam', [x, g.beamY, -g.frameWidth / 2], [x, g.beamY, g.frameWidth / 2], { beam: i }));
+    const mid = q => q.a.map((v, k) => (v + q.b[k]) / 2);
+    pipes.sort((p, q) => byPlace(mid(p), mid(q)));
+    pipes.forEach((q, i) => { q.id = 'P' + (i + 1); q.ref.id = q.id; });
+    // joints: every point where pipe ends meet, or a pipe end lands partway along another pipe
+    const key = pt => pt.map(v => v.toFixed(1)).join(','), nodes = new Map();
+    pipes.forEach(q => [q.a, q.b].forEach(pt => { if (!nodes.has(key(pt))) nodes.set(key(pt), { at: pt.slice(), dirs: [], pipes: [] }); }));
+    nodes.forEach(nd => pipes.forEach(q => {
+      const d = q.b.map((v, k) => v - q.a[k]), L2 = d.reduce((t, v) => t + v * v, 0), t = nd.at.reduce((s2, v, k) => s2 + (v - q.a[k]) * d[k], 0) / L2;
+      const off = Math.hypot(...nd.at.map((v, k) => v - (q.a[k] + t * d[k]))), L = Math.sqrt(L2);
+      if (off > 0.1 || t * L < -0.1 || (1 - t) * L < -0.1) return;
+      const u = d.map(v => v / L);
+      if (t * L < 0.1) nd.dirs.push(u); else if ((1 - t) * L < 0.1) nd.dirs.push(u.map(v => -v)); else nd.dirs.push(u, u.map(v => -v));
+      nd.pipes.push(q.id);
+    }));
+    const joints = [...nodes.values()].filter(nd => nd.dirs.length >= 2).sort((p, q) => byPlace(p.at, q.at));
+    joints.forEach((nd, i) => {
+      nd.id = 'J' + (i + 1); nd.ways = nd.dirs.length;
+      if (nd.ways === 2) { const dot = nd.dirs[0].reduce((t, v, k) => t + v * nd.dirs[1][k], 0), deg = Math.round(Math.acos(Math.max(-1, Math.min(1, -dot))) * 180 / Math.PI);
+        nd.type = deg < 2 ? 'coupling' : `${180 - deg}° elbow`; }
+      else nd.type = `${nd.ways}-way`;
+      delete nd.dirs;
+    });
+    const drums = g.drums.map(d => ({ id: 'D' + (d.id + 1), drum: d.id, at: [d.x, d.y0 + d.r, d.z] }));
+    const panels = (g.sidePanels || []).map((sp, i) => ({ id: 'S' + (i + 1), i, at: sp.hull ? [(g.hull.xs + g.hull.tip) / 2, (sp.y0 + sp.y1) / 2, 0] : [(sp.a[0] + sp.b[0]) / 2, (sp.y0 + sp.y1) / 2, (sp.a[2] + sp.b[2]) / 2] }));
+    (g.sidePanels || []).forEach((sp, i) => { sp.id = panels[i].id; });
+    const c = g.config, others = [{ id: 'K1', kind: 'deck', at: [0, g.deckTop, 0] }];
+    if (c.mastHeight > 0) others.push({ id: 'M1', kind: 'mast', at: [c.deck.length / 2 - 8, g.deckTop + c.mastHeight / 2, 0] });
+    crewPositions(c, c.crew).forEach((p, i) => others.push({ id: 'C' + (i + 1), kind: 'crew', i, at: [p.x, g.deckTop + 20, p.z] }));
+    const noodles = [];
+    if (g.platform) { const pl = g.platform; let n = 0;
+      for (let k = 0; k < pl.bays; k++) for (let j = 0; j < pl.across; j++) noodles.push({ id: 'N' + (++n), bay: k, row: j, at: [(pl.xs[k] + pl.xs[k + 1]) / 2, pl.y, -pl.W / 2 + PIPE_R + 1.25 + j * 2.5 + ((pl.W - 2 * PIPE_R) - pl.across * 2.5) / 2] }); }
+    if (g.bowNoodle) noodles.unshift({ id: 'N0', bow: true, at: [g.hull ? g.hull.tip : 0, g.bowNoodle.y, 0] });
+    if (c.noodleRail) [-1, 1].forEach((sd, i) => noodles.push({ id: 'NR' + (i + 1), rail: sd, at: [0, g.deckTop + 1.25, sd * (c.deck.width / 2 - 1.25)] }));
+    g.labels = { pipes, joints, drums, panels, noodles, others };
+    return g.labels;
+  }
+
+  function buildGeometry(cfgIn) {
     const c = withDefaults(cfgIn);
     const raw = Array.isArray(c.drums) ? c.drums : PRESETS[c.preset].layout(c);
     const drum = drumSpec(c);
@@ -597,9 +652,9 @@
         const extra = splices.filter(pc => Math.abs(pc.b[2] - rl.z) < 0.5 && pc.b[0] > xs[0] + 0.5 && pc.b[0] < xs[xs.length - 1] - 0.5 && !xs.some(x => Math.abs(x - pc.b[0]) < 0.5)).map(pc => pc.b[0]);
         fit.tee += extra.length;
         const pts = [...xs, ...extra].sort((a, b) => a - b);
-        for (let j = 0; j < pts.length - 1; j++) cuts.push({ label: `rail ${i + 1}.${j + 1}`, len: +(pts[j + 1] - pts[j] - 2 * k).toFixed(2) });
+        for (let j = 0; j < pts.length - 1; j++) cuts.push({ id: `${rl.id}.${j + 1}`, label: `rail ${i + 1}.${j + 1}`, len: +(pts[j + 1] - pts[j] - 2 * k).toFixed(2) });
       });
-      xs.forEach((x, i) => { for (let j = 0; j < zs.length - 1; j++) cuts.push({ label: `beam ${i + 1}.${j + 1}`, len: +(zs[j + 1] - zs[j] - 2 * k).toFixed(2) }); });
+      xs.forEach((x, i) => { for (let j = 0; j < zs.length - 1; j++) cuts.push({ id: `${(g.labels.pipes.find(q => q.ref.beam === i) || {}).id}.${j + 1}`, label: `beam ${i + 1}.${j + 1}`, len: +(zs[j + 1] - zs[j] - 2 * k).toFixed(2) }); });
       xs.forEach((x, bi) => zs.forEach((z, ri) => {
         const endB = bi === 0 || bi === xs.length - 1, endR = ri === 0 || ri === zs.length - 1;
         const bowCorner = g.bow && bi === xs.length - 1 && endR;   // riser leaves the front corners
@@ -609,8 +664,8 @@
       }));
       if (g.bow) fit.elbow += 4;
     } else {
-      g.rails.forEach((rl, i) => cuts.push({ label: `rail ${i + 1}`, len: c.frameLength }));
-      g.beams.forEach((_, i) => cuts.push({ label: `beam ${i + 1}`, len: c.frameWidth }));
+      g.rails.forEach((rl, i) => cuts.push({ id: rl.id, label: `rail ${i + 1}`, len: c.frameLength }));
+      g.beams.forEach((_, i) => cuts.push({ id: (g.labels.pipes.find(q => q.ref.beam === i) || {}).id, label: `beam ${i + 1}`, len: c.frameWidth }));
       if (g.bow) fit.elbow += 6;
     }
     if (g.bow) {
@@ -624,7 +679,7 @@
     let cageLen = 0;
     if (g.cage) {
       const k = c.fittingTakeoff || 0;
-      g.cagePieces.forEach(pc => cuts.push({ label: `cage ${pc.drum + 1} ${pc.kind}`, len: +(pc.len - 2 * k).toFixed(2), cage: true }));
+      g.cagePieces.forEach(pc => cuts.push({ id: pc.id, label: `cage ${pc.drum + 1} ${pc.kind}`, len: +(pc.len - 2 * k).toFixed(2), cage: true }));
       // lower joints: 2 pipes meeting at an angle = elbow, 3 or more = tee (side-outlet where a post rises)
       const deg = new Map(), dirs = new Map();
       const k3 = pt => pt.map(v => v.toFixed(1)).join(',');
@@ -671,7 +726,7 @@
 
   function boxRequirements(g) {
     const c = g.config, k = c.fittingTakeoff || 0;
-    const cuts = g.cagePieces.map(pc => ({ label: pc.drum < 0 ? pc.kind : `box ${pc.drum + 1} ${pc.kind}`, len: +(pc.len - 2 * k).toFixed(2), cage: true }));
+    const cuts = g.cagePieces.map(pc => ({ id: pc.id, label: pc.drum < 0 ? pc.kind : `box ${pc.drum + 1} ${pc.kind}`, len: +(pc.len - 2 * k).toFixed(2), cage: true }));
     if (c.mastHeight > 0) cuts.push({ label: 'mast', len: c.mastHeight + 6 });
     // every joint: 2 pipes at an angle = elbow (3-way corners need side-outlet tees), 3+ = tee
     const fit = { elbow: 0, tee: 0, four: 0, coupling: 0 };
@@ -2117,7 +2172,7 @@ ${ww.assumptions.map(x => `| ${x.name} | ${x.used} | ${x.source} | ${x.effect} |
   return {
     WATER, DRUM, DRUM_SIZES, drumSpec, drumLabel, PIPE_R, RAIL_OFFSET, PRESETS, DEFAULT_CONFIG, inventory,
     STATUSES, isBought, engineering, PVC, SF_OK, SF_MIN, CONSUMABLE_SHARE, onBoatShare, paintPlan, decalPlan, DECALS, PAINT_LB_PER_SQFT, withDefaults, geometry, requirements, shoppingList, storeLinks, fitFrame, rankPresets, PRIORITIES, weights, massItems, crewPositions, solve, checkRules, analyze, comparePresets,
-    segArea, segWidth, segCentroidY, drumMaxLb, SOURCES, WORK_REFS, ASSUMPTIONS, RHO, NU_WATER, PADDLER_W, DYNAMIC,
+    segArea, segWidth, segCentroidY, drumMaxLb, labelParts, SOURCES, WORK_REFS, ASSUMPTIONS, RHO, NU_WATER, PADDLER_W, DYNAMIC,
     whitewater, whitewaterMarkdown, whitewaterArtifact, whitewaterHydraulics, manningDepth, standingWaveK, supercriticalDepth, belanger, WW_CHANNELS, WW_CLASS, WW_DEFAULTS, G_SI,
   };
 });

@@ -205,7 +205,27 @@ ${Object.entries(a.requirements.items).map(([k, n]) => `| ${k} | ${n} | ${have[k
 
 ### Pipe cut list (10 ft sticks)
 
-${a.requirements.sticks.map((st, i) => `${i + 1}. ${st.cuts.map(k => `${k.label} ${k.len}"`).join(', ')} — offcut ${f0(st.left)}"`).join('\n')}
+${a.requirements.sticks.map((st, i) => `${i + 1}. ${st.cuts.map(k => `${k.id ? k.id + ' ' : ''}${k.label} ${k.len}"`).join(', ')} — offcut ${f0(st.left)}"`).join('\n')}
+
+### Part IDs
+
+Every pipe (P), joint (J), drum (D), side panel (S), noodle (N), deck (K), mast (M) and crew seat (C) has an ID, numbered bow first, then top to bottom, then port to starboard. Turn on **🏷️ IDs** in the simulator to see them on the boat.
+
+<details><summary>Joints (${a.geometry.labels.joints.length})</summary>
+
+| Joint | Fitting | Joins |
+|---|---|---|
+${a.geometry.labels.joints.map(j => `| ${j.id} | ${j.type} | ${j.pipes.join(', ')} |`).join('\n')}
+
+</details>
+
+<details><summary>Pipes (${a.geometry.labels.pipes.length})</summary>
+
+| Pipe | Part | Center to center |
+|---|---|---|
+${a.geometry.labels.pipes.map(q => `| ${q.id} | ${q.kind}${q.drum >= 0 ? ` (box ${q.drum + 1})` : ''} | ${q.len.toFixed(2)}" |`).join('\n')}
+
+</details>
 
 ## Parts list
 
