@@ -111,6 +111,16 @@
   .eng td{padding:3px 4px;border-bottom:1px solid var(--line);vertical-align:top}
   .eng td:last-child{text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
   .eng td.note{white-space:normal;text-align:left}
+  .eng tr.has-work{cursor:pointer}
+  .eng tr.has-work td:first-child::before{content:'▸ ';color:var(--muted)}
+  .eng tr.has-work.open td:first-child::before{content:'▾ '}
+  .eng tr.has-work:hover td{background:color-mix(in srgb,var(--accent) 6%,transparent)}
+  .eng tr.work td{white-space:normal;text-align:left;background:color-mix(in srgb,var(--accent) 5%,transparent);padding:6px 8px}
+  .eng .formula{font:600 12px ui-monospace,Menlo,Consolas,monospace;margin-bottom:4px}
+  .eng tr.work ol{margin:2px 0 4px 18px;padding:0;font:12px ui-monospace,Menlo,Consolas,monospace}
+  .eng tr.work .why{font-size:12px;color:var(--muted)}
+  .tip .work{margin-top:6px;border-top:1px solid var(--line);padding-top:5px;font-size:12px}
+  .tip .work ol{margin:2px 0 2px 16px;padding:0;font-family:ui-monospace,Menlo,Consolas,monospace}
   .eng .bar{height:6px;border-radius:3px;background:var(--line);overflow:hidden;margin-top:3px}
   .eng .bar i{display:block;height:100%;background:var(--accent)}
   .sf-ok{color:var(--ok)}.sf-warn{color:var(--warn)}.sf-error{color:var(--err)}
@@ -716,35 +726,45 @@ function msgList(target, items){
   target.replaceChildren(...[...items].sort((a,b) => order[a.level]-order[b.level]).map(m =>
     el('li', {}, el('span', { class: 'dot ' + m.level, title: m.level }), el('div', {}, el('div', { class:'t' }, m.title), m.detail ? el('div', { class:'d' }, m.detail) : ''))));
 }
+const ENG_OPEN = new Set();
 function renderEngineering(){
   const E = A.engineering, box = $('engBox'); if (!box) return;
   if (!E || !E.buoyancy) { box.replaceChildren(el('p', { class: 'small muted' }, 'No numbers: the boat does not float or balance as configured.')); return; }
-  const row = (k, v, cls) => el('tr', {}, el('td', {}, k), el('td', { class: cls || '' }, v));
+  // a row can carry its work: click it to show the formula, the numbers plugged in and why
+  const workBox = id => { const w = E.work[id]; if (!w) return null;
+    return el('tr', { class: 'work' }, el('td', { colspan: 2 }, el('div', { class: 'formula' }, w.formula), el('ol', {}, ...w.steps.map(t => el('li', {}, t))), el('div', { class: 'why' }, '💡 ' + w.why))); };
+  const rows = (k, v, cls, id) => {
+    const open = id && ENG_OPEN.has(id), tr = el('tr', id && E.work[id] ? { class: 'has-work' + (open ? ' open' : ''), tabindex: 0, role: 'button', 'aria-expanded': !!open, title: 'Show the work',
+      onclick: () => { ENG_OPEN.has(id) ? ENG_OPEN.delete(id) : ENG_OPEN.add(id); renderEngineering(); }, onkeydown: e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.currentTarget.click(); } } } : {},
+      el('td', {}, k), el('td', { class: cls || '' }, v));
+    return open ? [tr, workBox(id)] : [tr];
+  };
+  const row = (k, v, cls, id) => rows(k, v, cls, id);
   const B = E.buoyancy, D = E.drag, Wt = E.weight;
   const bar = f => el('div', { class: 'bar' }, el('i', { style: `width:${Math.min(100, f * 100).toFixed(0)}%` }));
   box.replaceChildren(el('div', { class: 'eng' },
+    el('p', { class: 'small muted' }, 'Click any row to see the formula, the numbers and the reasoning.'),
     el('h3', {}, '🛟 Buoyancy'), el('table', {},
-      row('Total lift if every drum is pushed under', f0(B.max) + ' lb'),
-      row('Boat + crew', f0(B.load) + ' lb'),
-      row('Reserve (extra load before it sinks)', f0(B.reserve) + ' lb'),
-      row('Buoyancy safety factor', B.sf.toFixed(1) + '×', B.sf >= 2.5 ? 'sf-ok' : B.sf >= 1.5 ? 'sf-warn' : 'sf-error'),
-      ...B.drums.map(d => el('tr', {}, el('td', {}, `Drum ${d.id + 1}: ${f0(d.lb)} of ${f0(d.capacity)} lb (${f0(d.share * 100)}% of the load), ${d.depth.toFixed(1)}" under`, bar(d.used)), el('td', {}, f0(d.used * 100) + '% used'))),
-      row('Carried by submerged foam-filled pipe', f0(B.frameLift) + ' lb'),
-      row('Foam lift if swamped (deck, noodles, foam-filled pipe)', `${f0(B.emergency)} lb vs ${f0(B.structure)} lb of structure`, B.emergency >= B.structure ? 'sf-ok' : 'sf-error')),
+      ...row('Total lift if every drum is pushed under', f0(B.max) + ' lb', '', 'buoy.max'),
+      ...row('Boat + crew', f0(B.load) + ' lb', '', 'buoy.load'),
+      ...row('Reserve (extra load before it sinks)', f0(B.reserve) + ' lb', '', 'buoy.reserve'),
+      ...row('Buoyancy safety factor', B.sf.toFixed(1) + '×', B.sf >= 2.5 ? 'sf-ok' : B.sf >= 1.5 ? 'sf-warn' : 'sf-error', 'buoy.sf'),
+      ...B.drums.flatMap(d => row([`Drum ${d.id + 1}: ${f0(d.lb)} of ${f0(d.capacity)} lb (${f0(d.share * 100)}% of the load), ${d.depth.toFixed(1)}" under`, bar(d.used)], f0(d.used * 100) + '% used', '', 'buoy.drum' + d.id)),
+      ...row('Carried by submerged foam-filled pipe', f0(B.frameLift) + ' lb', '', 'buoy.frame'),
+      ...row('Foam lift if swamped (deck, noodles, foam-filled pipe)', `${f0(B.emergency)} lb vs ${f0(B.structure)} lb of structure`, B.emergency >= B.structure ? 'sf-ok' : 'sf-error', 'buoy.emergency')),
     el('h3', {}, '🌊 Drag'), el('table', {},
-      row('Underwater area from ahead / from the side', `${D.frontArea.toFixed(2)} / ${D.sideArea.toFixed(2)} sq ft`),
-      ...D.at.map(x => row(`Paddling ${x.mph} mph`, `${x.lb.toFixed(1)} lb · ${f0(x.watts)} W`)),
-      row(`Top speed with ${A.geometry.config.crew.count} paddler${A.geometry.config.crew.count > 1 ? 's' : ''} (${D.power} W)`, D.speed.toFixed(1) + ' mph'),
-      ...D.broadside.map(x => row(`Broadside to a ${x.mph} mph current`, f0(x.lb) + ' lb', x.lb > 400 ? 'sf-warn' : '')),
+      ...row('Underwater area from ahead / from the side', `${D.frontArea.toFixed(2)} / ${D.sideArea.toFixed(2)} sq ft`, '', 'drag.area'),
+      ...D.at.flatMap((x, i) => row(`Paddling ${x.mph} mph`, `${x.lb.toFixed(1)} lb · ${f0(x.watts)} W`, '', i === 0 ? 'drag.force' : null)),
+      ...row(`Top speed with ${A.geometry.config.crew.count} paddler${A.geometry.config.crew.count > 1 ? 's' : ''} (${D.power} W)`, D.speed.toFixed(1) + ' mph', '', 'drag.speed'),
+      ...D.broadside.flatMap((x, i) => row(`Broadside to a ${x.mph} mph current`, f0(x.lb) + ' lb', x.lb > 400 ? 'sf-warn' : '', i === 0 ? 'drag.broadside' : null)),
       el('tr', {}, el('td', { colspan: 2, class: 'small muted note' }, D.note + ' Skin friction is left out; real drag runs a little higher.'))),
     el('h3', {}, '⚖️ Weight distribution'), el('table', {},
-      row('Centre of gravity (fore-aft, height, across)', `${Wt.cg.x.toFixed(1)}", ${Wt.cg.y.toFixed(1)}", ${Wt.cg.z.toFixed(1)}"`),
-      row('Forward / aft of the middle', `${f0(Wt.forward * 100)}% / ${f0(100 - Wt.forward * 100)}%`),
-      row('Centre of gravity above the waterline', Wt.cgAboveWater.toFixed(1) + '"', Wt.cgAboveWater > 24 ? 'sf-warn' : ''),
-      ...Wt.groups.map(gr => row(gr.name, `${f0(gr.lb)} lb (${f0(gr.lb / Wt.total * 100)}%) at ${gr.x.toFixed(0)}"`))),
+      ...row('Centre of gravity (fore-aft, height, across)', `${Wt.cg.x.toFixed(1)}", ${Wt.cg.y.toFixed(1)}", ${Wt.cg.z.toFixed(1)}"`, '', 'wt.cg'),
+      ...row('Forward / aft of the middle', `${f0(Wt.forward * 100)}% / ${f0(100 - Wt.forward * 100)}%`, '', 'wt.fwd'),
+      ...row('Centre of gravity above the waterline', Wt.cgAboveWater.toFixed(1) + '"', Wt.cgAboveWater > 24 ? 'sf-warn' : '', 'wt.cgw'),
+      ...Wt.groups.flatMap(gr => row(gr.name, `${f0(gr.lb)} lb (${f0(gr.lb / Wt.total * 100)}%) at ${gr.x.toFixed(0)}"`))),
     el('h3', {}, '🔩 Structure (1-1/2" Sch 40 PVC, crew × 2 for slamming)'), el('table', {},
-      ...E.structure.map(sx => el('tr', { title: sx.detail }, el('td', {}, sx.name, el('div', { class: 'small muted' }, sx.detail)),
-        el('td', { class: 'sf-' + sx.level }, (sx.stress ? f0(sx.stress) + ' psi · ' : '') + 'SF ' + (isFinite(sx.sf) ? sx.sf.toFixed(1) : '∞')))),
+      ...E.structure.flatMap(sx => row([sx.name, el('div', { class: 'small muted' }, sx.detail)], (sx.stress ? f0(sx.stress) + ' psi · ' : '') + 'SF ' + (isFinite(sx.sf) ? sx.sf.toFixed(1) : '∞'), 'sf-' + sx.level, 'st.' + sx.id)),
       el('tr', {}, el('td', { colspan: 2, class: 'small muted note' }, `PVC flexural strength ~${M.PVC.flex.toLocaleString()} psi; section modulus ${M.PVC.S.toFixed(3)} in³. Target safety factor ${M.SF_OK}+, minimum ${M.SF_MIN}.`)))));
 }
 function renderCheck(){
@@ -1564,7 +1584,10 @@ function drawIssues(){
 function showIssue(i){
   const it = A.issues[i]; if (!it) return;
   const mk = $('imarks').children[i], tip = $('tip');
-  tip.replaceChildren(el('b', {}, `${it.level === 'error' ? '❌' : '⚠️'} ${i + 1}. ${it.title}`), el('div', {}, it.detail || ''), el('button', { class: 'x', 'aria-label': 'Close', onclick: () => { tip.hidden = true; tip.classList.remove('pinned'); } }, '×'));
+  const w = it.work && A.engineering.work[it.work];
+  const workDiv = w ? el('div', { class: 'work', hidden: true }, el('b', {}, w.formula), el('ol', {}, ...w.steps.map(t => el('li', {}, t))), el('div', { class: 'small muted' }, w.why)) : null;
+  tip.replaceChildren(el('b', {}, `${it.level === 'error' ? '❌' : '⚠️'} ${i + 1}. ${it.title}`), el('div', {}, it.detail || ''),
+    ...(w ? [el('button', { class: 'btn ghost sm', style: 'margin-top:6px', onclick: e => { workDiv.hidden = !workDiv.hidden; e.target.textContent = workDiv.hidden ? 'Show the work' : 'Hide the work'; } }, 'Show the work'), workDiv] : []), el('button', { class: 'x', 'aria-label': 'Close', onclick: () => { tip.hidden = true; tip.classList.remove('pinned'); } }, '×'));
   tip.classList.add('pinned'); tip.style.left = (mk ? parseFloat(mk.style.left) : 40) + 'px'; tip.style.top = (mk ? parseFloat(mk.style.top) : 40) + 'px'; tip.hidden = false;
 }
 function positionIssues(){
