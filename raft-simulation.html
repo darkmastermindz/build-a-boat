@@ -844,7 +844,7 @@ function renderCompare(){
 function renderHud(){
   const s = A.solution, g = A.geometry;
   const lines = s.ok ? [
-    ['Draft', f1(s.maxDraft) + '"'], ['Frame clearance', f1(s.minFreeboard) + '"'], ['Trim', f1(s.pitchDeg) + '°'], ['Heel', f1(s.rollDeg) + '°'],
+    ['Draft', f1(s.maxDraft) + '"'], ['Frame clearance', f1(s.minFreeboard) + '"'], ['Trim', s.stablePitch ? f1(s.pitchDeg) + '°' : 'unstable (see-saws until the frame touches)'], ['Heel', s.stableRoll ? f1(s.rollDeg) + '°' : 'unstable (tips until the frame touches)'],
     ['Reserve', f0(s.maxLb - s.W) + ' lb']] : [['Status', s.reason === 'sinks' ? 'Sinks: not enough flotation' : 'Capsizes']];
   lines.push(['Size', `${f1(g.overall.length/12)} × ${f1(g.overall.width/12)} × ${f1(g.overall.height/12)} ft`]);
   $('hud').replaceChildren(...lines.map(([k,v]) => el('div', {}, k + ': ', el('b', {}, v))));
