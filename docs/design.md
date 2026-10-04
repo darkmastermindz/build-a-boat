@@ -298,6 +298,28 @@ Real behavior in rapids depends on speed, waves and crew movement. Use the
 numbers to compare layouts, not as guarantees. A pool or lake float test
 before race day is the real check.
 
+## Formula sources and open questions
+
+Each worked calculation in the simulator and the report links to its sources.
+The full list lives in `SOURCES` and `ASSUMPTIONS` in `scripts/raft-model.js`.
+How the assumed constants compare with the sources:
+
+| Assumption | Used | Sources say | Leans |
+|---|---|---|---|
+| PVC flexural strength | 14,000 psi | 14,450 psi at 73 °F ([Spears, cell class 12454](https://www.spearsmfg.com/IP-4/03%20Physical%20Properties%20of%20PVC%20&%20CPVC%20Pipe.pdf)) | Safe at 73 °F; **not derated for sun-heated pipe** (0.62× at 100 °F, [PIPA TN003](https://www.pipa.com.au/wp-content/uploads/2018/09/tn003.pdf)) |
+| Drum end-on drag | Cd 0.9 | 1.17 (disc) to 0.81 (l/d > 2) ([Hoerner](https://archive.org/details/FluidDynamicDragHoerner1965)) | Within range |
+| Broadside drag | Cd 1.1 | 1.1–1.2 below the [drag crisis](https://en.wikipedia.org/wiki/Drag_crisis); our Re ≈ 10⁶ is past it | High (safe) for pinning force |
+| Pointed hull drag | Cd 0.5 | No direct source | Estimate |
+| Paddler power | 75 W | 75 W all day, 100–150 W for an hour ([Human power](https://en.wikipedia.org/wiki/Human_power)) | Low (safe) for speed |
+| Slamming factor | × 2 | 2× for a suddenly applied load ([RoyMech](https://www.roymech.co.uk/Useful_Tables/Fatigue/Mechanics_Impact.html)) | Does not cover jumping onto the deck |
+| Safety factor targets | 2.5 / 1.5 | No universal value ([Factor of safety](https://en.wikipedia.org/wiki/Factor_of_safety)) | Judgement call |
+
+Stability uses [metacentric height](https://en.wikipedia.org/wiki/Metacentric_height),
+GM = KB + I/V − KG. The solver itself is not limited to small angles: it slices
+each drum into [circular segments](https://mathworld.wolfram.com/CircularSegment.html)
+and balances lift and moments at the actual tilt. A wider drum spacing raises
+the righting arm, as in this [catamaran sea-trial study](https://doi.org/10.3390/jmse12081436).
+
 ## Open items
 
 1. Organizers: are daisy-chained zip-tie drum bands OK under the 18" rule?

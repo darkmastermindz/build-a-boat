@@ -119,6 +119,12 @@
   .eng .formula{font:600 12px ui-monospace,Menlo,Consolas,monospace;margin-bottom:4px}
   .eng tr.work ol{margin:2px 0 4px 18px;padding:0;font:12px ui-monospace,Menlo,Consolas,monospace}
   .eng tr.work .why{font-size:12px;color:var(--muted)}
+  .refs{font-size:11.5px;margin-top:4px;color:var(--muted);line-height:1.5}
+  .refs a{color:var(--accent)}
+  .eng details.assume{margin-top:10px}
+  .eng details.assume summary{cursor:pointer;font-weight:600}
+  .eng .acard{border-top:1px solid var(--line);padding:6px 0;overflow-wrap:anywhere}
+  .refs a{overflow-wrap:anywhere}
   .tip .work{margin-top:6px;border-top:1px solid var(--line);padding-top:5px;font-size:12px}
   .tip .work ol{margin:2px 0 2px 16px;padding:0;font-family:ui-monospace,Menlo,Consolas,monospace}
   .eng .bar{height:6px;border-radius:3px;background:var(--line);overflow:hidden;margin-top:3px}
@@ -727,12 +733,14 @@ function msgList(target, items){
     el('li', {}, el('span', { class: 'dot ' + m.level, title: m.level }), el('div', {}, el('div', { class:'t' }, m.title), m.detail ? el('div', { class:'d' }, m.detail) : ''))));
 }
 const ENG_OPEN = new Set();
+// where a formula or number comes from: links to the educational source, paper or datasheet
+const refLinks = refs => (refs && refs.length) ? el('div', { class: 'refs' }, '📚 Learn more: ', ...refs.flatMap((r, i) => [i ? ' · ' : '', el('a', { href: r.url, target: '_blank', rel: 'noopener', title: r.title }, `${r.kind}: ${r.title}`)])) : '';
 function renderEngineering(){
   const E = A.engineering, box = $('engBox'); if (!box) return;
   if (!E || !E.buoyancy) { box.replaceChildren(el('p', { class: 'small muted' }, 'No numbers: the boat does not float or balance as configured.')); return; }
   // a row can carry its work: click it to show the formula, the numbers plugged in and why
   const workBox = id => { const w = E.work[id]; if (!w) return null;
-    return el('tr', { class: 'work' }, el('td', { colspan: 2 }, el('div', { class: 'formula' }, w.formula), el('ol', {}, ...w.steps.map(t => el('li', {}, t))), el('div', { class: 'why' }, '💡 ' + w.why))); };
+    return el('tr', { class: 'work' }, el('td', { colspan: 2 }, el('div', { class: 'formula' }, w.formula), el('ol', {}, ...w.steps.map(t => el('li', {}, t))), el('div', { class: 'why' }, '💡 ' + w.why), refLinks(w.refs))); };
   const rows = (k, v, cls, id) => {
     const open = id && ENG_OPEN.has(id), tr = el('tr', id && E.work[id] ? { class: 'has-work' + (open ? ' open' : ''), tabindex: 0, role: 'button', 'aria-expanded': !!open, title: 'Show the work',
       onclick: () => { ENG_OPEN.has(id) ? ENG_OPEN.delete(id) : ENG_OPEN.add(id); renderEngineering(); }, onkeydown: e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.currentTarget.click(); } } } : {},
@@ -765,7 +773,11 @@ function renderEngineering(){
       ...Wt.groups.flatMap(gr => row(gr.name, `${f0(gr.lb)} lb (${f0(gr.lb / Wt.total * 100)}%) at ${gr.x.toFixed(0)}"`))),
     el('h3', {}, '🔩 Structure (1-1/2" Sch 40 PVC, crew × 2 for slamming)'), el('table', {},
       ...E.structure.flatMap(sx => row([sx.name, el('div', { class: 'small muted' }, sx.detail)], (sx.stress ? f0(sx.stress) + ' psi · ' : '') + 'SF ' + (isFinite(sx.sf) ? sx.sf.toFixed(1) : '∞'), 'sf-' + sx.level, 'st.' + sx.id)),
-      el('tr', {}, el('td', { colspan: 2, class: 'small muted note' }, `PVC flexural strength ~${M.PVC.flex.toLocaleString()} psi; section modulus ${M.PVC.S.toFixed(3)} in³. Target safety factor ${M.SF_OK}+, minimum ${M.SF_MIN}.`)))));
+      el('tr', {}, el('td', { colspan: 2, class: 'small muted note' }, `PVC flexural strength ~${M.PVC.flex.toLocaleString()} psi; section modulus ${M.PVC.S.toFixed(3)} in³. Target safety factor ${M.SF_OK}+, minimum ${M.SF_MIN}.`))),
+    el('details', { class: 'assume' }, el('summary', {}, '📚 Assumptions and sources'),
+      el('p', { class: 'small muted' }, 'Each number the model assumes, what the sources say, and which way the choice leans.'),
+      ...E.assumptions.map(a => el('div', { class: 'acard' }, el('div', {}, el('b', {}, a.name), ': ', a.used),
+        el('div', { class: 'small' }, 'Sources say: ' + a.source), el('div', { class: 'small muted' }, a.effect), refLinks(a.refs))))));
 }
 function renderCheck(){
   renderEngineering();
@@ -1585,7 +1597,7 @@ function showIssue(i){
   const it = A.issues[i]; if (!it) return;
   const mk = $('imarks').children[i], tip = $('tip');
   const w = it.work && A.engineering.work[it.work];
-  const workDiv = w ? el('div', { class: 'work', hidden: true }, el('b', {}, w.formula), el('ol', {}, ...w.steps.map(t => el('li', {}, t))), el('div', { class: 'small muted' }, w.why)) : null;
+  const workDiv = w ? el('div', { class: 'work', hidden: true }, el('b', {}, w.formula), el('ol', {}, ...w.steps.map(t => el('li', {}, t))), el('div', { class: 'small muted' }, w.why), refLinks(w.refs)) : null;
   tip.replaceChildren(el('b', {}, `${it.level === 'error' ? '❌' : '⚠️'} ${i + 1}. ${it.title}`), el('div', {}, it.detail || ''),
     ...(w ? [el('button', { class: 'btn ghost sm', style: 'margin-top:6px', onclick: e => { workDiv.hidden = !workDiv.hidden; e.target.textContent = workDiv.hidden ? 'Show the work' : 'Hide the work'; } }, 'Show the work'), workDiv] : []), el('button', { class: 'x', 'aria-label': 'Close', onclick: () => { tip.hidden = true; tip.classList.remove('pinned'); } }, '×'));
   tip.classList.add('pinned'); tip.style.left = (mk ? parseFloat(mk.style.left) : 40) + 'px'; tip.style.top = (mk ? parseFloat(mk.style.top) : 40) + 'px'; tip.hidden = false;
