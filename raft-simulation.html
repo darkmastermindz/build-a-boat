@@ -105,6 +105,15 @@
   .layers{position:absolute;left:0;right:0;bottom:0;padding:10px;display:flex;gap:6px;flex-wrap:wrap;justify-content:center}
   .layers button{font:500 12.5px Barlow,sans-serif;border:1.5px solid var(--ink);background:var(--panel);color:var(--ink);padding:5px 11px;border-radius:999px;cursor:pointer}
   .layers button[aria-pressed="false"]{background:transparent;opacity:.5;text-decoration:line-through}
+  .layers .measure{margin-left:8px;border-color:var(--accent);color:var(--accent)}
+  .layers .measure[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink);text-decoration:none;opacity:1}
+  .tip{position:absolute;z-index:5;pointer-events:none;background:var(--panel);color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:7px 10px;font-size:12.5px;line-height:1.45;box-shadow:0 4px 14px rgba(0,0,0,.18);max-width:260px;transform:translate(14px,14px)}
+  .tip b{display:block;font-weight:600;margin-bottom:2px}
+  .tip.pinned{pointer-events:auto}
+  .tip .x{position:absolute;top:3px;right:5px;font-size:14px}
+  .mlabel{position:absolute;z-index:4;pointer-events:none;transform:translate(-50%,-130%);background:#111;color:#fff;border-radius:6px;padding:4px 8px;font:600 12.5px Barlow,sans-serif;white-space:nowrap;text-align:center}
+  .mlabel small{display:block;font-weight:400;opacity:.8;font-size:11px}
+  .mhint{position:absolute;top:10px;right:12px;z-index:4;background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:6px 10px;font-size:12.5px;max-width:min(300px,60%)}
   .profiles{display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-left:auto}
   .profiles select{width:auto;min-width:200px;max-width:min(320px,100%)}
   .profiles input{width:180px}
@@ -285,6 +294,9 @@
   <div class="stage" id="stage">
     <div class="hud" id="hud"></div>
     <div class="layers" id="layers"></div>
+    <div class="tip" id="tip" hidden></div>
+    <div class="mlabel" id="mlabel" hidden></div>
+    <div class="mhint" id="mhint" hidden role="status"></div>
   </div>
 </main>
 <footer class="site-footer">© 2026 Created by <a href="https://hanselwei.dev" target="_blank" rel="noopener">Hansel Wei</a></footer>
@@ -705,7 +717,8 @@ function initScene(){
   G.water = water;
   const bar = $('layers');
   LAYERS.forEach(k => bar.append(el('button', { 'aria-pressed':'true', onclick: e => { const on = e.target.getAttribute('aria-pressed') !== 'true'; e.target.setAttribute('aria-pressed', on); G[k].visible = on; } }, k[0].toUpperCase() + k.slice(1))));
-  orbit(); resize(); addEventListener('resize', resize);
+  bar.append(el('button', { class: 'measure', id: 'measureBtn', 'aria-pressed': 'false', title: 'Measure between two points (snaps to pipe ends, midpoints, centers and corners). Esc to exit.', onclick: () => setMeasure(!measureOn) }, '📏 Measure'));
+  orbit(); initPicking(); resize(); addEventListener('resize', resize);
   loop(0);
 }
 function disposeGroup(g){ g.traverse(o => { if (o.geometry) o.geometry.dispose(); }); }
@@ -718,9 +731,10 @@ function buildBoat(){
     const d = b.clone().sub(a), len = d.length();
     const mesh = new THREE.Mesh(new THREE.CylinderGeometry(rad||R, rad||R, len, 18), m || MAT.pvc);
     mesh.position.copy(a).add(b).multiplyScalar(.5); mesh.quaternion.setFromUnitVectors(up, d.normalize());
+    mesh.userData = { kind: m === MAT.noodle ? 'noodle' : grp === G.deck ? 'mast' : 'pipe', a: a.toArray(), b: b.toArray(), len, rad: rad || R };
     grp.add(mesh); return mesh;
   };
-  const joint = p => { const s = new THREE.Mesh(new THREE.SphereGeometry(1.3, 16, 12), MAT.fit); s.position.set(...p); G.frame.add(s); };
+  const joint = p => { const s = new THREE.Mesh(new THREE.SphereGeometry(1.3, 16, 12), MAT.fit); s.position.set(...p); s.userData = { kind: 'fitting', p }; G.frame.add(s); };
   // drums
   g.drums.forEach(d => {
     const m = d.failed ? MAT.failed : MAT.drum, dr = d.r, dl = d.len, cy = d.y0 + dr, cross = d.axis === 'z';
@@ -729,13 +743,13 @@ function buildBoat(){
     const ring = mesh => { if (!cross) mesh.rotation.y = Math.PI/2; return mesh; };
     const cyl = new THREE.Mesh(new THREE.CylinderGeometry(dr, dr, dl, 44), m);
     if (cross) cyl.rotation.x = Math.PI/2; else cyl.rotation.z = Math.PI/2;
-    cyl.position.set(d.x, cy, d.z); G.drums.add(cyl);
-    [-dl/6, dl/6].forEach(o => { const rib = ring(new THREE.Mesh(new THREE.TorusGeometry(dr+.15, .35, 8, 44), d.failed ? MAT.failed : MAT.drumDark)); rib.position.set(...along(o)); G.drums.add(rib); });
+    cyl.position.set(d.x, cy, d.z); cyl.userData = { kind: 'drum', d }; G.drums.add(cyl);
+    [-dl/6, dl/6].forEach(o => { const rib = ring(new THREE.Mesh(new THREE.TorusGeometry(dr+.15, .35, 8, 44), d.failed ? MAT.failed : MAT.drumDark)); rib.position.set(...along(o)); rib.userData = cyl.userData; G.drums.add(rib); });
     const bung = new THREE.Mesh(new THREE.CylinderGeometry(1.2, 1.2, .6, 14), MAT.fit);
     if (cross) bung.rotation.x = Math.PI/2; else bung.rotation.z = Math.PI/2;
-    const bp = along(dl/2 + .3); bung.position.set(bp[0], cy + dr * 0.5, bp[2]); G.drums.add(bung);
+    const bp = along(dl/2 + .3); bung.position.set(bp[0], cy + dr * 0.5, bp[2]); bung.userData = cyl.userData; G.drums.add(bung);
     // zip-tie bands (not used when the drums are caged)
-    (g.cage ? [] : [-dl * 0.29, dl * 0.29]).forEach(o => { const band = ring(new THREE.Mesh(new THREE.TorusGeometry(dr+.4, .3, 6, 44), MAT.tie)); band.position.set(...along(o)); G.lash.add(band);
+    (g.cage ? [] : [-dl * 0.29, dl * 0.29]).forEach(o => { const band = ring(new THREE.Mesh(new THREE.TorusGeometry(dr+.4, .3, 6, 44), MAT.tie)); band.position.set(...along(o)); band.userData = { kind: 'band', d, r: dr + .4 }; G.lash.add(band);
       const span = new THREE.Mesh(new THREE.CylinderGeometry(.3,.3, Math.max(4, 2*g.railOffset), 6), MAT.tie);
       if (cross) span.rotation.z = Math.PI/2; else span.rotation.x = Math.PI/2;
       const sp = along(o); span.position.set(sp[0], g.railY + R + .3, sp[2]); G.lash.add(span); });
@@ -752,7 +766,7 @@ function buildBoat(){
   // deck sandwich
   const dk = c.deck;
   const deck = new THREE.Mesh(new THREE.BoxGeometry(dk.length, dk.thickness, dk.width), [MAT.xps, MAT.xps, MAT.skin, MAT.skin, MAT.xps, MAT.xps]);
-  deck.position.set(0, g.deckBottom + dk.thickness/2, 0); G.deck.add(deck);
+  deck.position.set(0, g.deckBottom + dk.thickness/2, 0); deck.userData = { kind: 'deck', c: [0, g.deckBottom + dk.thickness/2, 0], size: [dk.length, dk.thickness, dk.width] }; G.deck.add(deck);
   // bow
   if (g.bow) {
     const L2 = c.frameLength/2, topY = g.bow.topY, bx = g.bow.x1, oz = g.outerZ;
@@ -764,7 +778,7 @@ function buildBoat(){
     pts.forEach(p => pos.push(p.x, p.y, -W, p.x, p.y, W));
     for (let i = 0; i < pts.length-1; i++) { const a = i*2; idx.push(a, a+1, a+2, a+1, a+3, a+2); }
     const geo = new THREE.BufferGeometry(); geo.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); geo.setIndex(idx); geo.computeVertexNormals();
-    G.bow.add(new THREE.Mesh(geo, MAT.guard));
+    const guard = new THREE.Mesh(geo, MAT.guard); guard.userData = { kind: 'guard' }; G.bow.add(guard);
     if (c.noodleRail) pipe([bx, topY + R + 1.2, -oz], [bx, topY + R + 1.2, oz], G.bow, 1.25, MAT.noodle);
   }
   if (c.noodleRail) [-1,1].forEach(s => pipe([-dk.length/2, g.deckTop + 1.25, s*(dk.width/2 - 1.25)], [dk.length/2, g.deckTop + 1.25, s*(dk.width/2 - 1.25)], G.deck, 1.25, MAT.noodle));
@@ -774,15 +788,17 @@ function buildBoat(){
     pipe([mx, g.deckTop, 0], [mx, g.deckTop + c.mastHeight, 0], G.deck);
     const fh = Math.min(14, c.mastHeight * .45), fw = fh * 1.5;
     const flag = new THREE.Mesh(new THREE.PlaneGeometry(fw, fh), new THREE.MeshStandardMaterial({ map: flagTexture(), side: THREE.DoubleSide, roughness: .9 }));
-    flag.position.set(mx - fw/2 - R, g.deckTop + c.mastHeight - fh/2, 0); G.deck.add(flag);
+    flag.position.set(mx - fw/2 - R, g.deckTop + c.mastHeight - fh/2, 0); flag.userData = { kind: 'flag', w: fw, h: fh }; G.deck.add(flag);
   }
   // crew
-  M.crewPositions(c, c.crew).forEach(p => {
-    const y0 = g.deckTop;
+  M.crewPositions(c, c.crew).forEach((p, i) => {
+    const y0 = g.deckTop, cu = { kind: 'crew', i, p: [p.x, y0, p.z], top: y0 + 31.6 };
     const torso = new THREE.Mesh(new THREE.CylinderGeometry(6, 7, 20, 14), MAT.pfd); torso.position.set(p.x, y0 + 12, p.z); G.crew.add(torso);
     const legs = new THREE.Mesh(new THREE.BoxGeometry(18, 5, 12), MAT.skinTone); legs.position.set(p.x + 9, y0 + 2.5, p.z); G.crew.add(legs);
     const head = new THREE.Mesh(new THREE.SphereGeometry(4.6, 16, 12), MAT.helmet); head.position.set(p.x, y0 + 27, p.z); G.crew.add(head);
+    torso.userData = legs.userData = head.userData = cu;
   });
+  clearMeasure();
   const s = A.solution;
   boat.position.y = -(s.ok ? s.d : 2*r + 4);
   pivot.rotation.set(s.ok ? -Math.atan(s.p) : 0, 0, s.ok ? Math.atan(s.t) : 0, 'XZY');
@@ -833,7 +849,139 @@ function loop(t){
     pivot.position.y = Math.sin(t * .0012 - .4) * .35;
     if (!pts.size && t - idle > 6000 && t - idle < 12000) { th += .0018; place(); }
   }
+  positionMeasureLabel();
   renderer.render(scene, camera); requestAnimationFrame(loop);
+}
+
+// ── Pick and measure ─────────────────────────
+// Hover (or tap) any part to see its size. Measure mode: click two points to
+// get the distance between them; points snap to pipe ends and midpoints,
+// fitting and drum centers, drum ends and deck corners. Measurements are
+// temporary and clear when the design changes. Units are inches, in the
+// boat's own frame (x fore-aft, y up, z side to side).
+const raycaster = new THREE.Raycaster();
+let measureOn = false, mA = null, mB = null, mGroup = null, hoverSnap = null, pinned = false;
+const inch = v => `${v.toFixed(1)}"`;
+const ftIn = v => { const f = Math.floor(v / 12 + 1e-9), i = v - f * 12; return f ? `${f}' ${i.toFixed(1)}"` : `${i.toFixed(1)}"`; };
+const dist3 = (a, b) => Math.hypot(a[0] - b[0], a[1] - b[1], a[2] - b[2]);
+function partInfo(ud){
+  const g = A.geometry, c = g.config, k = c.frameStyle === 'stacked' ? 0 : (c.fittingTakeoff || 0);
+  switch (ud.kind) {
+    case 'pipe': { const L = ud.len, dir = Math.abs(ud.a[1] - ud.b[1]) > Math.max(Math.abs(ud.a[0] - ud.b[0]), Math.abs(ud.a[2] - ud.b[2])) ? 'upright' : Math.abs(ud.a[0] - ud.b[0]) > Math.abs(ud.a[2] - ud.b[2]) ? 'fore-aft' : 'crosswise';
+      return { title: `1-1/2" PVC pipe (${dir})`, lines: [`Center to center: ${inch(L)} (${ftIn(L)})`, k ? `Cut length ≈ ${inch(Math.max(0, L - 2 * k))} (minus ${k}" take-off each end)` : 'Cut to this length', 'Outside diameter 1.9"'] }; }
+    case 'mast': return { title: 'Mast (PVC pipe)', lines: [`Above deck: ${inch(ud.len)} (${ftIn(ud.len)})`] };
+    case 'noodle': return { title: 'Pool noodle rail', lines: [`Length: ${inch(ud.len)} (${ftIn(ud.len)})`, `Diameter: ${inch(ud.rad * 2)}`] };
+    case 'fitting': return { title: 'Fitting (joint)', lines: [`At x ${inch(ud.p[0])}, height ${inch(ud.p[1])}, z ${inch(ud.p[2])}`] };
+    case 'drum': { const d = ud.d, sp = d.spec || g.drum;
+      return { title: `Drum ${d.id + 1}${g.mixed ? ' (own size)' : ''}`, lines: [`${sp.gallons} gal · ${inch(d.r * 2)} dia × ${inch(d.len)} long`, `Empty weight ${sp.weight} lb`, `Center at x ${inch(d.x)}, z ${inch(d.z)}`, d.axis === 'z' ? 'Laid crosswise' : 'Laid fore-aft'] }; }
+    case 'band': return { title: 'Zip-tie band', lines: [`Around drum ${ud.d.id + 1}: ≈ ${inch(2 * Math.PI * ud.r)} circumference`] };
+    case 'deck': return { title: 'Deck (XPS sandwich)', lines: [`${inch(ud.size[0])} × ${inch(ud.size[2])} × ${inch(ud.size[1])} thick`, `Top at ${inch(ud.c[1] + ud.size[1] / 2)} above the drum bottoms`] };
+    case 'guard': return { title: 'Bow guard (Coroplast)', lines: [`Top at ${inch(g.bow.topY)}`] };
+    case 'flag': return { title: 'Jolly Roger', lines: [`${inch(ud.w)} × ${inch(ud.h)}`] };
+    case 'crew': return { title: `Crew ${ud.i + 1}`, lines: [`${c.crew.weightEach} lb, seated`, `Head ≈ ${inch(ud.top - g.deckTop)} above the deck`] };
+  }
+  return null;
+}
+function snapPoints(ud){
+  switch (ud.kind) {
+    case 'pipe': case 'mast': case 'noodle': return [ud.a, ud.b, ud.a.map((v, i) => (v + ud.b[i]) / 2)];
+    case 'fitting': return [ud.p];
+    case 'drum': { const d = ud.d, cy = d.y0 + d.r, ax = d.axis === 'z' ? 2 : 0, cr = 2 - ax, c = [d.x, cy, d.z], at = (i, v) => { const p = c.slice(); p[i] += v; return p; };
+      return [c, at(ax, d.len / 2), at(ax, -d.len / 2), at(1, d.r), at(1, -d.r), at(cr, d.r), at(cr, -d.r)]; }
+    case 'deck': { const [cx, cy, cz] = ud.c, [l, t, w] = ud.size, out = [[cx, cy + t / 2, cz]];
+      [-1, 1].forEach(a => [-1, 1].forEach(b => [-1, 1].forEach(e => out.push([cx + a * l / 2, cy + b * t / 2, cz + e * w / 2])))); return out; }
+    case 'crew': return [[ud.p[0], ud.top, ud.p[2]], ud.p];
+  }
+  return [];
+}
+function visibleChain(o){ for (; o; o = o.parent) if (!o.visible) return false; return true; }
+function pick(e){
+  const cv = renderer.domElement, r = cv.getBoundingClientRect();
+  const ndc = new THREE.Vector2(((e.clientX - r.left) / r.width) * 2 - 1, -((e.clientY - r.top) / r.height) * 2 + 1);
+  raycaster.setFromCamera(ndc, camera);
+  const hit = raycaster.intersectObjects(boat.children, true).find(h => h.object.userData.kind && visibleChain(h.object) && (!mGroup || !mGroup.children.includes(h.object)));
+  if (!hit) return null;
+  const ud = hit.object.userData, local = boat.worldToLocal(hit.point.clone()).toArray();
+  // snap to the nearest named point within 22 px on screen, else the surface point
+  let best = null;
+  snapPoints(ud).forEach(p => {
+    const s = boat.localToWorld(new THREE.Vector3(...p)).project(camera);
+    const dx = (s.x + 1) / 2 * r.width - (e.clientX - r.left), dy = (1 - s.y) / 2 * r.height - (e.clientY - r.top), dpx = Math.hypot(dx, dy);
+    if (dpx < 22 && (!best || dpx < best.dpx)) best = { p, dpx };
+  });
+  return { ud, point: best ? best.p : local, snapped: !!best, x: e.clientX - r.left, y: e.clientY - r.top };
+}
+function showTip(h, pin){
+  const tip = $('tip'), info = h && partInfo(h.ud);
+  if (!info) { if (!pinned || pin) { tip.hidden = true; pinned = false; } return; }
+  tip.replaceChildren(el('b', {}, info.title), ...info.lines.map(t => el('div', {}, t)));
+  if (pin) tip.append(el('button', { class: 'x', 'aria-label': 'Close', onclick: () => { tip.hidden = true; pinned = false; } }, '×'));
+  tip.classList.toggle('pinned', !!pin); pinned = !!pin;
+  const st = $('stage');
+  tip.style.left = Math.min(h.x, st.clientWidth - 280) + 'px'; tip.style.top = Math.min(h.y, st.clientHeight - 120) + 'px';
+  tip.hidden = false;
+}
+function marker(p, color){
+  const m = new THREE.Mesh(new THREE.SphereGeometry(1.4, 14, 10), new THREE.MeshBasicMaterial({ color, depthTest: false }));
+  m.position.set(...p); m.renderOrder = 999; return m;
+}
+function drawMeasure(){
+  if (mGroup) { mGroup.traverse(o => { if (o.geometry) o.geometry.dispose(); if (o.material) o.material.dispose(); }); boat.remove(mGroup); }
+  mGroup = new THREE.Group(); boat.add(mGroup);
+  if (hoverSnap && measureOn) mGroup.add(marker(hoverSnap.point, hoverSnap.snapped ? 0xF2C230 : 0xffffff));
+  if (mA) mGroup.add(marker(mA, 0xE4572E));
+  const end = mB || (mA && hoverSnap ? hoverSnap.point : null);
+  if (mA && end) {
+    const line = new THREE.Line(new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(...mA), new THREE.Vector3(...end)]), new THREE.LineBasicMaterial({ color: 0xE4572E, depthTest: false }));
+    line.renderOrder = 998; mGroup.add(line);
+    if (mB) mGroup.add(marker(mB, 0xE4572E));
+  }
+  const lab = $('mlabel');
+  if (mA && end) {
+    const d = dist3(mA, end), dx = Math.abs(end[0] - mA[0]), dy = Math.abs(end[1] - mA[1]), dz = Math.abs(end[2] - mA[2]);
+    lab.replaceChildren(document.createTextNode(`${inch(d)}  (${ftIn(d)})`), el('small', {}, `fore-aft ${inch(dx)} · up ${inch(dy)} · across ${inch(dz)}`));
+    lab.hidden = false;
+  } else lab.hidden = true;
+}
+function positionMeasureLabel(){
+  const lab = $('mlabel'); if (!lab || lab.hidden || !mA) return;
+  const end = mB || (hoverSnap && hoverSnap.point); if (!end) return;
+  const mid = boat.localToWorld(new THREE.Vector3(...mA.map((v, i) => (v + end[i]) / 2))).project(camera), cv = renderer.domElement;
+  lab.style.left = ((mid.x + 1) / 2 * cv.clientWidth) + 'px'; lab.style.top = ((1 - mid.y) / 2 * cv.clientHeight) + 'px';
+}
+function measureHint(){
+  const h = $('mhint'); h.hidden = !measureOn;
+  h.textContent = !mA ? 'Measure: click the first point. Points snap to pipe ends, midpoints, centers and corners (yellow).' : !mB ? 'Click the second point.' : 'Click to start a new measurement. Esc or 📏 to exit.';
+}
+function clearMeasure(){ mA = mB = hoverSnap = null; if (renderer) { drawMeasure(); measureHint(); } }
+function setMeasure(on){
+  measureOn = on; $('measureBtn').setAttribute('aria-pressed', on);
+  renderer.domElement.style.cursor = on ? 'crosshair' : '';
+  $('tip').hidden = true; pinned = false; clearMeasure();
+}
+function initPicking(){
+  const cv = renderer.domElement;
+  let down = null;
+  cv.addEventListener('pointerdown', e => { down = [e.clientX, e.clientY]; });
+  cv.addEventListener('pointermove', e => {
+    if (pts.size || e.pointerType === 'touch') return;          // dragging to orbit
+    const h = pick(e);
+    if (measureOn) { hoverSnap = h; drawMeasure(); cv.style.cursor = 'crosshair'; return; }
+    if (!pinned) showTip(h, false);
+    cv.style.cursor = h && partInfo(h.ud) ? 'pointer' : '';
+  });
+  cv.addEventListener('pointerleave', () => { if (!pinned) $('tip').hidden = true; if (measureOn && hoverSnap) { hoverSnap = null; drawMeasure(); } });
+  cv.addEventListener('pointerup', e => {
+    if (!down || Math.hypot(e.clientX - down[0], e.clientY - down[1]) > 6) return;   // a drag, not a click
+    const h = pick(e);
+    if (measureOn) {
+      if (!h) return;
+      if (!mA || mB) { mA = h.point; mB = null; } else mB = h.point;
+      hoverSnap = e.pointerType === 'touch' ? null : h; drawMeasure(); measureHint(); return;
+    }
+    showTip(h, true);
+  });
+  addEventListener('keydown', e => { if (e.key === 'Escape') { if (measureOn) setMeasure(false); else { $('tip').hidden = true; pinned = false; } } });
 }
 
 // ── Design profiles ──────────────────────────
