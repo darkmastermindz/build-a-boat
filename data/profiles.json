@@ -55,7 +55,7 @@
             "weight": 20,
             "weightMeasured": false
           },
-          "packGap": 5,
+          "packGap": 4.5,
           "sidePanels": true,
           "sideStyle": "hull",
           "hullBow": 18,
@@ -745,7 +745,7 @@
             "weight": 20,
             "weightMeasured": false
           },
-          "packGap": 5,
+          "packGap": 4.5,
           "sidePanels": true,
           "sideStyle": "hull",
           "hullBow": 18,
@@ -1435,7 +1435,7 @@
             "weight": 20,
             "weightMeasured": false
           },
-          "packGap": 5,
+          "packGap": 4.5,
           "sidePanels": true,
           "sideStyle": "hull",
           "hullBow": 18,
@@ -2125,7 +2125,7 @@
             "weight": 20,
             "weightMeasured": false
           },
-          "packGap": 5,
+          "packGap": 4.5,
           "sidePanels": true,
           "sideStyle": "hull",
           "hullBow": 18,
@@ -2815,7 +2815,7 @@
             "weight": 20,
             "weightMeasured": false
           },
-          "packGap": 5,
+          "packGap": 4.5,
           "sidePanels": true,
           "sideStyle": "hull",
           "hullBow": 18,
@@ -3492,7 +3492,7 @@
             "weight": 20,
             "weightMeasured": false
           },
-          "packGap": 5,
+          "packGap": 4.5,
           "sidePanels": true,
           "sideStyle": "hull",
           "hullBow": 18,
@@ -4182,7 +4182,7 @@
             "weight": 20,
             "weightMeasured": false
           },
-          "packGap": 5,
+          "packGap": 4.5,
           "sidePanels": true,
           "sideStyle": "hull",
           "hullBow": 18,
@@ -4872,7 +4872,7 @@
             "weight": 20,
             "weightMeasured": false
           },
-          "packGap": 5,
+          "packGap": 4.5,
           "sidePanels": true,
           "sideStyle": "hull",
           "hullBow": 18,
