@@ -1,7 +1,7 @@
 # 🏴‍☠️ BOB – Build Report
 
 **Version:** latest
-**Date:** 2026-10-03
+**Date:** 2026-10-04
 **Build:** Team BOB pirate raft
 **Race:** 2026-10-10, Class II-IV competition channel, U.S. National Whitewater Center, Charlotte NC
 
