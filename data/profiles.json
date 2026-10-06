@@ -12,7 +12,7 @@
         "weight": 129.5,
         "loadPct": 30,
         "crew": 2,
-        "cost": 1141.92,
+        "cost": 1153.88,
         "sticks": 8
       },
       "build": {
@@ -56,6 +56,7 @@
             "weightMeasured": false
           },
           "packGap": 4.5,
+          "cutAllowance": 0.5,
           "sidePanels": true,
           "sideStyle": "hull",
           "hullBow": 18,
@@ -97,12 +98,12 @@
             "role": "pipe",
             "category": "frame",
             "material": "pvc",
-            "quantity": 1,
+            "quantity": 2,
             "weight_lb_each": 5.1,
             "weight_measured": false,
             "unit_cost_usd": 11.96,
             "status": "bought",
-            "notes": "Lowe's 2026-10-03. Pressure-rated Sch 40; same OD as DWV, so it fits the same fittings.",
+            "notes": "Lowe's 2026-10-03, plus 1 more 2026-10-05 (price assumed the same) after refitting glued joints. Pressure-rated Sch 40; same OD as DWV, so it fits the same fittings.",
             "foam_filled": true
           },
           {
@@ -702,7 +703,7 @@
         "weight": 84.7,
         "loadPct": 44,
         "crew": 2,
-        "cost": 1141.92,
+        "cost": 1153.88,
         "sticks": 5
       },
       "build": {
@@ -746,6 +747,7 @@
             "weightMeasured": false
           },
           "packGap": 4.5,
+          "cutAllowance": 0.5,
           "sidePanels": true,
           "sideStyle": "hull",
           "hullBow": 18,
@@ -787,12 +789,12 @@
             "role": "pipe",
             "category": "frame",
             "material": "pvc",
-            "quantity": 1,
+            "quantity": 2,
             "weight_lb_each": 5.1,
             "weight_measured": false,
             "unit_cost_usd": 11.96,
             "status": "bought",
-            "notes": "Lowe's 2026-10-03. Pressure-rated Sch 40; same OD as DWV, so it fits the same fittings.",
+            "notes": "Lowe's 2026-10-03, plus 1 more 2026-10-05 (price assumed the same) after refitting glued joints. Pressure-rated Sch 40; same OD as DWV, so it fits the same fittings.",
             "foam_filled": true
           },
           {
@@ -1392,7 +1394,7 @@
         "weight": 82,
         "loadPct": 44,
         "crew": 2,
-        "cost": 1141.92,
+        "cost": 1153.88,
         "sticks": 5
       },
       "build": {
@@ -1436,6 +1438,7 @@
             "weightMeasured": false
           },
           "packGap": 4.5,
+          "cutAllowance": 0.5,
           "sidePanels": true,
           "sideStyle": "hull",
           "hullBow": 18,
@@ -1477,12 +1480,12 @@
             "role": "pipe",
             "category": "frame",
             "material": "pvc",
-            "quantity": 1,
+            "quantity": 2,
             "weight_lb_each": 5.1,
             "weight_measured": false,
             "unit_cost_usd": 11.96,
             "status": "bought",
-            "notes": "Lowe's 2026-10-03. Pressure-rated Sch 40; same OD as DWV, so it fits the same fittings.",
+            "notes": "Lowe's 2026-10-03, plus 1 more 2026-10-05 (price assumed the same) after refitting glued joints. Pressure-rated Sch 40; same OD as DWV, so it fits the same fittings.",
             "foam_filled": true
           },
           {
@@ -2082,7 +2085,7 @@
         "weight": 104.8,
         "loadPct": 31,
         "crew": 2,
-        "cost": 1106.92,
+        "cost": 1118.88,
         "sticks": 5
       },
       "build": {
@@ -2126,6 +2129,7 @@
             "weightMeasured": false
           },
           "packGap": 4.5,
+          "cutAllowance": 0.5,
           "sidePanels": true,
           "sideStyle": "hull",
           "hullBow": 18,
@@ -2167,12 +2171,12 @@
             "role": "pipe",
             "category": "frame",
             "material": "pvc",
-            "quantity": 1,
+            "quantity": 2,
             "weight_lb_each": 5.1,
             "weight_measured": false,
             "unit_cost_usd": 11.96,
             "status": "bought",
-            "notes": "Lowe's 2026-10-03. Pressure-rated Sch 40; same OD as DWV, so it fits the same fittings.",
+            "notes": "Lowe's 2026-10-03, plus 1 more 2026-10-05 (price assumed the same) after refitting glued joints. Pressure-rated Sch 40; same OD as DWV, so it fits the same fittings.",
             "foam_filled": true
           },
           {
@@ -2772,7 +2776,7 @@
         "weight": 125,
         "loadPct": 24,
         "crew": 2,
-        "cost": 1095.96,
+        "cost": 1107.92,
         "sticks": 5
       },
       "build": {
@@ -2816,6 +2820,7 @@
             "weightMeasured": false
           },
           "packGap": 4.5,
+          "cutAllowance": 0.5,
           "sidePanels": true,
           "sideStyle": "hull",
           "hullBow": 18,
@@ -2857,12 +2862,12 @@
             "role": "pipe",
             "category": "frame",
             "material": "pvc",
-            "quantity": 1,
+            "quantity": 2,
             "weight_lb_each": 5.1,
             "weight_measured": false,
             "unit_cost_usd": 11.96,
             "status": "bought",
-            "notes": "Lowe's 2026-10-03. Pressure-rated Sch 40; same OD as DWV, so it fits the same fittings.",
+            "notes": "Lowe's 2026-10-03, plus 1 more 2026-10-05 (price assumed the same) after refitting glued joints. Pressure-rated Sch 40; same OD as DWV, so it fits the same fittings.",
             "foam_filled": true
           },
           {
@@ -3449,7 +3454,7 @@
         "weight": 98.7,
         "loadPct": 42,
         "crew": 2,
-        "cost": 1141.92,
+        "cost": 1153.88,
         "sticks": 7
       },
       "build": {
@@ -3493,6 +3498,7 @@
             "weightMeasured": false
           },
           "packGap": 4.5,
+          "cutAllowance": 0.5,
           "sidePanels": true,
           "sideStyle": "hull",
           "hullBow": 18,
@@ -3534,12 +3540,12 @@
             "role": "pipe",
             "category": "frame",
             "material": "pvc",
-            "quantity": 1,
+            "quantity": 2,
             "weight_lb_each": 5.1,
             "weight_measured": false,
             "unit_cost_usd": 11.96,
             "status": "bought",
-            "notes": "Lowe's 2026-10-03. Pressure-rated Sch 40; same OD as DWV, so it fits the same fittings.",
+            "notes": "Lowe's 2026-10-03, plus 1 more 2026-10-05 (price assumed the same) after refitting glued joints. Pressure-rated Sch 40; same OD as DWV, so it fits the same fittings.",
             "foam_filled": true
           },
           {
@@ -4139,7 +4145,7 @@
         "weight": 130.6,
         "loadPct": 30,
         "crew": 2,
-        "cost": 1106.92,
+        "cost": 1118.88,
         "sticks": 9
       },
       "build": {
@@ -4183,6 +4189,7 @@
             "weightMeasured": false
           },
           "packGap": 4.5,
+          "cutAllowance": 0.5,
           "sidePanels": true,
           "sideStyle": "hull",
           "hullBow": 18,
@@ -4224,12 +4231,12 @@
             "role": "pipe",
             "category": "frame",
             "material": "pvc",
-            "quantity": 1,
+            "quantity": 2,
             "weight_lb_each": 5.1,
             "weight_measured": false,
             "unit_cost_usd": 11.96,
             "status": "bought",
-            "notes": "Lowe's 2026-10-03. Pressure-rated Sch 40; same OD as DWV, so it fits the same fittings.",
+            "notes": "Lowe's 2026-10-03, plus 1 more 2026-10-05 (price assumed the same) after refitting glued joints. Pressure-rated Sch 40; same OD as DWV, so it fits the same fittings.",
             "foam_filled": true
           },
           {
@@ -4829,7 +4836,7 @@
         "weight": 129.5,
         "loadPct": 24,
         "crew": 2,
-        "cost": 1095.96,
+        "cost": 1107.92,
         "sticks": 8
       },
       "build": {
@@ -4873,6 +4880,7 @@
             "weightMeasured": false
           },
           "packGap": 4.5,
+          "cutAllowance": 0.5,
           "sidePanels": true,
           "sideStyle": "hull",
           "hullBow": 18,
@@ -4914,12 +4922,12 @@
             "role": "pipe",
             "category": "frame",
             "material": "pvc",
-            "quantity": 1,
+            "quantity": 2,
             "weight_lb_each": 5.1,
             "weight_measured": false,
             "unit_cost_usd": 11.96,
             "status": "bought",
-            "notes": "Lowe's 2026-10-03. Pressure-rated Sch 40; same OD as DWV, so it fits the same fittings.",
+            "notes": "Lowe's 2026-10-03, plus 1 more 2026-10-05 (price assumed the same) after refitting glued joints. Pressure-rated Sch 40; same OD as DWV, so it fits the same fittings.",
             "foam_filled": true
           },
           {

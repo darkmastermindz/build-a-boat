@@ -43,6 +43,32 @@ doc records the reasoning and the findings so far.
 
 ## Team progress
 
+### 2026-10-06: glue-up progress
+
+![The two side-by-side drum boxes glued up around their drums, with the bow box started beside them](photos/2026-10-06-glue-up.jpg)
+
+- **Glued so far:**
+  - **Rear pair:** the two side-by-side drum boxes are glued up with drums D2
+    and D3 inside. They share the middle wall, and in the photo they're
+    standing on one side.
+  - **Bow box:** started. Its bottom rectangle and 4 corner posts are
+    assembled.
+  - **Still to fit:** its top pieces, the 5-way fittings with short stubs and
+    the loose pipe lengths on the floor.
+- **What went wrong:** after gluing, hammering the joints home changed how far
+  each pipe seated in its fitting. The fit was off, so some lengths had to be
+  re-cut.
+- **Saved by a spare stick:** one more 10 ft Charlotte Sch 40 stick from
+  Lowe's (2026-10-05) covered the re-cuts. The team now has 7 sticks.
+- **Lesson: add margin to the calculations.** The simulator now has a **cut
+  allowance**, 0.5" by default (Configure → Cut allowance).
+  - Every pipe is cut that much long. Dry-fit, mark, then trim before gluing.
+  - The stick count includes it. The cut list shows both lengths, e.g.
+    `P48 box 2 link cut 12" → fit 11.5"`.
+  - The default design still needs **8 sticks**. With 7 on hand, that's
+    **1 more stick** for the rest of the build. Buy a spare too, given today's
+    re-cuts.
+
 ### 2026-10-01: dry-fit mockup and pipe run
 
 ![Dry-fit mockup with precut pipe and DWV fittings at Home Depot](photos/2026-10-01-mockup-and-fittings.jpg)
@@ -92,6 +118,7 @@ numbers, card details or other personal information.
 | 36 in. heavy-duty cable tie, black (packs) | 4 | $16.36 | $65.44 |
 | **Home Depot total (incl. $17.00 tax)** | | | **$223.01** |
 | Zernmiarder 1-1/2" furniture-grade 4-way side-outlet tee, 12-pack (Amazon) | 2 | ? | ? |
+| Charlotte Pipe 1-1/2" × 10 ft Sch 40 (Lowe's, 2026-10-05, for re-cuts) | 1 | ? | ? |
 
 What this tells the model:
 - **Pipe was $11.96 a stick, not the sheet's ~$35–39.** The frame costs far

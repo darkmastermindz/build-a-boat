@@ -503,3 +503,14 @@ test('platform: off by default; when on, it is lashed to the box top rails it cr
   assert.strictEqual(M.LASH_TIE_MIN_IN, Math.ceil((2 + Math.PI) * 1.9 + 2));
   assert.strictEqual(new Set(g.labels.lashings.map(x => x.id)).size, L.length);
 });
+
+test('cut allowance: every pipe is cut long by the allowance and the sticks still hold the cuts', () => {
+  const cfg = M.withDefaults(current.config), g = M.geometry(cfg), req = M.requirements(g, current.parts);
+  assert.ok(cfg.cutAllowance > 0, 'the default leaves margin to trim after a dry fit');
+  req.cuts.forEach(k => near(k.cut, k.len + cfg.cutAllowance, 1e-9, k.label));
+  req.sticks.forEach(st => assert.ok(st.cuts.reduce((t, k) => t + k.cut + 0.125, 0) <= 120 + 0.125 + 1e-9, 'fits a 10 ft stick'));
+  // no allowance never needs more sticks than with one
+  const none = M.requirements(M.geometry(Object.assign({}, current.config, { cutAllowance: 0 })), current.parts);
+  assert.ok(none.items.pipe <= req.items.pipe);
+  none.cuts.forEach(k => assert.strictEqual(k.cut, k.len));
+});

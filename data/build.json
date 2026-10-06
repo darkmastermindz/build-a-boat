@@ -40,6 +40,7 @@
       "weightMeasured": false
     },
     "packGap": 4.5,
+    "cutAllowance": 0.5,
     "sidePanels": true,
     "sideStyle": "hull",
     "hullBow": 18,
@@ -81,12 +82,12 @@
       "role": "pipe",
       "category": "frame",
       "material": "pvc",
-      "quantity": 1,
+      "quantity": 2,
       "weight_lb_each": 5.1,
       "weight_measured": false,
       "unit_cost_usd": 11.96,
       "status": "bought",
-      "notes": "Lowe's 2026-10-03. Pressure-rated Sch 40; same OD as DWV, so it fits the same fittings.",
+      "notes": "Lowe's 2026-10-03, plus 1 more 2026-10-05 (price assumed the same) after refitting glued joints. Pressure-rated Sch 40; same OD as DWV, so it fits the same fittings.",
       "foam_filled": true
     },
     {
@@ -858,6 +859,18 @@
           "2 in x 4 ft x 8 ft insulation board",
           1,
           59.98
+        ]
+      ]
+    },
+    {
+      "store": "Lowe's",
+      "date": "2026-10-05",
+      "total_usd": null,
+      "lines": [
+        [
+          "1-1/2 in x 10 ft Sch 40 PVC pipe (Charlotte Pipe)",
+          1,
+          null
         ]
       ]
     }

@@ -157,7 +157,7 @@
   };
 
   const DEFAULT_CONFIG = {
-    preset: 'cat2', frameStyle: 'stacked', retention: 'bands', cageStyle: 'cradle', sidePanels: false, sideStyle: 'hull', hullBow: 18, platform: false, platformSpacing: 16, bowNoodle: false, packGap: 0, boxEndGap: 2, boxSideGap: 1, boxTopGap: 0, fittingTakeoff: 1.25, railsPerPontoon: 2, centerSpine: false, frameLength: 84, frameWidth: 72, beamCount: 4, pontoonSpacing: 47,
+    preset: 'cat2', frameStyle: 'stacked', retention: 'bands', cageStyle: 'cradle', sidePanels: false, sideStyle: 'hull', hullBow: 18, platform: false, platformSpacing: 16, bowNoodle: false, packGap: 0, boxEndGap: 2, boxSideGap: 1, boxTopGap: 0, fittingTakeoff: 1.25, cutAllowance: 0.5, railsPerPontoon: 2, centerSpine: false, frameLength: 84, frameWidth: 72, beamCount: 4, pontoonSpacing: 47,
     drumOffset: 0, drumSpread: 20, bow: true, bowRiser: 12, bowStrut: 18,
     deck: { length: 72, width: 24, thickness: 2.3 }, mastHeight: 30, noodleRail: true,
     crew: { count: 2, weightEach: 175, xOffset: 0, zOffset: 0 }, failedDrum: null,
@@ -615,25 +615,29 @@
 
   // ── Material requirements derived from geometry ──
   const KERF = 0.125;
-  function binPack(cuts) {
-    // Best-fit decreasing, then a few randomized restarts to squeeze out a stick.
+  // Pipes are cut a little long (cut = fit length + allowance) and trimmed after a dry fit:
+  // once glued and hammered home, a joint seats deeper or shallower than planned.
+  function binPack(cutsIn, allowance) {
+    const a = Math.max(0, +allowance || 0);
+    const cuts = cutsIn.map(k => Object.assign(k, { cut: +(k.len + a).toFixed(2) }));
+    // Best-fit decreasing on the cut length, then a few randomized restarts to squeeze out a stick.
     const run = order => {
       const sticks = [];
       order.forEach(cut => {
         let best = null;
-        for (const st of sticks) if (st.left >= cut.len + KERF && (!best || st.left < best.left)) best = st;
-        if (best) { best.cuts.push(cut); best.left -= cut.len + KERF; }
-        else sticks.push({ cuts: [cut], left: STOCK - cut.len });
+        for (const st of sticks) if (st.left >= cut.cut + KERF && (!best || st.left < best.left)) best = st;
+        if (best) { best.cuts.push(cut); best.left -= cut.cut + KERF; }
+        else sticks.push({ cuts: [cut], left: STOCK - cut.cut });
       });
       return sticks;
     };
-    const sorted = [...cuts].sort((a, b) => b.len - a.len);
+    const sorted = [...cuts].sort((p, q) => q.cut - p.cut);
     let best = run(sorted);
-    const lower = Math.ceil(cuts.reduce((t, k) => t + k.len, 0) / STOCK);
+    const lower = Math.ceil(cuts.reduce((t, k) => t + k.cut, 0) / STOCK);
     let seed = 7;
     const rand = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
     for (let i = 0; i < 400 && best.length > lower; i++) {
-      const o = sorted.map(k => [k, k.len * (0.85 + rand() * 0.3)]).sort((a, b) => b[1] - a[1]).map(x => x[0]);
+      const o = sorted.map(k => [k, k.cut * (0.85 + rand() * 0.3)]).sort((p, q) => q[1] - p[1]).map(x => x[0]);
       const r = run(o);
       if (r.length < best.length) best = r;
     }
@@ -720,7 +724,7 @@
       });
       cageLen = cuts.filter(x => x.cage).reduce((t, x) => t + x.len, 0);
     }
-    const sticks = binPack(cuts);
+    const sticks = binPack(cuts, c.cutAllowance);
     const pipeLen = cuts.reduce((s, k) => s + k.len, 0);
     const crossings = g.fitted ? 0 : g.rails.length * g.beams.length;
     const bandTiesFor = rr => Math.ceil((2 * Math.PI * rr + 8) / (tieLen - 4)) * 2;   // 2 bands per drum, ~4" lost per tie to the head and overlap
@@ -769,7 +773,7 @@
         if (dot < 0 && Math.abs(dot) > 0.99 * Math.hypot(...u) * Math.hypot(...v)) fit.coupling++; else fit.elbow++;
       }
     });
-    const sticks = binPack(cuts);
+    const sticks = binPack(cuts, c.cutAllowance);
     const pipeLen = cuts.reduce((t, x) => t + x.len, 0), cageLen = cuts.filter(x => x.cage).reduce((t, x) => t + x.len, 0);
     const sides = g.sidePanels || [], panels = sides.length ? panelPack(sides) : [];
     const sideTies = sides.reduce((t, sp) => t + 2 * (Math.ceil(sp.len / 18) + 1), 0);   // panel tied to the top and bottom rails about every 18"
@@ -1957,10 +1961,10 @@ ${ww.assumptions.map(x => `| ${x.name} | ${x.used} | ${x.source} | ${x.effect} |
       for (const x of cuts) { if (got >= need) break; pick.push(x); got += x.w; }
       if (pick.length) add('info', `To get under ${max} lb, drop ~${need.toFixed(0)} lb`, `Candidates: ${pick.map(x => `${x.name} (${x.w.toFixed(1)} lb)`).join(', ')}${got < need ? '. That is still not enough: shorten the frame or use fewer drums.' : ''}`);
     }
-    if (g.fitted) {
-      const short = req.cuts.filter(k => k.len < 2);
+    if (g.fitted || g.boxes) {
+      const short = g.fitted ? req.cuts.filter(k => k.len < 2) : [];
       if (short.length) add('error', 'Some pipe runs are shorter than 2" between fittings', 'Fittings would touch. Spread the beams or pontoons further apart.');
-      add('info', `Cut lengths assume ${c.fittingTakeoff}" fitting take-off`, 'Dry-fit one tee and measure center-to-socket-bottom, then set the take-off to match before cutting.');
+      add('info', `Cut lengths assume ${c.fittingTakeoff}" fitting take-off${c.cutAllowance ? ` and ${c.cutAllowance}" extra on every cut` : ''}`, `Dry-fit one tee and measure center-to-socket-bottom, then set the take-off to match before cutting.${c.cutAllowance ? ` Each pipe is cut ${c.cutAllowance}" long (the stick count includes it): dry-fit, mark, and trim before gluing, because a glued joint hammered home seats deeper or shallower than planned.` : ' Consider a cut allowance: glued joints hammered home seat differently than planned.'}`);
     }
     if (wt.measuredShare < 0.5) add('info', `Only ${(wt.measuredShare * 100).toFixed(0)}% of the weight is measured`, 'Weigh parts as they arrive and tick "measured".');
     return out;
