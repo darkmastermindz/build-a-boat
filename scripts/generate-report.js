@@ -205,7 +205,7 @@ ${Object.entries(a.requirements.items).map(([k, n]) => `| ${k} | ${n} | ${have[k
 
 ### Pipe cut list (10 ft sticks)
 
-${a.requirements.sticks.map((st, i) => `${i + 1}. ${st.cuts.map(k => `${k.id ? k.id + ' ' : ''}${k.label} ${k.len}"`).join(', ')} — offcut ${f0(st.left)}"`).join('\n')}
+${a.requirements.sticks.map((st, i) => `${i + 1}. ${st.cuts.map(k => `${k.id ? k.id + ' ' : ''}${k.label} ${k.cut !== k.len ? `cut ${k.cut}" → fit ${k.len}"` : k.len + '"'}`).join(', ')} — offcut ${f0(st.left)}"`).join('\n')}
 
 ### Part IDs
 
