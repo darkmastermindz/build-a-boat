@@ -87,7 +87,7 @@
       "weight_measured": false,
       "unit_cost_usd": 11.96,
       "status": "bought",
-      "notes": "Lowe's 2026-10-03, plus 1 more 2026-10-05 (price assumed the same) after refitting glued joints. Pressure-rated Sch 40; same OD as DWV, so it fits the same fittings.",
+      "notes": "Lowe's 2026-10-03, plus 1 more 2026-10-05 (same $11.96) after refitting glued joints. Pressure-rated Sch 40; same OD as DWV, so it fits the same fittings.",
       "foam_filled": true
     },
     {
@@ -865,12 +865,13 @@
     {
       "store": "Lowe's",
       "date": "2026-10-05",
+      "subtotal_usd": 11.96,
       "total_usd": null,
       "lines": [
         [
           "1-1/2 in x 10 ft Sch 40 PVC pipe (Charlotte Pipe)",
           1,
-          null
+          11.96
         ]
       ]
     }
