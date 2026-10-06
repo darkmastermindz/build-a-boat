@@ -25,7 +25,7 @@
     },
     {
       "category": "Plumbing distributor (large PVC)",
-      "name": "Catawba Valley Supply - Concord",
+      "name": "Catawba Valley Supply - Charlotte area",
       "hours": "Mon-Fri 7:30 AM-4:00 PM",
       "website": "https://cvsplumbing.com/",
       "covers_part_ids": [
@@ -43,7 +43,7 @@
         "S002"
       ],
       "est_price": "Call for quote",
-      "notes": "~25 min from Concord."
+      "notes": "Charlotte area."
     },
     {
       "category": "Plumbing distributor (backup)",
@@ -87,7 +87,7 @@
         "F001"
       ],
       "est_price": "$25-45/drum",
-      "notes": "~45 min from Concord."
+      "notes": "Charlotte area."
     },
     {
       "category": "55-gallon drums",
@@ -102,7 +102,7 @@
     },
     {
       "category": "Hardware",
-      "name": "Harbor Freight - Kannapolis",
+      "name": "Harbor Freight - Charlotte area",
       "hours": "Mon-Sat 8-8, Sun 9-6",
       "website": "https://www.harborfreight.com",
       "covers_part_ids": [
@@ -115,7 +115,7 @@
     },
     {
       "category": "Hardware / farm",
-      "name": "Tractor Supply Co. - Concord",
+      "name": "Tractor Supply Co. - Charlotte area",
       "hours": "Mon-Sat 8-9, Sun 9-7",
       "website": "https://www.tractorsupply.com",
       "covers_part_ids": [

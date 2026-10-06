@@ -50,7 +50,7 @@ bob/
 │   ├── build.json           # The team's ACTUAL build: configuration + parts (edit via the simulator)
 │   ├── catalog.json         # SUGGESTED materials (from the shopping-list sheet + rule-driven additions)
 │   ├── rules.json           # Competition rules used by the checker
-│   └── suppliers.json       # Local suppliers (Charlotte/Concord, NC)
+│   └── suppliers.json       # Local suppliers (Charlotte area, NC)
 ├── netlify/functions/profiles.mts  # Shared design profiles API (Netlify Blobs)
 ├── netlify.toml / package.json     # Netlify build: tests → dist/
 ├── data/profiles.json       # Built-in suggested design profiles

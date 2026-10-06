@@ -89,7 +89,7 @@
       "price_basis": "Estimate, $30-100+ distributor range",
       "estimate": true,
       "weight_lb_each": 75,
-      "source": "Ferguson Plumbing Supply (Concord, NC)",
+      "source": "Ferguson Plumbing Supply (Charlotte area)",
       "url": "",
       "notes": "Sheet's 'housing' pipe. Heavy (~75 lb Sch 40, ~30 lb SDR-35) and sinks unless foam-filled. Not recommended under the 150 lb rule.",
       "origin": "sheet"
@@ -239,7 +239,7 @@
       "price_basis": "Harbor Freight $3.88\u20136.00 (Lowe's $13.98, HD 8-pack $47.15)",
       "estimate": true,
       "weight_lb_each": 0.1,
-      "source": "Harbor Freight (Kannapolis, NC)",
+      "source": "Harbor Freight (Charlotte area)",
       "url": "https://www.harborfreight.com",
       "notes": "Bonding PVC to deck and patching. Check that the total volume is enough; buy extra if not.",
       "origin": "sheet"
@@ -261,7 +261,7 @@
       "price_basis": "Harbor Freight $5\u20138 (Lowe's $9.98, HD $11.48)",
       "estimate": true,
       "weight_lb_each": 0.7,
-      "source": "Harbor Freight (Kannapolis, NC)",
+      "source": "Harbor Freight (Charlotte area)",
       "url": "https://www.harborfreight.com",
       "notes": "Seal drum bungs, pipe ends and deck seams.",
       "origin": "sheet"
