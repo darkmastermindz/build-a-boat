@@ -147,13 +147,14 @@ test('no addresses, phone numbers, payment details or specific towns in data and
     /\b\d{2,6} [A-Z][a-z]+(?: [A-Z][a-z]+)* (?:St|Ave|Blvd|Dr|Rd|Ct|Pike|Plaza|Hwy)\b/,
     /\(\d{3}\)\s?\d{3}-\d{4}/,
     /X{6,}\d{4}|AUTH CODE|\bAMEX\b|Home Depot #\d+/i,
-    // locations stay general ("Charlotte area"): no specific nearby towns or drive times from home
-    /\b(?:Charlotte area|Charlotte area|Charlotte area|Charlotte area|Charlotte area|Charlotte area|Charlotte area|Charlotte area|Charlotte area)\b/i,
-    /~?\d+ min from\b/i,
+    /~?\d+ min from\b/i,                                   // drive times from home
   ];
   for (const f of files) {
     const t = fs.readFileSync(path.join(root, f), 'utf8');
     bad.forEach(re => assert.ok(!re.test(t), `${f} matches ${re}`));
+    // locations stay general: the only town named is Charlotte ("Charlotte area"), never a nearby one
+    for (const m of t.matchAll(/\b([A-Z][a-z]+(?: [A-Z][a-z]+)?),? NC\b/g)) assert.strictEqual(m[1], 'Charlotte', `${f}: "${m[0]}"`);
+    for (const m of t.matchAll(/"name": "[^"]* - ([A-Z][a-z]+(?: [a-z]+)?)"/g)) assert.ok(/^Charlotte( area)?$/.test(m[1]), `${f}: supplier named for "${m[1]}"`);
   }
 });
 
