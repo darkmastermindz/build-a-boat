@@ -118,7 +118,7 @@ numbers, card details or other personal information.
 | 36 in. heavy-duty cable tie, black (packs) | 4 | $16.36 | $65.44 |
 | **Home Depot total (incl. $17.00 tax)** | | | **$223.01** |
 | Zernmiarder 1-1/2" furniture-grade 4-way side-outlet tee, 12-pack (Amazon) | 2 | ? | ? |
-| Charlotte Pipe 1-1/2" × 10 ft Sch 40 (Lowe's, 2026-10-05, for re-cuts) | 1 | ? | ? |
+| Charlotte Pipe 1-1/2" × 10 ft Sch 40 (Lowe's, 2026-10-05, for re-cuts) | 1 | $11.96 | $11.96 + tax |
 
 What this tells the model:
 - **Pipe was $11.96 a stick, not the sheet's ~$35–39.** The frame costs far
