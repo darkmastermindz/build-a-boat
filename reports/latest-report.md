@@ -1,7 +1,7 @@
 # 🏴‍☠️ BOB – Build Report
 
 **Version:** latest
-**Date:** 2026-10-04
+**Date:** 2026-10-06
 **Build:** Team BOB pirate raft
 **Race:** 2026-10-10, Class II-IV competition channel, U.S. National Whitewater Center, Charlotte NC
 
@@ -23,7 +23,7 @@ Generated from `data/build.json` by `scripts/raft-model.js`. Open
 | Overall size | 7.9 ft × 3.8 ft × 4.5 ft |
 | Crew | 2 × 175 lb |
 | Predicted final weight | 129.5 lb (limit 150) |
-| Bought so far | 115.7 lb on the boat + 24.0 lb spares/offcuts |
+| Bought so far | 120.8 lb on the boat + 24.0 lb spares/offcuts |
 | Measured | 0.0 lb (0% of predicted) |
 
 ## Weight
@@ -31,16 +31,16 @@ Generated from `data/build.json` by `scripts/raft-model.js`. Open
 | | lb |
 |---|---|
 | **Predicted final boat** | **129.5** |
-| Bought so far (on the boat) | 115.7 |
+| Bought so far (on the boat) | 120.8 |
 | Bought spares and offcuts (not on the boat) | 24.0 |
-| Still to buy | 13.8 |
+| Still to buy | 8.7 |
 | Measured on a scale | 0.0 |
 
 ## Next shopping trip
 
 | Item | Qty | Est. | Priority | Shop | Why |
 |------|-----|------|----------|------|-----|
-| Charlotte Pipe 1-1/2" x 10 ft PVC Sch 40 pipe (plain end) | 2 | $23.92 | needed | [Home Depot](https://www.homedepot.com/s/Charlotte%20Pipe%201-1%2F2%20in%20x%2010%20ft%20PVC%20Sch%2040%20pipe) · [Lowe's](https://www.lowes.com/search?searchTerm=Charlotte%20Pipe%201-1%2F2%20in%20x%2010%20ft%20PVC%20Sch%2040%20pipe) | Layout needs 8; 6 bought. |
+| Charlotte Pipe 1-1/2" x 10 ft PVC Sch 40 pipe (plain end) | 1 | $11.96 | needed | [Home Depot](https://www.homedepot.com/s/Charlotte%20Pipe%201-1%2F2%20in%20x%2010%20ft%20PVC%20Sch%2040%20pipe) · [Lowe's](https://www.lowes.com/search?searchTerm=Charlotte%20Pipe%201-1%2F2%20in%20x%2010%20ft%20PVC%20Sch%2040%20pipe) | Layout needs 8; 7 bought. |
 | Corrugated plastic sheet, white, 24 x 36 in | 3 | $35.94 | needed | [Home Depot](https://www.homedepot.com/s/Corrugated%20plastic%20sheet%2C%20white%2C%2024%20x%2036%20in) · [Lowe's](https://www.lowes.com/search?searchTerm=Corrugated%20plastic%20sheet%2C%20white%2C%2024%20x%2036%20in) | Layout needs 1 full 4 x 8 ft sheets; 0.56 bought. |
 | Expanding spray foam, 12 oz (Great Stuff or similar) | 4 | $27.92 (est.) | needed | [Home Depot](https://www.homedepot.com/s/Expanding%20spray%20foam%2C%2012%20oz) · [Lowe's](https://www.lowes.com/search?searchTerm=Expanding%20spray%20foam%2C%2012%20oz) | Layout needs 4; 0 bought. |
 | Pool noodles, yellow | 5 | $17.90 | needed | [Home Depot](https://homedepot.com/p/Pool-Mate-Blue-and-Pink-Swimming-Pool-Water-Noodles-12-Pack-TWLN36-12/304884154) · [Lowe's](https://www.lowes.com/search?searchTerm=Pool%20noodles%2C%20yellow) | Layout needs 5; 0 bought. |
@@ -58,7 +58,7 @@ Generated from `data/build.json` by `scripts/raft-model.js`. Open
 | Waterproof vinyl pinstripe tape, 1 in x 150 ft | 1 | $9.98 (est.) | optional | [Home Depot](https://www.homedepot.com/s/Waterproof%20vinyl%20pinstripe%20tape%2C%201%20in%20x%20150%20ft) · [Lowe's](https://www.lowes.com/search?searchTerm=Waterproof%20vinyl%20pinstripe%20tape%2C%201%20in%20x%20150%20ft) · [Amazon](https://www.amazon.com/s?k=Waterproof%20vinyl%20pinstripe%20tape%2C%201%20in%20x%20150%20ft) | Suggested, not on the plan yet. |
 | Porthole window vinyl decals, waterproof, set of 4 | 1 | $11.99 (est.) | optional | [Home Depot](https://www.homedepot.com/s/Porthole%20window%20vinyl%20decals%2C%20waterproof%2C%20set%20of%204) · [Lowe's](https://www.lowes.com/search?searchTerm=Porthole%20window%20vinyl%20decals%2C%20waterproof%2C%20set%20of%204) · [Amazon](https://www.amazon.com/s?k=Porthole%20window%20vinyl%20decals%2C%20waterproof%2C%20set%20of%204) | Suggested, not on the plan yet. |
 | Waterproof vinyl letters, 3 in, black (letters and numbers set) | 1 | $7.98 (est.) | optional | [Home Depot](https://www.homedepot.com/s/Waterproof%20vinyl%20letters%2C%203%20in%2C%20black) · [Lowe's](https://www.lowes.com/search?searchTerm=Waterproof%20vinyl%20letters%2C%203%20in%2C%20black) · [Amazon](https://www.amazon.com/s?k=Waterproof%20vinyl%20letters%2C%203%20in%2C%20black) | Suggested, not on the plan yet. |
-| **Needed** | | **$113.67** | | | $350.73 including spare and optional |
+| **Needed** | | **$101.71** | | | $338.77 including spare and optional |
 
 Open `raft-simulation.html` → Check → Next shopping trip and enter a ZIP code for nearby Home Depot, Lowe's and local-supplier map links. The ZIP stays on your device.
 
@@ -617,7 +617,7 @@ Sources: [Wikipedia: Drag equation (F = ½ ρ v² C_d A)](https://en.wikipedia.o
 - ⚠️ **Leaning crew heels the boat hard** — Crew at the deck edge capsizes it.
 - ⚠️ **Losing one drum sinks or capsizes the boat** — No redundancy. Seal and test the bung caps, or add a drum. Foam-filled rails and the XPS deck still float the wreck.
 - ℹ️ **List has 4 drums; configuration uses 3** — Extra drums are not counted in the weight.
-- ⚠️ **Parts list is short 2 10 ft pipe sticks** — This configuration needs 8; the list has 6.
+- ⚠️ **Parts list is short 1 10 ft pipe sticks** — This configuration needs 8; the list has 7.
 - ℹ️ **16 spare elbows on the list** — Keep for repairs or trim the list to save weight and cost.
 - ℹ️ **14 spare side-outlet fittings and tees (3-, 4- and 5-way) on the list** — Keep for repairs or trim the list to save weight and cost.
 - ℹ️ **3 spare double sani tees (4-way) on the list** — Keep for repairs or trim the list to save weight and cost.
@@ -626,6 +626,7 @@ Sources: [Wikipedia: Drag equation (F = ½ ρ v² C_d A)](https://en.wikipedia.o
 - ℹ️ **0.56 spare Coroplast sheets (4 x 8 ft) on the list** — Leftovers after cutting; only what is used is weighed.
 - ℹ️ **1 spare side panels (26" x 8 ft) on the list** — Keep for repairs or trim the list to save weight and cost.
 - ℹ️ **11 spare pool noodles on the list** — Keep for repairs or trim the list to save weight and cost.
+- ℹ️ **Cut lengths assume 1.25" fitting take-off and 0.5" extra on every cut** — Dry-fit one tee and measure center-to-socket-bottom, then set the take-off to match before cutting. Each pipe is cut 0.5" long (the stick count includes it): dry-fit, mark, and trim before gluing, because a glued joint hammered home seats deeper or shallower than planned.
 - ℹ️ **Only 0% of the weight is measured** — Weigh parts as they arrive and tick "measured".
 - ℹ️ **Not counted yet: 15.8 lb of suggested or undecided parts** — Coroplast corrugated plastic 4 mm, 4 x 8 ft; 2-part marine epoxy; 100% silicone / marine sealant, 10.1 oz; 550 paracord, 100 ft; Outdoor seat cushion, 18-24 in; Outdoor acrylic craft paint set (18 colors); Canvas drop cloth, 4 x 5 ft; Fabric glue, 4 oz; 1-1/2 in x 8 ft cap (item BRCAP18); Skull and crossbones vinyl decal, waterproof, 6-12 in; Waterproof vinyl pinstripe tape, 1 in x 150 ft; Porthole window vinyl decals, waterproof, set of 4; Waterproof vinyl letters, 3 in, black (letters and numbers set). Using all of it would bring the boat to 145.3 lb. Set a suggested part to planned, or untick "not on the boat yet", once you decide to use it.
 - ℹ️ **Side panels: 3 of the 26" × 8 ft panels, 35.7 sq ft** — Cut each panel to 20.0" tall (rail to rail) and to these lengths: panel 1: 89.9" (6.1" left); panel 2: 89.9" (6.1" left); panel 3: 89.9" (6.1" left). Zip-tie them to the top and bottom rails about every 18" (32 ties). Solid PVC sheet sinks if it breaks loose: back it with foam or keep scraps from washing away.
@@ -642,10 +643,10 @@ Ranked for a balanced mix of stability, leak safety, weight, parts on hand and c
 | — | Catamaran: 2 drums | 101 | ✕ | —" | —" | dives | ✕ | 7 |
 | — | Staggered catamaran: 2 drums offset | 99 | ✕ | —" | —" | dives | ✕ | 7 |
 | — | Tandem: 2 drums crosswise | 108 | 42% | -14" | 73" | 4.8" | ✕ | 8 |
-| — | Trimaran: 3 drums side by side | 133 | ✕ | —" | —" | dives | ✕ | 8 |
+| — | Trimaran: 3 drums side by side | 133 | ✕ | —" | —" | dives | ✕ | 9 |
 | — | Reverse triangle: 2 bow + 1 stern drum | 131 | 30% | 36" | 47" | 7.0" | ✕ | 9 |
-| — | Pontoon: 4 drums (2 per side) | 162 ❌ | 24% | 91" | 56" | 4.8" | ✕ | 10 |
-| — | Diamond: bow, stern, port, starboard | 167 ❌ | 24% | 38" | 82" | 5.8" | ✕ | 10 |
+| — | Pontoon: 4 drums (2 per side) | 162 ❌ | 24% | 91" | 56" | 4.8" | ✕ | 11 |
+| — | Diamond: bow, stern, port, starboard | 167 ❌ | 24% | 38" | 82" | 5.8" | ✕ | 11 |
 | — | Wide raft: 4 drums across | 172 ❌ | ✕ | —" | —" | dives | ✕ | 11 |
 
 GM (metacentric height): positive means the boat rights itself, negative means it tips until something else touches the water.
@@ -661,13 +662,13 @@ One drum up front on the centerline, two at the stern.
 - ✅ Each drum boxed in: no straps, and no separate deck frame
 - ⚠️ Nose-dives if the crew shift forward
 - ⚠️ Losing one drum can sink or capsize it
-- ⚠️ Needs 3 more 10 ft pipe sticks (9 total)
+- ⚠️ Needs 2 more 10 ft pipe sticks (9 total)
 - 👍 Stable both ways, at ~20 lb under the pontoon
 - 👍 Bow drum lifts the nose into waves
 - 👎 Bow-down unless crew sit aft or drums shift forward
 - 👎 One bow drum carries the whole front: a leak there is serious
 
-- 📦 On a deck frame instead of boxes: 105 lb (-23), 5 sticks (-4).
+- 📦 On a deck frame instead of boxes: 105 lb (-23), 6 sticks (-3).
 
 ### 2. Packed triangle: 1 bow drum + 2 side by side (current)
 
@@ -681,7 +682,7 @@ The team's current design: two drums side by side at the stern, boxes sharing a 
 - ⚠️ Tippy side to side (roll GM 3")
 - ⚠️ Nose-dives if the crew shift forward
 - ⚠️ Losing one drum can sink or capsize it
-- ⚠️ Needs 2 more 10 ft pipe sticks (8 total)
+- ⚠️ Needs 1 more 10 ft pipe stick (8 total)
 - 👍 Compact (about 4 ft wide); the boxes share a wall and a crossbar, so it takes less pipe than 3 separate boxes
 - 👍 Lift at the bow and the stern, so it rides over waves instead of see-sawing
 - 👎 Narrow: with 2 adults it can tip sideways. Open the "Pair gap" to widen it, at the cost of more pipe
@@ -696,11 +697,11 @@ One drum per side. The lightest and simplest boat to build.
 
 - ✅ 101 lb, 49 lb under the limit
 - ✅ Uses drums you already have (2)
-- ✅ Cheapest to finish: ~$95 more
+- ✅ Cut list fits the pipe you bought (7 sticks)
+- ✅ Cheapest to finish: ~$83 more
 - ✅ Each drum boxed in: no straps, and no separate deck frame
 - ⚠️ Does not float with this crew
 - ⚠️ Losing one drum can sink or capsize it
-- ⚠️ Needs 1 more 10 ft pipe stick (7 total)
 - 👍 Lightest and cheapest; the fewest lashings
 - 👍 Turns easily: short waterline, nothing in the middle
 - 👎 No backup: losing a drum swamps that side
@@ -714,11 +715,11 @@ Two drums side by side but shifted fore and aft, like the team's box-frame sketc
 
 - ✅ Lightest option: 99 lb
 - ✅ Uses drums you already have (2)
-- ✅ Cheapest to finish: ~$95 more
+- ✅ Cut list fits the pipe you bought (7 sticks)
+- ✅ Cheapest to finish: ~$83 more
 - ✅ Each drum boxed in: no straps, and no separate deck frame
 - ⚠️ Does not float with this crew
 - ⚠️ Losing one drum can sink or capsize it
-- ⚠️ Needs 1 more 10 ft pipe stick (7 total)
 - 👍 Spreads the lift fore and aft, so it rocks less than a straight catamaran
 - 👍 Same 2 drums and weight class as the catamaran
 - 👎 Lopsided: trims and turns a little differently each way
@@ -736,7 +737,7 @@ Two drums laid across the boat, one at the bow and one at the stern. Same weight
 - ✅ Each drum boxed in: no straps, and no separate deck frame
 - ⚠️ Tippy side to side (roll GM -14")
 - ⚠️ Losing one drum can sink or capsize it
-- ⚠️ Needs 2 more 10 ft pipe sticks (8 total)
+- ⚠️ Needs 1 more 10 ft pipe stick (8 total)
 - 👍 Rides over waves bow-first: a drum lifts each end
 - 👍 Same weight and drum count as the catamaran
 - 👎 Tippy side to side: only ~3 ft of drum across the beam
@@ -754,13 +755,13 @@ A center drum between the two side drums.
 - ✅ Each drum boxed in: no straps, and no separate deck frame
 - ⚠️ Does not float with this crew
 - ⚠️ Losing one drum can sink or capsize it
-- ⚠️ Needs 2 more 10 ft pipe sticks (8 total)
+- ⚠️ Needs 2 more 10 ft pipe sticks (9 total)
 - 👍 About 50% more lift than the catamaran
 - 👍 Survives losing one side drum in most cases
 - 👎 Still rocks fore and aft like the catamaran
 - 👎 Center drum adds drag and ~20 lb
 
-- 📦 On a deck frame instead of boxes: 105 lb (-29), 5 sticks (-3).
+- 📦 On a deck frame instead of boxes: 105 lb (-29), 5 sticks (-4).
 
 ### —. Reverse triangle: 2 bow + 1 stern drum
 
@@ -773,13 +774,13 @@ Two drums up front, one at the stern on the centerline.
 - ✅ Uses drums you already have (3)
 - ✅ Each drum boxed in: no straps, and no separate deck frame
 - ⚠️ Losing one drum can sink or capsize it
-- ⚠️ Needs 3 more 10 ft pipe sticks (9 total)
+- ⚠️ Needs 2 more 10 ft pipe sticks (9 total)
 - 👍 Most lift where crew lean in rapids, at the bow
 - 👍 Wide bow resists nose-diving and rolling as you enter drops
 - 👎 Stern-heavy crews squat the single stern drum
 - 👎 Wide, flat bow pushes more water
 
-- 📦 On a deck frame instead of boxes: 105 lb (-25), 5 sticks (-4).
+- 📦 On a deck frame instead of boxes: 105 lb (-25), 6 sticks (-3).
 
 ### —. Pontoon: 4 drums (2 per side)
 
@@ -792,14 +793,14 @@ Two drums end to end on each side (the original render).
 - ✅ Each drum boxed in: no straps, and no separate deck frame
 - ⚠️ 162 lb: over the 150 lb limit
 - ⚠️ Losing one drum can sink or capsize it
-- ⚠️ Needs 4 more 10 ft pipe sticks (10 total)
+- ⚠️ Needs 4 more 10 ft pipe sticks (11 total)
 - 👍 Most stable both ways; survives any single leak
 - 👍 Long hulls track straight and ride low
 - 👎 Heaviest (~40 lb over the catamaran) and close to the 150 lb limit
 - 👎 Long waterline turns slowly
 - 👎 Twice the lashing
 
-- 📦 On a deck frame instead of boxes: 125 lb (-37), 5 sticks (-5).
+- 📦 On a deck frame instead of boxes: 125 lb (-37), 5 sticks (-6).
 
 ### —. Diamond: bow, stern, port, starboard
 
@@ -811,14 +812,14 @@ One drum at each point of a diamond: bow and stern on the centerline, port and s
 - ✅ Each drum boxed in: no straps, and no separate deck frame
 - ⚠️ 167 lb: over the 150 lb limit
 - ⚠️ Losing one drum can sink or capsize it
-- ⚠️ Needs 4 more 10 ft pipe sticks (10 total)
+- ⚠️ Needs 4 more 10 ft pipe sticks (11 total)
 - 👍 Stable both ways with 4 drums spread over a short frame
 - 👍 Survives any single leak
 - 👍 Pivots well: drums are near the middle
 - 👎 Heaviest class, like the pontoon
 - 👎 Bow and stern drums need their own cross beams
 
-- 📦 On a deck frame instead of boxes: 128 lb (-39), 6 sticks (-4).
+- 📦 On a deck frame instead of boxes: 128 lb (-39), 6 sticks (-5).
 
 ### —. Wide raft: 4 drums across
 
@@ -829,7 +830,7 @@ Four drums side by side across a wide frame.
 - ⚠️ Does not float with this crew
 - ⚠️ 172 lb: over the 150 lb limit
 - ⚠️ Losing one drum can sink or capsize it
-- ⚠️ Needs 5 more 10 ft pipe sticks (11 total)
+- ⚠️ Needs 4 more 10 ft pipe sticks (11 total)
 - 👍 Hardest to tip sideways
 - 👍 Survives any single leak
 - 👎 Still rocks fore and aft: every drum is short
@@ -843,7 +844,7 @@ Four drums side by side across a wide frame.
 | Item | Needed | Listed |
 |------|--------|--------|
 | drum | 3 | 4 |
-| pipe | 8 | 6 ⚠️ |
+| pipe | 8 | 7 ⚠️ |
 | elbow | 0 | 16 |
 | tee | 30 | 4 ⚠️ |
 | cross | 0 | 3 |
@@ -858,14 +859,14 @@ Four drums side by side across a wide frame.
 
 ### Pipe cut list (10 ft sticks)
 
-1. P10 box 1 top 36", P11 box 1 top 36", P12 box 1 bottom 36", P38 box 2 link 11.5" — offcut 0"
-2. P13 box 1 bottom 36", P30 box 2 top 36", P34 box 2 bottom 36", P39 box 2 link 11.5" — offcut 0"
-3. P33 box 3 top 36", P37 box 3 bottom 36", mast 36", P28 box 2 link 11.5" — offcut 0"
-4. P31 box 2 top 20", P35 box 2 bottom 20", P32 box 3 top 20", P36 box 3 bottom 20", P7 box 1 post 17.48", P8 box 1 post 17.48" — offcut 4"
-5. P46 box 2 post 17.48", P47 box 2 post 17.48", P17 box 2 post 17.48", P18 box 2 post 17.48", P48 box 3 post 17.48", P49 box 3 post 17.48", P44 box 2 top 13.15" — offcut 1"
-6. P19 box 3 post 17.48", P20 box 3 post 17.48", P1 box 1 nose 17.48", P4 box 1 nose 16.81", P5 box 1 nose 16.81", P2 box 1 nose 16.81", P14 box 2 top 13.15" — offcut 3"
-7. P3 box 1 nose 16.81", P50 box 2 bottom 13.15", P21 box 2 bottom 13.15", P45 box 3 top 13.15", P16 box 3 top 13.15", P51 box 3 bottom 13.15", P23 box 3 bottom 13.15", P29 box 2 link 11.5", P15 box 1 top 11.5" — offcut 0"
-8. P6 box 1 top 11.5", P22 box 1 bottom 11.5", P9 box 1 bottom 11.5", P40 box 2 top 5.5", P24 box 2 top 5.5", P42 box 2 bottom 5.5", P26 box 2 bottom 5.5", P41 box 3 top 5.5", P25 box 3 top 5.5", P43 box 3 bottom 5.5", P27 box 3 bottom 5.5" — offcut 40"
+1. P10 box 1 top cut 36.5" → fit 36", P11 box 1 top cut 36.5" → fit 36", P12 box 1 bottom cut 36.5" → fit 36", P24 box 2 top cut 6" → fit 5.5" — offcut 4"
+2. P13 box 1 bottom cut 36.5" → fit 36", P30 box 2 top cut 36.5" → fit 36", P34 box 2 bottom cut 36.5" → fit 36", P42 box 2 bottom cut 6" → fit 5.5" — offcut 4"
+3. P33 box 3 top cut 36.5" → fit 36", P37 box 3 bottom cut 36.5" → fit 36", mast cut 36.5" → fit 36", P26 box 2 bottom cut 6" → fit 5.5" — offcut 4"
+4. P31 box 2 top cut 20.5" → fit 20", P35 box 2 bottom cut 20.5" → fit 20", P32 box 3 top cut 20.5" → fit 20", P36 box 3 bottom cut 20.5" → fit 20", P7 box 1 post cut 17.98" → fit 17.48", P8 box 1 post cut 17.98" → fit 17.48" — offcut 1"
+5. P46 box 2 post cut 17.98" → fit 17.48", P47 box 2 post cut 17.98" → fit 17.48", P17 box 2 post cut 17.98" → fit 17.48", P18 box 2 post cut 17.98" → fit 17.48", P48 box 3 post cut 17.98" → fit 17.48", P49 box 3 post cut 17.98" → fit 17.48", P41 box 3 top cut 6" → fit 5.5" — offcut 5"
+6. P19 box 3 post cut 17.98" → fit 17.48", P20 box 3 post cut 17.98" → fit 17.48", P1 box 1 nose cut 17.98" → fit 17.48", P4 box 1 nose cut 17.31" → fit 16.81", P5 box 1 nose cut 17.31" → fit 16.81", P2 box 1 nose cut 17.31" → fit 16.81", P38 box 2 link cut 12" → fit 11.5" — offcut 1"
+7. P3 box 1 nose cut 17.31" → fit 16.81", P44 box 2 top cut 13.65" → fit 13.15", P14 box 2 top cut 13.65" → fit 13.15", P50 box 2 bottom cut 13.65" → fit 13.15", P21 box 2 bottom cut 13.65" → fit 13.15", P45 box 3 top cut 13.65" → fit 13.15", P16 box 3 top cut 13.65" → fit 13.15", P51 box 3 bottom cut 13.65" → fit 13.15", P40 box 2 top cut 6" → fit 5.5" — offcut 0"
+8. P23 box 3 bottom cut 13.65" → fit 13.15", P39 box 2 link cut 12" → fit 11.5", P28 box 2 link cut 12" → fit 11.5", P29 box 2 link cut 12" → fit 11.5", P15 box 1 top cut 12" → fit 11.5", P6 box 1 top cut 12" → fit 11.5", P22 box 1 bottom cut 12" → fit 11.5", P9 box 1 bottom cut 12" → fit 11.5", P25 box 3 top cut 6" → fit 5.5", P43 box 3 bottom cut 6" → fit 5.5", P27 box 3 bottom cut 6" → fit 5.5" — offcut 3"
 
 ### Part IDs
 
@@ -972,7 +973,7 @@ Every pipe (P), joint (J), drum (D), side panel (S), noodle (N), deck (K), mast 
 |------|------|-----|-------|----------|------|-------|--------|
 | Plastic 55-gallon drum (reconditioned) | drum | 4 | 20 |  | $35.00 | $140.00 | bought |
 | Charlotte Pipe 1-1/2" x 10 ft PVC Sch 40 pipe (plain end) | pipe | 5 | 5.1 |  | $11.96 | $59.80 | bought |
-| Charlotte Pipe 1-1/2" x 10 ft Sch 40 PVC pipe | pipe | 1 | 5.1 |  | $11.96 | $11.96 | bought |
+| Charlotte Pipe 1-1/2" x 10 ft Sch 40 PVC pipe | pipe | 2 | 5.1 |  | $11.96 | $23.92 | bought |
 | 1-1/2" DWV double sanitary tee (HxHxHxH) | cross | 3 | 0.45 |  | $7.23 | $21.69 | bought |
 | 1-1/2" DWV sanitary tee (HxHxH) | tee | 4 | 0.35 |  | $3.76 | $15.04 | bought |
 | 1-1/2" furniture-grade 4-way side-outlet tee (Zernmiarder, 12-pack) | side-tee | 24 | 0.3 |  | $1.85 | $44.40 | bought |
@@ -1017,7 +1018,7 @@ Every pipe (P), joint (J), drum (D), side panel (S), noodle (N), deck (K), mast 
 | Waterproof vinyl pinstripe tape, 1 in x 150 ft | decal | 1 | 0.02 |  | $9.98 | $9.98 | suggested |
 | Porthole window vinyl decals, waterproof, set of 4 | decal | 1 | 0.02 |  | $11.99 | $11.99 | suggested |
 | Waterproof vinyl letters, 3 in, black (letters and numbers set) | decal | 1 | 0.02 |  | $7.98 | $7.98 | suggested |
-| **Total** | | | | | | **$1141.92** | bought $811.67 |
+| **Total** | | | | | | **$1153.88** | bought $823.63 |
 
 ## Suggested materials not on the list
 
