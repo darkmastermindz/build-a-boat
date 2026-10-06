@@ -503,6 +503,7 @@ const SL = [
   ['frameLength','Frame length',36,120,2,'"', c => c.frameStyle !== 'boxes'],
   ['frameWidth','Beam length',48,110,2,'"', c => c.frameStyle === 'stacked'],
   ['fittingTakeoff','Fitting take-off',0.5,2.5,0.05,'"', c => c.frameStyle !== 'stacked'],
+  ['cutAllowance','Cut allowance (trim to fit)',0,2,0.25,'"', c => c.frameStyle !== 'stacked'],
   ['beamCount','Cross beams',2,6,1,'', c => c.frameStyle !== 'boxes'],
   ['pontoonSpacing','Pontoon spacing',28,90,1,'"', c => c.preset !== 'tri3pack'],
   ['packGap','Pair gap',0,14,0.5,'"', c => c.preset === 'tri3pack'],
@@ -848,7 +849,7 @@ function renderCheck(){
   $('reqTable').replaceChildren(el('tr', {}, el('th', {}, 'Item'), el('th', { class:'num' }, 'Need'), el('th', { class:'num' }, 'Listed'), el('th', {}, '')),
     ...Object.entries(A.requirements.items).map(([k, need]) => { const h = have[k]||0; return el('tr', {}, el('td', {}, names[k]||k), el('td', { class:'num' }, need), el('td', { class:'num' }, h), el('td', {}, el('span', { class: 'dot ' + (h < need ? 'warn' : 'ok') }))); }));
   $('cutTable').replaceChildren(el('tr', {}, el('th', {}, '#'), el('th', {}, 'Cuts'), el('th', { class:'num' }, 'Offcut')),
-    ...A.requirements.sticks.map((s, i) => el('tr', {}, el('td', {}, i+1), el('td', {}, s.cuts.map(c => `${c.id ? c.id + ' ' : ''}${c.label} ${c.len}"`).join(' · ')), el('td', { class:'num' }, f0(s.left) + '"'))));
+    ...A.requirements.sticks.map((s, i) => el('tr', {}, el('td', {}, i+1), el('td', {}, s.cuts.map(c => `${c.id ? c.id + ' ' : ''}${c.label} ${c.cut !== c.len ? `cut ${c.cut}" → fit ${c.len}"` : c.len + '"'}`).join(' · ')), el('td', { class:'num' }, f0(s.left) + '"'))));
 }
 let cmpPriority = (() => { try { return localStorage.getItem('bob-cmp-priority') || 'balanced'; } catch (e) { return 'balanced'; } })();
 function useLayout(r){
