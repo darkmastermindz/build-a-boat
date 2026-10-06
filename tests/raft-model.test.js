@@ -136,7 +136,7 @@ test('shopping list covers what the layout still needs', () => {
   assert.ok(a.shopping.rows.every(r => !(r.role === 'zip-tie' && /36 in/i.test(r.name))), 'does not suggest ties over 18"');
 });
 
-test('no addresses, phone numbers or payment details in data and docs', () => {
+test('no addresses, phone numbers, payment details or specific towns in data and docs', () => {
   const fs = require('fs'), path = require('path');
   const root = path.join(__dirname, '..');
   const files = [...fs.readdirSync(path.join(root, 'data')).filter(f => f.endsWith('.json')).map(f => 'data/' + f),
@@ -147,6 +147,9 @@ test('no addresses, phone numbers or payment details in data and docs', () => {
     /\b\d{2,6} [A-Z][a-z]+(?: [A-Z][a-z]+)* (?:St|Ave|Blvd|Dr|Rd|Ct|Pike|Plaza|Hwy)\b/,
     /\(\d{3}\)\s?\d{3}-\d{4}/,
     /X{6,}\d{4}|AUTH CODE|\bAMEX\b|Home Depot #\d+/i,
+    // locations stay general ("Charlotte area"): no specific nearby towns or drive times from home
+    /\b(?:Charlotte area|Charlotte area|Charlotte area|Charlotte area|Charlotte area|Charlotte area|Charlotte area|Charlotte area|Charlotte area)\b/i,
+    /~?\d+ min from\b/i,
   ];
   for (const f of files) {
     const t = fs.readFileSync(path.join(root, f), 'utf8');
