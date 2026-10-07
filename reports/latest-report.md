@@ -22,28 +22,28 @@ Generated from `data/build.json` by `scripts/raft-model.js`. Open
 | Drum retention | Trapped in the boxes |
 | Overall size | 7.9 ft × 3.8 ft × 4.5 ft |
 | Crew | 2 × 175 lb |
-| Predicted final weight | 129.5 lb (limit 150) |
-| Bought so far | 120.8 lb on the boat + 24.0 lb spares/offcuts |
+| Predicted final weight | 144.8 lb (limit 150) |
+| Bought so far | 122.9 lb on the boat + 22.0 lb spares/offcuts |
 | Measured | 0.0 lb (0% of predicted) |
 
 ## Weight
 
 | | lb |
 |---|---|
-| **Predicted final boat** | **129.5** |
-| Bought so far (on the boat) | 120.8 |
-| Bought spares and offcuts (not on the boat) | 24.0 |
-| Still to buy | 8.7 |
+| **Predicted final boat** | **144.8** |
+| Bought so far (on the boat) | 122.9 |
+| Bought spares and offcuts (not on the boat) | 22.0 |
+| Still to buy | 22.0 |
 | Measured on a scale | 0.0 |
 
 ## Next shopping trip
 
 | Item | Qty | Est. | Priority | Shop | Why |
 |------|-----|------|----------|------|-----|
-| Charlotte Pipe 1-1/2" x 10 ft PVC Sch 40 pipe (plain end) | 1 | $11.96 | needed | [Home Depot](https://www.homedepot.com/s/Charlotte%20Pipe%201-1%2F2%20in%20x%2010%20ft%20PVC%20Sch%2040%20pipe) · [Lowe's](https://www.lowes.com/search?searchTerm=Charlotte%20Pipe%201-1%2F2%20in%20x%2010%20ft%20PVC%20Sch%2040%20pipe) | Layout needs 8; 7 bought. |
+| Charlotte Pipe 1-1/2" x 10 ft PVC Sch 40 pipe (plain end) | 4 | $47.84 | needed | [Home Depot](https://www.homedepot.com/s/Charlotte%20Pipe%201-1%2F2%20in%20x%2010%20ft%20PVC%20Sch%2040%20pipe) · [Lowe's](https://www.lowes.com/search?searchTerm=Charlotte%20Pipe%201-1%2F2%20in%20x%2010%20ft%20PVC%20Sch%2040%20pipe) | Layout needs 11; 7 bought. |
 | Corrugated plastic sheet, white, 24 x 36 in | 3 | $35.94 | needed | [Home Depot](https://www.homedepot.com/s/Corrugated%20plastic%20sheet%2C%20white%2C%2024%20x%2036%20in) · [Lowe's](https://www.lowes.com/search?searchTerm=Corrugated%20plastic%20sheet%2C%20white%2C%2024%20x%2036%20in) | Layout needs 1 full 4 x 8 ft sheets; 0.56 bought. |
 | Expanding spray foam, 12 oz (Great Stuff or similar) | 4 | $27.92 (est.) | needed | [Home Depot](https://www.homedepot.com/s/Expanding%20spray%20foam%2C%2012%20oz) · [Lowe's](https://www.lowes.com/search?searchTerm=Expanding%20spray%20foam%2C%2012%20oz) | Layout needs 4; 0 bought. |
-| Pool noodles, yellow | 5 | $17.90 | needed | [Home Depot](https://homedepot.com/p/Pool-Mate-Blue-and-Pink-Swimming-Pool-Water-Noodles-12-Pack-TWLN36-12/304884154) · [Lowe's](https://www.lowes.com/search?searchTerm=Pool%20noodles%2C%20yellow) | Layout needs 5; 0 bought. |
+| Pool noodles, yellow | 14 | $50.12 | needed | [Home Depot](https://homedepot.com/p/Pool-Mate-Blue-and-Pink-Swimming-Pool-Water-Noodles-12-Pack-TWLN36-12/304884154) · [Lowe's](https://www.lowes.com/search?searchTerm=Pool%20noodles%2C%20yellow) | Layout needs 14; 0 bought. |
 | Flush-cut snips | 1 | $7.99 (est.) | needed | [Home Depot](https://www.homedepot.com/s/Flush-cut%20snips) · [Lowe's](https://www.lowes.com/search?searchTerm=Flush-cut%20snips) | Planned on the parts list, not bought yet. |
 | Coroplast corrugated plastic 4 mm, 4 x 8 ft | 1 | $38.29 | optional | [Home Depot](https://www.homedepot.com/s/Coroplast%20corrugated%20plastic%204%20mm%2C%204%20x%208%20ft) · [Lowe's](https://www.lowes.com/search?searchTerm=Coroplast%20corrugated%20plastic%204%20mm%2C%204%20x%208%20ft) | Suggested, not on the plan yet. |
 | 2-part marine epoxy | 2 | $10.00 | optional | [Home Depot](https://www.homedepot.com/s/2-part%20marine%20epoxy) · [Lowe's](https://www.lowes.com/search?searchTerm=2-part%20marine%20epoxy) · [Harbor Freight - Charlotte area](https://www.harborfreight.com) | Suggested, not on the plan yet. |
@@ -58,7 +58,7 @@ Generated from `data/build.json` by `scripts/raft-model.js`. Open
 | Waterproof vinyl pinstripe tape, 1 in x 150 ft | 1 | $9.98 (est.) | optional | [Home Depot](https://www.homedepot.com/s/Waterproof%20vinyl%20pinstripe%20tape%2C%201%20in%20x%20150%20ft) · [Lowe's](https://www.lowes.com/search?searchTerm=Waterproof%20vinyl%20pinstripe%20tape%2C%201%20in%20x%20150%20ft) · [Amazon](https://www.amazon.com/s?k=Waterproof%20vinyl%20pinstripe%20tape%2C%201%20in%20x%20150%20ft) | Suggested, not on the plan yet. |
 | Porthole window vinyl decals, waterproof, set of 4 | 1 | $11.99 (est.) | optional | [Home Depot](https://www.homedepot.com/s/Porthole%20window%20vinyl%20decals%2C%20waterproof%2C%20set%20of%204) · [Lowe's](https://www.lowes.com/search?searchTerm=Porthole%20window%20vinyl%20decals%2C%20waterproof%2C%20set%20of%204) · [Amazon](https://www.amazon.com/s?k=Porthole%20window%20vinyl%20decals%2C%20waterproof%2C%20set%20of%204) | Suggested, not on the plan yet. |
 | Waterproof vinyl letters, 3 in, black (letters and numbers set) | 1 | $7.98 (est.) | optional | [Home Depot](https://www.homedepot.com/s/Waterproof%20vinyl%20letters%2C%203%20in%2C%20black) · [Lowe's](https://www.lowes.com/search?searchTerm=Waterproof%20vinyl%20letters%2C%203%20in%2C%20black) · [Amazon](https://www.amazon.com/s?k=Waterproof%20vinyl%20letters%2C%203%20in%2C%20black) | Suggested, not on the plan yet. |
-| **Needed** | | **$101.71** | | | $338.77 including spare and optional |
+| **Needed** | | **$169.81** | | | $406.87 including spare and optional |
 
 Open `raft-simulation.html` → Check → Next shopping trip and enter a ZIP code for nearby Home Depot, Lowe's and local-supplier map links. The ZIP stays on your device.
 
@@ -66,12 +66,12 @@ Open `raft-simulation.html` → Check → Next shopping trip and enter a ZIP cod
 
 | Metric | Value |
 |--------|-------|
-| Max draft | 7.8" |
-| Load (of max buoyancy) | 30% (479 lb on 1588 lb) |
-| Frame clearance above water | 12.3" |
+| Max draft | 8.1" |
+| Load (of max buoyancy) | 31% (495 lb on 1617 lb) |
+| Frame clearance above water | 12.0" |
 | Trim / heel | -0.5° / 0.0° |
-| Stability GM roll / pitch | 3" / 46" |
-| Crew at bow: bow clearance | -7.4" |
+| Stability GM roll / pitch | 3" / 45" |
+| Crew at bow: bow clearance | -7.8" |
 | Lose one drum | sinks or capsizes |
 
 ## Engineering
@@ -80,39 +80,39 @@ Open `raft-simulation.html` → Check → Next shopping trip and enter a ZIP cod
 
 | | |
 |---|---|
-| Total lift (every drum under) | 1588 lb |
-| Boat + crew | 479 lb |
-| Reserve | 1109 lb (safety factor 3.3×) |
-| Drum 1 | 150 of 495 lb (30% used), 7.8" under |
-| Drum 2 | 142 of 495 lb (29% used), 7.5" under |
-| Drum 3 | 142 of 495 lb (29% used), 7.5" under |
+| Total lift (every drum under) | 1617 lb |
+| Boat + crew | 495 lb |
+| Reserve | 1122 lb (safety factor 3.3×) |
+| Drum 1 | 156 of 495 lb (31% used), 8.1" under |
+| Drum 2 | 146 of 495 lb (30% used), 7.7" under |
+| Drum 3 | 146 of 495 lb (30% used), 7.7" under |
 | Carried by submerged foam-filled pipe | 47 lb |
-| Foam lift if swamped | 264 lb vs 69 lb of structure |
+| Foam lift if swamped | 372 lb vs 85 lb of structure |
 
 ### Drag
 
 | | |
 |---|---|
-| Underwater area, ahead / side | 2.66 / 4.72 sq ft |
-| Paddling 1 mph | 3.1 lb, 6 W |
-| Paddling 2 mph | 12.5 lb, 50 W |
-| Paddling 3 mph | 28.1 lb, 168 W |
+| Underwater area, ahead / side | 2.72 / 4.85 sq ft |
+| Paddling 1 mph | 3.2 lb, 6 W |
+| Paddling 2 mph | 12.8 lb, 51 W |
+| Paddling 3 mph | 28.8 lb, 172 W |
 | Top speed (150 W) | 2.9 mph |
-| Broadside to a 3 mph current | 98 lb |
-| Broadside to a 5 mph current | 271 lb |
-| Broadside to a 8 mph current | 694 lb |
+| Broadside to a 3 mph current | 100 lb |
+| Broadside to a 5 mph current | 278 lb |
+| Broadside to a 8 mph current | 712 lb |
 
 ### Weight distribution
 
 | | |
 |---|---|
-| Centre of gravity (fore-aft, height, across) | 0.4", 28.7", -0.0" |
+| Centre of gravity (fore-aft, height, across) | 0.4", 28.8", 0.0" |
 | Forward / aft | 46% / 54% |
-| CG above the waterline | 21.2" |
+| CG above the waterline | 21.1" |
 | crew | 350 lb at 0" |
+| frame | 67 lb at 3" |
 | drum | 60 lb at -0" |
-| frame | 55 lb at 4" |
-| fittings/decor | 9 lb at 0" |
+| fittings/decor | 11 lb at 0" |
 | deck | 6 lb at 0" |
 
 ### Structure (1-1/2" Sch 40 PVC, crew × 2 for slamming)
@@ -133,8 +133,8 @@ Targets: safety factor 2.5+ (minimum 1.5). PVC flexural strength ~14000 psi.
 1. Drum 1: π × 11.25² × 34.5 = 13717 in³ × 0.0361 = 495.4 lb
 2. Drum 2: π × 11.25² × 34.5 = 13717 in³ × 0.0361 = 495.4 lb
 3. Drum 3: π × 11.25² × 34.5 = 13717 in³ × 0.0361 = 495.4 lb
-4. Foam-filled pipe that can go under: 102.0 lb
-5. Total = 1486.1 + 102.0 = 1588 lb
+4. Foam-filled pipe that can go under: 130.6 lb
+5. Total = 1486.1 + 130.6 = 1617 lb
 
 Archimedes: a body pushed under water is lifted by the weight of water it displaces (water weighs 62.4 lb/ft³ = 0.0361 lb/in³). This is the most the boat can ever hold up.
 
@@ -144,11 +144,11 @@ Sources: [Wikipedia: Archimedes' principle](https://en.wikipedia.org/wiki/Archim
 <details><summary><code>buoy.load</code>: W = boat parts + drums + crew</summary>
 
 1. drum: 60.0 lb
-2. frame: 54.7 lb
+2. frame: 67.3 lb
 3. deck: 6.2 lb
-4. fittings/decor: 8.6 lb
+4. fittings/decor: 11.3 lb
 5. crew: 350.0 lb
-6. Total W = 479.5 lb
+6. Total W = 494.8 lb
 
 Everything the drums have to hold up: the predicted boat weight from the parts list plus the crew.
 
@@ -157,7 +157,7 @@ Sources: [Khan Academy: What is center of mass?](https://www.khanacademy.org/sci
 </details>
 <details><summary><code>buoy.reserve</code>: Reserve = Lift − W</summary>
 
-1. 1588 − 479 = 1109 lb
+1. 1617 − 495 = 1122 lb
 
 How much more weight (water in the boat, a wave pushing down) it can take before it goes under.
 
@@ -166,7 +166,7 @@ Sources: [Wikipedia: Archimedes' principle](https://en.wikipedia.org/wiki/Archim
 </details>
 <details><summary><code>buoy.sf</code>: Safety factor = Lift ÷ W</summary>
 
-1. 1588 ÷ 479 = 3.31×
+1. 1617 ÷ 495 = 3.27×
 
 Above 2× is comfortable for rough water; below 1.5× a big wave or a swamped deck can push it under.
 
@@ -175,9 +175,9 @@ Sources: [Wikipedia: Factor of safety](https://en.wikipedia.org/wiki/Factor_of_s
 </details>
 <details><summary><code>buoy.drum0</code>: Submerged slice area A(h) = r² · acos((r − h)/r) − (r − h) · √(2rh − h²); lift = Σ A(h) × slice length × 0.0361</summary>
 
-1. r = 11.25", length 34.5", deepest point h = 7.82" (the boat trims, so h varies along the drum)
-2. Lift = 149.7 lb of a 495.4 lb maximum = 30% used
-3. Share of the load = 149.7 ÷ 479.5 = 31%
+1. r = 11.25", length 34.5", deepest point h = 8.06" (the boat trims, so h varies along the drum)
+2. Lift = 155.5 lb of a 495.4 lb maximum = 31% used
+3. Share of the load = 155.5 ÷ 494.8 = 31%
 
 The solver moves the boat up/down and tilts it until the lift equals the weight and the lift is centred under the centre of gravity. Each drum is cut into 12 slices; each slice floats to its own depth.
 
@@ -186,9 +186,9 @@ Sources: [Wikipedia: Circular segment (area, chord)](https://en.wikipedia.org/wi
 </details>
 <details><summary><code>buoy.drum1</code>: Submerged slice area A(h) = r² · acos((r − h)/r) − (r − h) · √(2rh − h²); lift = Σ A(h) × slice length × 0.0361</summary>
 
-1. r = 11.25", length 34.5", deepest point h = 7.51" (the boat trims, so h varies along the drum)
-2. Lift = 141.6 lb of a 495.4 lb maximum = 29% used
-3. Share of the load = 141.6 ÷ 479.5 = 30%
+1. r = 11.25", length 34.5", deepest point h = 7.71" (the boat trims, so h varies along the drum)
+2. Lift = 146.2 lb of a 495.4 lb maximum = 30% used
+3. Share of the load = 146.2 ÷ 494.8 = 30%
 
 The solver moves the boat up/down and tilts it until the lift equals the weight and the lift is centred under the centre of gravity. Each drum is cut into 12 slices; each slice floats to its own depth.
 
@@ -197,9 +197,9 @@ Sources: [Wikipedia: Circular segment (area, chord)](https://en.wikipedia.org/wi
 </details>
 <details><summary><code>buoy.drum2</code>: Submerged slice area A(h) = r² · acos((r − h)/r) − (r − h) · √(2rh − h²); lift = Σ A(h) × slice length × 0.0361</summary>
 
-1. r = 11.25", length 34.5", deepest point h = 7.51" (the boat trims, so h varies along the drum)
-2. Lift = 141.6 lb of a 495.4 lb maximum = 29% used
-3. Share of the load = 141.6 ÷ 479.5 = 30%
+1. r = 11.25", length 34.5", deepest point h = 7.71" (the boat trims, so h varies along the drum)
+2. Lift = 146.2 lb of a 495.4 lb maximum = 30% used
+3. Share of the load = 146.2 ÷ 494.8 = 30%
 
 The solver moves the boat up/down and tilts it until the lift equals the weight and the lift is centred under the centre of gravity. Each drum is cut into 12 slices; each slice floats to its own depth.
 
@@ -208,7 +208,7 @@ Sources: [Wikipedia: Circular segment (area, chord)](https://en.wikipedia.org/wi
 </details>
 <details><summary><code>buoy.frame</code>: Pipe lift = W − Σ drum lift</summary>
 
-1. 479.5 − 432.8 = 46.7 lb
+1. 494.8 − 447.9 = 46.9 lb
 
 The bottom rails of the boxes sit below the waterline; foam-filled pipe floats, so it carries part of the load.
 
@@ -218,9 +218,9 @@ Sources: [Wikipedia: Archimedes' principle](https://en.wikipedia.org/wiki/Archim
 <details><summary><code>buoy.emergency</code>: Foam lift = deck XPS + pool noodles + foam-filled pipe</summary>
 
 1. Deck: 72 × 24 × (2.3 − 0.3 skins) in³ × 0.0361 = 125 lb
-2. Noodles: 5 × π × 1.25² × 52 in³ × 0.0361 = 46 lb
-3. Pipe: 905" × π × 0.95² × 0.0361 = 93 lb (gross: the pipe's own weight is on the other side, in the structure)
-4. Total 264 lb vs structure without drums 129 − 60 = 69 lb
+2. Noodles: 14 × π × 1.25² × 52 in³ × 0.0361 = 129 lb
+3. Pipe: 1154" × π × 0.95² × 0.0361 = 118 lb (gross: the pipe's own weight is on the other side, in the structure)
+4. Total 372 lb vs structure without drums 145 − 60 = 85 lb
 
 The rules say everything must float even when broken. If every drum leaked, the foam would still have to hold up the frame and deck.
 
@@ -229,10 +229,10 @@ Sources: [Wikipedia: Archimedes' principle](https://en.wikipedia.org/wiki/Archim
 </details>
 <details><summary><code>drag.area</code>: Frontal area = drum cross-sections below the waterline (seen from ahead, overlaps counted once) + hull skirt width × depth under water</summary>
 
-1. Waterline 7.5" above the drum bottoms; hull skirt bottom at 1.3", so 6.2" of skirt is under water
+1. Waterline 7.7" above the drum bottoms; hull skirt bottom at 1.3", so 6.4" of skirt is under water
 2. Drums below the skirt: 0.43 ft² (sampled every 0.5" across)
-3. Hull: 51.5" wide × 6.2" = 2.23 ft²
-4. From the side: drums 0.61 ft² + hull 95.0" × 6.2" = 4.11 ft²
+3. Hull: 51.5" wide × 6.4" = 2.30 ft²
+4. From the side: drums 0.61 ft² + hull 95.0" × 6.4" = 4.24 ft²
 
 Drag depends on how much the boat pushes against water head-on. Only what is below the waterline counts.
 
@@ -241,10 +241,10 @@ Sources: [Wikipedia: Drag equation (F = ½ ρ v² C_d A)](https://en.wikipedia.o
 </details>
 <details><summary><code>drag.force</code>: F = ½ · ρ · v² · Cd · A   (ρ = 1.94 slug/ft³, v in ft/s, 1 mph = 1.467 ft/s)</summary>
 
-1. Cd·A = 0.9 × 0.43 (blunt drum ends) + 0.5 × 2.23 (pointed bow) = 1.50 ft²
-2. 1 mph: ½ × 1.94 × 1.47² × 1.50 = 3.1 lb; power = F × v = 3.1 × 1.47 × 1.356 = 6 W
-3. 2 mph: ½ × 1.94 × 2.93² × 1.50 = 12.5 lb; power = F × v = 12.5 × 2.93 × 1.356 = 50 W
-4. 3 mph: ½ × 1.94 × 4.40² × 1.50 = 28.1 lb; power = F × v = 28.1 × 4.40 × 1.356 = 168 W
+1. Cd·A = 0.9 × 0.43 (blunt drum ends) + 0.5 × 2.30 (pointed bow) = 1.53 ft²
+2. 1 mph: ½ × 1.94 × 1.47² × 1.53 = 3.2 lb; power = F × v = 3.2 × 1.47 × 1.356 = 6 W
+3. 2 mph: ½ × 1.94 × 2.93² × 1.53 = 12.8 lb; power = F × v = 12.8 × 2.93 × 1.356 = 51 W
+4. 3 mph: ½ × 1.94 × 4.40² × 1.53 = 28.8 lb; power = F × v = 28.8 × 4.40 × 1.356 = 172 W
 
 Water drag grows with the square of speed, and the power to push it with the cube. Skin friction along the sides is left out, so real drag is a little higher.
 
@@ -254,7 +254,7 @@ Sources: [Wikipedia: Drag equation (F = ½ ρ v² C_d A)](https://en.wikipedia.o
 <details><summary><code>drag.speed</code>: P = F · v = ½ ρ Cd A v³  →  v = ∛(P ÷ (½ ρ Cd A))</summary>
 
 1. P = 2 paddlers × 75 W = 150 W = 111 ft·lb/s
-2. v = ∛(111 ÷ (0.5 × 1.94 × 1.50)) = 4.24 ft/s = 2.9 mph
+2. v = ∛(111 ÷ (0.5 × 1.94 × 1.53)) = 4.21 ft/s = 2.9 mph
 
 A fit recreational paddler sustains about 75 W. Top speed is where the paddlers' power equals the drag power.
 
@@ -263,10 +263,10 @@ Sources: [Wikipedia: Drag equation (F = ½ ρ v² C_d A)](https://en.wikipedia.o
 </details>
 <details><summary><code>drag.broadside</code>: F = ½ · ρ · v² · Cd · A_side   (Cd ≈ 1.1 broadside);  Re = v · D ÷ ν</summary>
 
-1. Cd·A_side = 1.1 × 4.72 = 5.20 ft²
-2. 3 mph: ½ × 1.94 × 4.40² × 5.20 = 98 lb
-3. 5 mph: ½ × 1.94 × 7.33² × 5.20 = 271 lb
-4. 8 mph: ½ × 1.94 × 11.73² × 5.20 = 694 lb
+1. Cd·A_side = 1.1 × 4.85 = 5.33 ft²
+2. 3 mph: ½ × 1.94 × 4.40² × 5.33 = 100 lb
+3. 5 mph: ½ × 1.94 × 7.33² × 5.33 = 278 lb
+4. 8 mph: ½ × 1.94 × 11.73² × 5.33 = 712 lb
 5. Re at 3 mph = 4.40 ft/s × 1.875 ft ÷ 1.076e-5 ft²/s = 7.7e+5 (past the drag crisis: a smooth drum would see less drag)
 6. Re at 5 mph = 7.33 ft/s × 1.875 ft ÷ 1.076e-5 ft²/s = 1.3e+6 (past the drag crisis: a smooth drum would see less drag)
 7. Re at 8 mph = 11.73 ft/s × 1.875 ft ÷ 1.076e-5 ft²/s = 2.0e+6 (past the drag crisis: a smooth drum would see less drag)
@@ -293,8 +293,8 @@ Sources: [Wikipedia: Drag equation (F = ½ ρ v² C_d A)](https://en.wikipedia.o
 13. cage: 2.0 lb at x 25.3", height 1.3", across 7.0"
 14. cage: 0.7 lb at x 6.0", height 1.3", across 0.0"
 15. cage: 0.7 lb at x 44.5", height 1.3", across 0.0"
-16. cage: 1.1 lb at x 44.5", height 11.3", across -7.0"
-17. cage: 1.1 lb at x 44.5", height 11.3", across 7.0"
+16. cage: 1.0 lb at x 44.5", height 11.3", across -7.0"
+17. cage: 1.0 lb at x 44.5", height 11.3", across 7.0"
 18. cage: 2.0 lb at x -13.3", height 21.2", across -22.6"
 19. cage: 0.4 lb at x -28.5", height 21.2", across -7.0"
 20. cage: 1.2 lb at x -13.3", height 21.2", across -7.0"
@@ -307,10 +307,10 @@ Sources: [Wikipedia: Drag equation (F = ½ ρ v² C_d A)](https://en.wikipedia.o
 27. cage: 0.4 lb at x 2.0", height 1.3", across -7.0"
 28. cage: 0.8 lb at x -32.5", height 1.3", across -14.8"
 29. cage: 0.8 lb at x 6.0", height 1.3", across -14.8"
-30. cage: 1.1 lb at x -32.5", height 11.3", across -22.6"
-31. cage: 1.1 lb at x -32.5", height 11.3", across -7.0"
-32. cage: 1.1 lb at x 6.0", height 11.3", across -22.6"
-33. cage: 1.1 lb at x 6.0", height 11.3", across -7.0"
+30. cage: 1.0 lb at x -32.5", height 11.3", across -22.6"
+31. cage: 1.0 lb at x -32.5", height 11.3", across -7.0"
+32. cage: 1.0 lb at x 6.0", height 11.3", across -22.6"
+33. cage: 1.0 lb at x 6.0", height 11.3", across -7.0"
 34. cage: 0.4 lb at x -28.5", height 21.2", across 7.0"
 35. cage: 1.2 lb at x -13.3", height 21.2", across 7.0"
 36. cage: 0.4 lb at x 2.0", height 21.2", across 7.0"
@@ -323,21 +323,33 @@ Sources: [Wikipedia: Drag equation (F = ½ ρ v² C_d A)](https://en.wikipedia.o
 43. cage: 2.0 lb at x -13.3", height 1.3", across 22.6"
 44. cage: 0.8 lb at x -32.5", height 1.3", across 14.8"
 45. cage: 0.8 lb at x 6.0", height 1.3", across 14.8"
-46. cage: 1.1 lb at x -32.5", height 11.3", across 7.0"
-47. cage: 1.1 lb at x -32.5", height 11.3", across 22.6"
-48. cage: 1.1 lb at x 6.0", height 11.3", across 7.0"
-49. cage: 1.1 lb at x 6.0", height 11.3", across 22.6"
+46. cage: 1.0 lb at x -32.5", height 11.3", across 7.0"
+47. cage: 1.0 lb at x -32.5", height 11.3", across 22.6"
+48. cage: 1.0 lb at x 6.0", height 11.3", across 7.0"
+49. cage: 1.0 lb at x 6.0", height 11.3", across 22.6"
 50. cage: 1.0 lb at x 53.5", height 1.3", across -3.5"
 51. cage: 1.0 lb at x 53.5", height 1.3", across 3.5"
 52. cage: 1.0 lb at x 53.5", height 21.2", across -3.5"
 53. cage: 1.0 lb at x 53.5", height 21.2", across 3.5"
-54. cage: 1.1 lb at x 62.5", height 11.3", across 0.0"
-55. frame: 2.2 lb at x 0.0", height 22.2", across 0.0"
-56. deck: 6.2 lb at x 0.0", height 23.3", across 0.0"
-57. fittings/decor: 8.6 lb at x 0.0", height 26.5", across 0.0"
-58. crew: 175.0 lb at x -15.0", height 34.5", across 0.0"
-59. crew: 175.0 lb at x 15.0", height 34.5", across 0.0"
-60. x̄ = 179 ÷ 479.5 = 0.4"; height = 28.7"; across = -0.0"
+54. cage: 1.0 lb at x 62.5", height 11.3", across 0.0"
+55. cage: 0.5 lb at x -32.5", height 26.2", across -22.6"
+56. cage: 0.5 lb at x 6.0", height 26.2", across -22.6"
+57. cage: 0.5 lb at x 44.5", height 26.2", across -7.0"
+58. cage: 0.5 lb at x 44.5", height 26.2", across 7.0"
+59. cage: 0.5 lb at x 6.0", height 26.2", across 22.6"
+60. cage: 0.5 lb at x -32.5", height 26.2", across 22.6"
+61. cage: 2.0 lb at x -13.3", height 31.2", across -22.6"
+62. cage: 2.1 lb at x 25.3", height 31.2", across -14.8"
+63. cage: 0.7 lb at x 44.5", height 31.2", across 0.0"
+64. cage: 2.1 lb at x 25.3", height 31.2", across 14.8"
+65. cage: 2.0 lb at x -13.3", height 31.2", across 22.6"
+66. cage: 2.3 lb at x -32.5", height 31.2", across 0.0"
+67. frame: 2.1 lb at x 0.0", height 22.2", across 0.0"
+68. deck: 6.2 lb at x 0.0", height 23.3", across 0.0"
+69. fittings/decor: 11.3 lb at x 0.0", height 26.5", across 0.0"
+70. crew: 175.0 lb at x -15.0", height 34.5", across 0.0"
+71. crew: 175.0 lb at x 15.0", height 34.5", across 0.0"
+72. x̄ = 203 ÷ 494.8 = 0.4"; height = 28.8"; across = 0.0"
 
 The centre of gravity is the balance point of everything on board. The drums must float the boat with their combined lift centred right under it, so it decides trim and heel.
 
@@ -346,7 +358,7 @@ Sources: [Khan Academy: What is center of mass?](https://www.khanacademy.org/sci
 </details>
 <details><summary><code>wt.fwd</code>: Forward share = Σ w (x > 0) ÷ W</summary>
 
-1. 222.5 ÷ 479.5 = 46% forward
+1. 228.7 ÷ 494.8 = 46% forward
 
 Weight forward of the middle pushes the bow down; balance it against where the drums are.
 
@@ -355,8 +367,8 @@ Sources: [Khan Academy: What is center of mass?](https://www.khanacademy.org/sci
 </details>
 <details><summary><code>wt.cgw</code>: CG height above the waterline = KG − waterline</summary>
 
-1. 28.7 − 7.5 = 21.2"
-2. Centre of buoyancy KB = 4.1"; stability GM = I/V + KB − KG (roll 3.2", pitch 46.4")
+1. 28.8 − 7.7 = 21.1"
+2. Centre of buoyancy KB = 4.2"; stability GM = I/V + KB − KG (roll 2.6", pitch 44.7")
 
 The higher the weight sits above the water, the easier it tips. Seated crew are most of it; sitting low on the deck raises stability.
 
@@ -436,31 +448,32 @@ Sources: [Standard: NEMA cable tie application guide (loop tensile ratings 18, 5
 
 ## Whitewater simulation (default settings)
 
-Classes simulated: II, III. Boat: 479 lb loaded, 3 drums, 7.7 ft long, roll GM 3.2", pitch GM 46.4".
+Classes simulated: II, III. Boat: 495 lb loaded, 3 drums, 7.7 ft long, roll GM 2.6", pitch GM 44.7".
 
 ### Warnings
 
-- ⚠️ **Upper channel wave train (Class II): water over the deck (4.1" deep at worst)** — The deck edge dips under the breaking crest. Expect to take on water; keep weight back and paddle hard through it.
+- ❌ **Upper channel wave train (Class II): capsizes or goes under on 1 of 32 wave positions** — Lower the crew, spread the drums, or add flotation before this rapid.
+- ⚠️ **Upper channel wave train (Class II): water over the deck (4.3" deep at worst)** — The deck edge dips under the breaking crest. Expect to take on water; keep weight back and paddle hard through it.
 - ⚠️ **Upper channel wave train (Class II): loses side-to-side stability on the wave** — At some positions the righting arm goes negative. Keep the crew low and centred.
-- ⚠️ **Upper channel wave train (Class II): 35° of heel on the wave** — Crew will need to brace and hold on.
-- ⚠️ **Bridge Drop (Class III): 1599 lb broadside pinning force, more than the loaded boat weighs (479 lb)** — Turned sideways against a rock or wall, the current holds the boat there. Keep it pointed downstream.
-- ❌ **Wave train below Bridge Drop (Class III): capsizes or goes under on 1 of 32 wave positions** — Lower the crew, spread the drums, or add flotation before this rapid.
+- ⚠️ **Upper channel wave train (Class II): waves arrive near the boat's natural roll period (×2.6)** — Waves every 3.03 s rock it at its own rhythm, so the motion builds. Paddling faster or slower through the train changes the timing.
+- ⚠️ **Upper channel wave train (Class II): 26° of heel on the wave** — Crew will need to brace and hold on.
+- ⚠️ **Bridge Drop (Class III): 1642 lb broadside pinning force, more than the loaded boat weighs (495 lb)** — Turned sideways against a rock or wall, the current holds the boat there. Keep it pointed downstream.
 - ⚠️ **Wave train below Bridge Drop (Class III): loses side-to-side stability on the wave** — At some positions the righting arm goes negative. Keep the crew low and centred.
-- ⚠️ **Wave train below Bridge Drop (Class III): 31° of heel on the wave** — Crew will need to brace and hold on.
+- ⚠️ **Wave train below Bridge Drop (Class III): 29° of heel on the wave** — Crew will need to brace and hold on.
 
 ### Channel
 
 300 m long, 6.4 m drop (slope 0.021), 15 m³/s. With a 12 m width and Manning n 0.045: depth 0.59 m, current 2.12 m/s (4.8 mph), Froude number 0.88. Big Drop (Class IV) is also on the race course and is not simulated here.
 
-Natural periods (no added mass): pitch 0.93 s, roll 2.13 s.
+Natural periods (no added mass): pitch 0.96 s, roll 2.39 s.
 
 ### Features
 
 | Feature | Class | Type | Key numbers | Result |
 |---|---|---|---|---|
-| Upper channel wave train | II | waves | H 3.0 ft (breaking), λ 21.1 ft, trim 23°, heel 35°, deck clearance -4.1"; pin 245 lb | ⚠️ |
-| Bridge Drop | III | drop | drop 3.0 ft, jet 12.1 mph, hole 2.7 ft high × 21 ft long, flushing; pin 1599 lb | ⚠️ |
-| Wave train below Bridge Drop | III | waves | H 5.0 ft (breaking), λ 35.2 ft, trim 24°, heel 31°, deck clearance 3.7"; pin 245 lb | ❌ |
+| Upper channel wave train | II | waves | H 3.0 ft (breaking), λ 21.1 ft, trim 23°, heel 26°, deck clearance -4.3"; pin 251 lb | ❌ |
+| Bridge Drop | III | drop | drop 3.0 ft, jet 12.1 mph, hole 2.7 ft high × 21 ft long, flushing; pin 1642 lb | ⚠️ |
+| Wave train below Bridge Drop | III | waves | H 5.0 ft (breaking), λ 35.2 ft, trim 24°, heel 29°, deck clearance 3.7"; pin 251 lb | ⚠️ |
 
 ### How each number was worked out
 
@@ -482,8 +495,8 @@ Sources: [Wikipedia: Manning formula (V = (1/n) R^(2/3) S^(1/2), SI)](https://en
 
 **T = 2π · r ÷ √(g · GM)  (r = radius of gyration about the centre of gravity)**
 
-1. Pitch: r = √(Σ w·(Δx² + Δy²) ÷ W) = 19.9", GM = 46.4" → T = 0.93 s
-2. Roll: r = √(Σ w·(Δz² + Δy²) ÷ W) = 11.8", GM = 3.2" → T = 2.13 s
+1. Pitch: r = √(Σ w·(Δx² + Δy²) ÷ W) = 20.0", GM = 44.7" → T = 0.96 s
+2. Roll: r = √(Σ w·(Δz² + Δy²) ÷ W) = 11.9", GM = 2.6" → T = 2.39 s
 3. g = 386.1 in/s². The water dragged along with the drums (added mass) is left out, so the real periods are somewhat longer.
 
 Every floating body rocks at its own natural period, like a pendulum. Waves met at that period pump the motion up (resonance).
@@ -499,9 +512,9 @@ Sources: [Wikipedia: Metacentric height (GM = KB + BM − KG, BM = I/V)](https:/
 3. Steepest a 0.91 m wave can be: H/λ = 0.142 → λ ≥ 6.44 m. Used λ = 6.44 m (21.1 ft): at the breaking limit, so expect a breaking, foaming crest; the boat is 2.36 m long
 4. Steepest surface slope atan(π H ÷ λ) = 24.0°
 5. Balanced at 16 positions on head waves (crests across the boat) and beam waves (crests along it):
-6. Largest trim 23.2°, largest heel 35.0°, lowest frame clearance -8.3", lowest deck clearance -4.1" (after the breaking crest)
-7. Every position balances
-8. Meeting the waves: T_e = λ ÷ U = 3.03 s vs natural pitch 0.93 s and roll 2.13 s; undamped magnification 1 ÷ |1 − (T_n/T_e)²| = 1.10 (pitch), 1.98 (roll)
+6. Largest trim 23.3°, largest heel 25.9°, lowest frame clearance -8.5", lowest deck clearance -4.3" (after the breaking crest)
+7. 1 of 32 positions have no balance: it capsizes or goes under
+8. Meeting the waves: T_e = λ ÷ U = 3.03 s vs natural pitch 0.96 s and roll 2.39 s; undamped magnification 1 ÷ |1 − (T_n/T_e)²| = 1.11 (pitch), 2.64 (roll)
 
 The waves stand still while the boat drifts through them at the current speed. A Class III wave at the top of its range is taller than the channel-average flow can hold, so it is treated as the steepest wave of that height that can exist. Each drum slice floats at its own local water level (the classic way to balance a hull on a wave), and the water accelerating down each slope pushes the boat too (Froude–Krylov), so it rights itself relative to the local surface. Wave dynamics, fast flow in the crest and splash are left out.
 
@@ -512,8 +525,8 @@ Sources: [Wikipedia: Dispersion (water waves): ω² = g k tanh(k h)](https://en.
 **F = ½ · ρ · v² · (Cd · A_side)**
 
 1. v = 2.12 m/s = 6.97 ft/s
-2. Cd·A_side = 5.20 ft² (from the drag numbers)
-3. F = ½ × 1.94 × 6.97² × 5.20 = 245 lb
+2. Cd·A_side = 5.33 ft² (from the drag numbers)
+3. F = ½ × 1.94 × 6.97² × 5.33 = 251 lb
 
 If the boat turns sideways and pins on a rock or wall, the current pushes it with this force. It is flagged when it is more than the whole loaded boat weighs (a rule of thumb, not a strength limit).
 
@@ -529,7 +542,7 @@ Sources: [Wikipedia: Drag equation (F = ½ ρ v² C_d A)](https://en.wikipedia.o
 4. Jump: h₂ = 0.230/2 × (√(1 + 8 × 3.61²) − 1) = 1.067 m; face height h₂ − h₁ = 0.84 m (2.7 ft); U₂ = 1.17 m/s
 5. Roller length ≈ 6 × h₂ = 6.40 m (21.0 ft) vs boat 2.36 m
 6. Tailwater h₀ = 0.588 m < h₂ = 1.067 m → the jump is pushed downstream: it flushes into waves
-7. Boat balanced at 17 positions climbing the face: largest trim 11.0°, lowest deck clearance 13.0"
+7. Boat balanced at 17 positions climbing the face: largest trim 10.9°, lowest deck clearance 12.9"
 
 Water speeds up down the drop, then slams into slower water and piles up in a hydraulic jump (the hole). A hole longer than the boat that the tailwater holds in place can keep a boat surfing in it. Drop heights at the venue are not published; measure or estimate them from video and change the setting.
 
@@ -540,8 +553,8 @@ Sources: [Khan Academy: Bernoulli's equation (energy along the flow)](https://ww
 **F = ½ · ρ · v² · (Cd · A_side)**
 
 1. v = 5.43 m/s = 17.81 ft/s
-2. Cd·A_side = 5.20 ft² (from the drag numbers)
-3. F = ½ × 1.94 × 17.81² × 5.20 = 1599 lb
+2. Cd·A_side = 5.33 ft² (from the drag numbers)
+3. F = ½ × 1.94 × 17.81² × 5.33 = 1642 lb
 
 If the boat turns sideways and pins on a rock or wall, the current pushes it with this force. It is flagged when it is more than the whole loaded boat weighs (a rule of thumb, not a strength limit).
 
@@ -556,9 +569,9 @@ Sources: [Wikipedia: Drag equation (F = ½ ρ v² C_d A)](https://en.wikipedia.o
 3. Steepest a 1.52 m wave can be: H/λ = 0.142 → λ ≥ 10.73 m. Used λ = 10.73 m (35.2 ft): at the breaking limit, so expect a breaking, foaming crest; the boat is 2.36 m long
 4. Steepest surface slope atan(π H ÷ λ) = 24.0°
 5. Balanced at 16 positions on head waves (crests across the boat) and beam waves (crests along it):
-6. Largest trim 24.0°, largest heel 30.6°, lowest frame clearance -0.5", lowest deck clearance 3.7" (after the breaking crest)
-7. 1 of 32 positions have no balance: it capsizes or goes under
-8. Meeting the waves: T_e = λ ÷ U = 5.05 s vs natural pitch 0.93 s and roll 2.13 s; undamped magnification 1 ÷ |1 − (T_n/T_e)²| = 1.04 (pitch), 1.22 (roll)
+6. Largest trim 24.0°, largest heel 29.5°, lowest frame clearance -0.5", lowest deck clearance 3.7" (after the breaking crest)
+7. Every position balances
+8. Meeting the waves: T_e = λ ÷ U = 5.05 s vs natural pitch 0.96 s and roll 2.39 s; undamped magnification 1 ÷ |1 − (T_n/T_e)²| = 1.04 (pitch), 1.29 (roll)
 
 The waves stand still while the boat drifts through them at the current speed. A Class III wave at the top of its range is taller than the channel-average flow can hold, so it is treated as the steepest wave of that height that can exist. Each drum slice floats at its own local water level (the classic way to balance a hull on a wave), and the water accelerating down each slope pushes the boat too (Froude–Krylov), so it rights itself relative to the local surface. Wave dynamics, fast flow in the crest and splash are left out.
 
@@ -569,8 +582,8 @@ Sources: [Wikipedia: Dispersion (water waves): ω² = g k tanh(k h)](https://en.
 **F = ½ · ρ · v² · (Cd · A_side)**
 
 1. v = 2.12 m/s = 6.97 ft/s
-2. Cd·A_side = 5.20 ft² (from the drag numbers)
-3. F = ½ × 1.94 × 6.97² × 5.20 = 245 lb
+2. Cd·A_side = 5.33 ft² (from the drag numbers)
+3. F = ½ × 1.94 × 6.97² × 5.33 = 251 lb
 
 If the boat turns sideways and pins on a rock or wall, the current pushes it with this force. It is flagged when it is more than the whole loaded boat weighs (a rule of thumb, not a strength limit).
 
@@ -601,9 +614,9 @@ Sources: [Wikipedia: Drag equation (F = ½ ρ v² C_d A)](https://en.wikipedia.o
 
 ## Competition rules
 
-- ✅ **~129 lb, under the 150 lb limit (21 lb margin)**
+- ⚠️ **~145 lb is within 10 lb of the 150 lb limit** — Estimated weights can be off. Weigh the parts.
 - ✅ **Size 7.9 × 3.8 × 4.5 ft (L × W × H)** — Limit 10 × 10 × 5 ft.
-- ✅ **Wall height ~3" (limit < 24")**
+- ✅ **Wall height ~8" (limit < 24")**
 - ✅ **No metal parts**
 - ✅ **Securing materials ≤ 18" pieces; zip ties trimmed flush** — Drum bands made of daisy-chained ties: confirm with the organizers.
 - ⚠️ **Zip ties longer than 18"** — 36 in. heavy-duty cable tie, black. The rule caps securing materials at 18". Ask the organizers whether a long tie trimmed flush counts by its installed length. If not, use daisy-chained ties of 18" or less.
@@ -611,26 +624,26 @@ Sources: [Wikipedia: Drag equation (F = ½ ρ v² C_d A)](https://en.wikipedia.o
 
 ## Recommendations
 
-- ✅ **Load is 30% of max buoyancy** — Max draft 7.8", with 1109 lb reserve.
+- ✅ **Load is 31% of max buoyancy** — Max draft 8.1", with 1122 lb reserve.
 - ⚠️ **Low side-to-side stability (GM 3")** — Spread the pontoons wider or lower the crew.
-- ⚠️ **Nose-dive risk with crew at the bow** — Bow clearance drops to -7.4" (19° bow-down), and with the bow drum buried the boat also loses side-to-side stability. Consider the Triangle or Pontoon preset, a drum further forward, or crew seated aft of center.
+- ⚠️ **Nose-dive risk with crew at the bow** — Bow clearance drops to -7.8" (19° bow-down), and with the bow drum buried the boat also loses side-to-side stability. Consider the Triangle or Pontoon preset, a drum further forward, or crew seated aft of center.
 - ⚠️ **Leaning crew heels the boat hard** — Crew at the deck edge capsizes it.
 - ⚠️ **Losing one drum sinks or capsizes the boat** — No redundancy. Seal and test the bung caps, or add a drum. Foam-filled rails and the XPS deck still float the wreck.
 - ℹ️ **List has 4 drums; configuration uses 3** — Extra drums are not counted in the weight.
-- ⚠️ **Parts list is short 1 10 ft pipe sticks** — This configuration needs 8; the list has 7.
+- ⚠️ **Parts list is short 4 10 ft pipe sticks** — This configuration needs 11; the list has 7.
 - ℹ️ **16 spare elbows on the list** — Keep for repairs or trim the list to save weight and cost.
-- ℹ️ **14 spare side-outlet fittings and tees (3-, 4- and 5-way) on the list** — Keep for repairs or trim the list to save weight and cost.
+- ℹ️ **8 spare side-outlet fittings and tees (3-, 4- and 5-way) on the list** — Keep for repairs or trim the list to save weight and cost.
 - ℹ️ **3 spare double sani tees (4-way) on the list** — Keep for repairs or trim the list to save weight and cost.
 - ℹ️ **4 spare couplings on the list** — Keep for repairs or trim the list to save weight and cost.
 - ℹ️ **1 spare XPS sheets (4 x 8 ft, 1" layers) on the list** — Leftovers after cutting; only what is used is weighed.
 - ℹ️ **0.56 spare Coroplast sheets (4 x 8 ft) on the list** — Leftovers after cutting; only what is used is weighed.
 - ℹ️ **1 spare side panels (26" x 8 ft) on the list** — Keep for repairs or trim the list to save weight and cost.
-- ℹ️ **11 spare pool noodles on the list** — Keep for repairs or trim the list to save weight and cost.
+- ℹ️ **2 spare pool noodles on the list** — Keep for repairs or trim the list to save weight and cost.
 - ℹ️ **Cut lengths assume 1.25" fitting take-off and 0.5" extra on every cut** — Dry-fit one tee and measure center-to-socket-bottom, then set the take-off to match before cutting. Each pipe is cut 0.5" long (the stick count includes it): dry-fit, mark, and trim before gluing, because a glued joint hammered home seats deeper or shallower than planned.
 - ℹ️ **Only 0% of the weight is measured** — Weigh parts as they arrive and tick "measured".
-- ℹ️ **Not counted yet: 15.8 lb of suggested or undecided parts** — Coroplast corrugated plastic 4 mm, 4 x 8 ft; 2-part marine epoxy; 100% silicone / marine sealant, 10.1 oz; 550 paracord, 100 ft; Outdoor seat cushion, 18-24 in; Outdoor acrylic craft paint set (18 colors); Canvas drop cloth, 4 x 5 ft; Fabric glue, 4 oz; 1-1/2 in x 8 ft cap (item BRCAP18); Skull and crossbones vinyl decal, waterproof, 6-12 in; Waterproof vinyl pinstripe tape, 1 in x 150 ft; Porthole window vinyl decals, waterproof, set of 4; Waterproof vinyl letters, 3 in, black (letters and numbers set). Using all of it would bring the boat to 145.3 lb. Set a suggested part to planned, or untick "not on the boat yet", once you decide to use it.
+- ⚠️ **Not counted yet: 15.8 lb of suggested or undecided parts** — Coroplast corrugated plastic 4 mm, 4 x 8 ft; 2-part marine epoxy; 100% silicone / marine sealant, 10.1 oz; 550 paracord, 100 ft; Outdoor seat cushion, 18-24 in; Outdoor acrylic craft paint set (18 colors); Canvas drop cloth, 4 x 5 ft; Fabric glue, 4 oz; 1-1/2 in x 8 ft cap (item BRCAP18); Skull and crossbones vinyl decal, waterproof, 6-12 in; Waterproof vinyl pinstripe tape, 1 in x 150 ft; Porthole window vinyl decals, waterproof, set of 4; Waterproof vinyl letters, 3 in, black (letters and numbers set). Using all of it would bring the boat to 160.6 lb, over the 150 lb limit. Set a suggested part to planned, or untick "not on the boat yet", once you decide to use it.
 - ℹ️ **Side panels: 3 of the 26" × 8 ft panels, 35.7 sq ft** — Cut each panel to 20.0" tall (rail to rail) and to these lengths: panel 1: 89.9" (6.1" left); panel 2: 89.9" (6.1" left); panel 3: 89.9" (6.1" left). Zip-tie them to the top and bottom rails about every 18" (32 ties). Solid PVC sheet sinks if it breaks loose: back it with foam or keep scraps from washing away.
-- ℹ️ **Box frames: each drum sits in its own box of pipe (72 ft of pipe)** — Drums are trapped without straps and the deck sits on the box tops, so there is no separate deck frame. The bottom rails sit just under the drums and can catch rocks in shallow water. Every box corner joins 3 pipes, so use side-outlet tees (3-way corners) there. Where boxes share a wall or butt against another box's crossbar, 8 of the 30 joints take 4 pipes: use 4-way side-outlet tees or 5-way fittings there. Boxes 2 and 1 meet corner to corner: join them where their end rails meet (a 4-way fitting where the corners touch, short ties otherwise).
+- ℹ️ **Box frames: each drum sits in its own box of pipe (93 ft of pipe)** — Drums are trapped without straps and the deck sits on the box tops, so there is no separate deck frame. The bottom rails sit just under the drums and can catch rocks in shallow water. Every box corner joins 3 pipes, so use side-outlet tees (3-way corners) there. Where boxes share a wall or butt against another box's crossbar, 12 of the 36 joints take 4 pipes: use 4-way side-outlet tees or 5-way fittings there. Boxes 2 and 1 meet corner to corner: join them where their end rails meet (a 4-way fitting where the corners touch, short ties otherwise).
 
 ## Structure options and tradeoffs
 
@@ -638,16 +651,16 @@ Ranked for a balanced mix of stability, leak safety, weight, parts on hand and c
 
 | # | Layout | lb | Load | Roll GM | Pitch GM | Crew at bow | Leak OK | Sticks |
 |---|--------|----|------|---------|----------|-------------|---------|--------|
-| 1 | Triangle: 1 bow + 2 stern drums | 128 | 30% | 44" | 52" | -6.0" | ✕ | 9 |
-| 2 | Packed triangle: 1 bow drum + 2 side by side **(current)** | 129 | 30% | 3" | 46" | -7.4" | ✕ | 8 |
-| — | Catamaran: 2 drums | 101 | ✕ | —" | —" | dives | ✕ | 7 |
-| — | Staggered catamaran: 2 drums offset | 99 | ✕ | —" | —" | dives | ✕ | 7 |
-| — | Tandem: 2 drums crosswise | 108 | 42% | -14" | 73" | 4.8" | ✕ | 8 |
-| — | Trimaran: 3 drums side by side | 133 | ✕ | —" | —" | dives | ✕ | 9 |
-| — | Reverse triangle: 2 bow + 1 stern drum | 131 | 30% | 36" | 47" | 7.0" | ✕ | 9 |
-| — | Pontoon: 4 drums (2 per side) | 162 ❌ | 24% | 91" | 56" | 4.8" | ✕ | 11 |
-| — | Diamond: bow, stern, port, starboard | 167 ❌ | 24% | 38" | 82" | 5.8" | ✕ | 11 |
-| — | Wide raft: 4 drums across | 172 ❌ | ✕ | —" | —" | dives | ✕ | 11 |
+| 1 | Triangle: 1 bow + 2 stern drums | 145 | 31% | 42" | 50" | -6.2" | ✕ | 11 |
+| 2 | Packed triangle: 1 bow drum + 2 side by side **(current)** | 145 | 31% | 3" | 45" | -7.8" | ✕ | 11 |
+| — | Catamaran: 2 drums | 114 | ✕ | —" | —" | dives | ✕ | 9 |
+| — | Staggered catamaran: 2 drums offset | 113 | ✕ | —" | —" | dives | ✕ | 9 |
+| — | Tandem: 2 drums crosswise | 122 | 42% | -14" | 70" | 4.5" | ✕ | 10 |
+| — | Trimaran: 3 drums side by side | 147 | ✕ | —" | —" | dives | ✕ | 11 |
+| — | Reverse triangle: 2 bow + 1 stern drum | 148 | 31% | 35" | 45" | 6.9" | ✕ | 11 |
+| — | Pontoon: 4 drums (2 per side) | 179 ❌ | 25% | 88" | 54" | 4.7" | ✕ | 13 |
+| — | Diamond: bow, stern, port, starboard | 186 ❌ | 25% | 36" | 79" | 5.6" | ✕ | 13 |
+| — | Wide raft: 4 drums across | 189 ❌ | ✕ | —" | —" | dives | ✕ | 14 |
 
 GM (metacentric height): positive means the boat rights itself, negative means it tips until something else touches the water.
 
@@ -655,171 +668,171 @@ GM (metacentric height): positive means the boat rights itself, negative means i
 
 One drum up front on the centerline, two at the stern.
 
-- ✅ 128 lb, 22 lb under the limit
-- ✅ Steady fore and aft (pitch GM 52")
-- ✅ Rides high: 30% of lift used, 7.9" draft
+- ✅ Steady fore and aft (pitch GM 50")
+- ✅ Rides high: 31% of lift used, 8.2" draft
 - ✅ Uses drums you already have (3)
 - ✅ Each drum boxed in: no straps, and no separate deck frame
+- ⚠️ 145 lb: only 5 lb under the limit
 - ⚠️ Nose-dives if the crew shift forward
 - ⚠️ Losing one drum can sink or capsize it
-- ⚠️ Needs 2 more 10 ft pipe sticks (9 total)
+- ⚠️ Needs 4 more 10 ft pipe sticks (11 total)
 - 👍 Stable both ways, at ~20 lb under the pontoon
 - 👍 Bow drum lifts the nose into waves
 - 👎 Bow-down unless crew sit aft or drums shift forward
 - 👎 One bow drum carries the whole front: a leak there is serious
 
-- 📦 On a deck frame instead of boxes: 105 lb (-23), 6 sticks (-3).
+- 📦 On a deck frame instead of boxes: 105 lb (-40), 6 sticks (-5).
 
 ### 2. Packed triangle: 1 bow drum + 2 side by side (current)
 
 The team's current design: two drums side by side at the stern, boxes sharing a middle wall, and one drum in front of them on the centerline, its box butted against their crossbar.
 
-- ✅ 129 lb, 21 lb under the limit
-- ✅ Steady fore and aft (pitch GM 46")
-- ✅ Rides high: 30% of lift used, 7.8" draft
+- ✅ Steady fore and aft (pitch GM 45")
+- ✅ Rides high: 31% of lift used, 8.1" draft
 - ✅ Uses drums you already have (3)
 - ✅ Each drum boxed in: no straps, and no separate deck frame
+- ⚠️ 145 lb: only 5 lb under the limit
 - ⚠️ Tippy side to side (roll GM 3")
 - ⚠️ Nose-dives if the crew shift forward
 - ⚠️ Losing one drum can sink or capsize it
-- ⚠️ Needs 1 more 10 ft pipe stick (8 total)
+- ⚠️ Needs 4 more 10 ft pipe sticks (11 total)
 - 👍 Compact (about 4 ft wide); the boxes share a wall and a crossbar, so it takes less pipe than 3 separate boxes
 - 👍 Lift at the bow and the stern, so it rides over waves instead of see-sawing
 - 👎 Narrow: with 2 adults it can tip sideways. Open the "Pair gap" to widen it, at the cost of more pipe
 - 👎 Three drums plus boxes runs close to the 150 lb limit
 - 👎 Shared corners need 4-way side-outlet fittings
 
-- 📦 On a deck frame instead of boxes: 100 lb (-29), 5 sticks (-3).
+- 📦 On a deck frame instead of boxes: 100 lb (-45), 5 sticks (-6).
 
 ### —. Catamaran: 2 drums
 
 One drum per side. The lightest and simplest boat to build.
 
-- ✅ 101 lb, 49 lb under the limit
+- ✅ Lightest option: 114 lb
 - ✅ Uses drums you already have (2)
-- ✅ Cut list fits the pipe you bought (7 sticks)
-- ✅ Cheapest to finish: ~$83 more
+- ✅ Cheapest to finish: ~$135 more
 - ✅ Each drum boxed in: no straps, and no separate deck frame
 - ⚠️ Does not float with this crew
 - ⚠️ Losing one drum can sink or capsize it
+- ⚠️ Needs 2 more 10 ft pipe sticks (9 total)
 - 👍 Lightest and cheapest; the fewest lashings
 - 👍 Turns easily: short waterline, nothing in the middle
 - 👎 No backup: losing a drum swamps that side
 - 👎 Rocks fore and aft over a long frame, so seat the crew low and centered
 
-- 📦 On a deck frame instead of boxes: 85 lb (-16), 5 sticks (-2).
+- 📦 On a deck frame instead of boxes: 85 lb (-29), 5 sticks (-4).
 
 ### —. Staggered catamaran: 2 drums offset
 
 Two drums side by side but shifted fore and aft, like the team's box-frame sketch.
 
-- ✅ Lightest option: 99 lb
+- ✅ Lightest option: 113 lb
 - ✅ Uses drums you already have (2)
-- ✅ Cut list fits the pipe you bought (7 sticks)
-- ✅ Cheapest to finish: ~$83 more
+- ✅ Cheapest to finish: ~$135 more
 - ✅ Each drum boxed in: no straps, and no separate deck frame
 - ⚠️ Does not float with this crew
 - ⚠️ Losing one drum can sink or capsize it
+- ⚠️ Needs 2 more 10 ft pipe sticks (9 total)
 - 👍 Spreads the lift fore and aft, so it rocks less than a straight catamaran
 - 👍 Same 2 drums and weight class as the catamaran
 - 👎 Lopsided: trims and turns a little differently each way
 - 👎 Still no backup if a drum leaks
 
-- 📦 On a deck frame instead of boxes: 85 lb (-14), 5 sticks (-2).
+- 📦 On a deck frame instead of boxes: 85 lb (-28), 5 sticks (-4).
 
 ### —. Tandem: 2 drums crosswise
 
 Two drums laid across the boat, one at the bow and one at the stern. Same weight as the catamaran, turned 90°.
 
-- ✅ 108 lb, 42 lb under the limit
-- ✅ Steady fore and aft (pitch GM 73")
+- ✅ 122 lb, 28 lb under the limit
+- ✅ Steady fore and aft (pitch GM 70")
 - ✅ Uses drums you already have (2)
 - ✅ Each drum boxed in: no straps, and no separate deck frame
 - ⚠️ Tippy side to side (roll GM -14")
 - ⚠️ Losing one drum can sink or capsize it
-- ⚠️ Needs 1 more 10 ft pipe stick (8 total)
+- ⚠️ Needs 3 more 10 ft pipe sticks (10 total)
 - 👍 Rides over waves bow-first: a drum lifts each end
 - 👍 Same weight and drum count as the catamaran
 - 👎 Tippy side to side: only ~3 ft of drum across the beam
 - 👎 Drums push water broadside, so it is slow to paddle
 - 👎 Crosswise lashing is harder to keep tight
 
-- 📦 On a deck frame instead of boxes: 81 lb (-27), 5 sticks (-3).
+- 📦 On a deck frame instead of boxes: 81 lb (-41), 5 sticks (-5).
 
 ### —. Trimaran: 3 drums side by side
 
 A center drum between the two side drums.
 
-- ✅ 133 lb, 17 lb under the limit
 - ✅ Uses drums you already have (3)
 - ✅ Each drum boxed in: no straps, and no separate deck frame
 - ⚠️ Does not float with this crew
+- ⚠️ 147 lb: only 3 lb under the limit
 - ⚠️ Losing one drum can sink or capsize it
-- ⚠️ Needs 2 more 10 ft pipe sticks (9 total)
+- ⚠️ Needs 4 more 10 ft pipe sticks (11 total)
 - 👍 About 50% more lift than the catamaran
 - 👍 Survives losing one side drum in most cases
 - 👎 Still rocks fore and aft like the catamaran
 - 👎 Center drum adds drag and ~20 lb
 
-- 📦 On a deck frame instead of boxes: 105 lb (-29), 5 sticks (-4).
+- 📦 On a deck frame instead of boxes: 105 lb (-42), 5 sticks (-6).
 
 ### —. Reverse triangle: 2 bow + 1 stern drum
 
 Two drums up front, one at the stern on the centerline.
 
-- ✅ 131 lb, 19 lb under the limit
-- ✅ Steady fore and aft (pitch GM 47")
-- ✅ Rides high: 30% of lift used, 14.4" draft
+- ✅ Steady fore and aft (pitch GM 45")
+- ✅ Rides high: 31% of lift used, 14.8" draft
 - ✅ Bow stays 7" clear with the crew forward
 - ✅ Uses drums you already have (3)
 - ✅ Each drum boxed in: no straps, and no separate deck frame
+- ⚠️ 148 lb: only 2 lb under the limit
 - ⚠️ Losing one drum can sink or capsize it
-- ⚠️ Needs 2 more 10 ft pipe sticks (9 total)
+- ⚠️ Needs 4 more 10 ft pipe sticks (11 total)
 - 👍 Most lift where crew lean in rapids, at the bow
 - 👍 Wide bow resists nose-diving and rolling as you enter drops
 - 👎 Stern-heavy crews squat the single stern drum
 - 👎 Wide, flat bow pushes more water
 
-- 📦 On a deck frame instead of boxes: 105 lb (-25), 6 sticks (-3).
+- 📦 On a deck frame instead of boxes: 105 lb (-42), 6 sticks (-5).
 
 ### —. Pontoon: 4 drums (2 per side)
 
 Two drums end to end on each side (the original render).
 
-- ✅ Steady fore and aft (pitch GM 56")
-- ✅ Very steady side to side (roll GM 91")
-- ✅ Rides high: 24% of lift used, 8.5" draft
+- ✅ Steady fore and aft (pitch GM 54")
+- ✅ Very steady side to side (roll GM 88")
+- ✅ Rides high: 25% of lift used, 8.8" draft
 - ✅ Uses drums you already have (4)
 - ✅ Each drum boxed in: no straps, and no separate deck frame
-- ⚠️ 162 lb: over the 150 lb limit
+- ⚠️ 179 lb: over the 150 lb limit
 - ⚠️ Losing one drum can sink or capsize it
-- ⚠️ Needs 4 more 10 ft pipe sticks (11 total)
+- ⚠️ Needs 6 more 10 ft pipe sticks (13 total)
 - 👍 Most stable both ways; survives any single leak
 - 👍 Long hulls track straight and ride low
 - 👎 Heaviest (~40 lb over the catamaran) and close to the 150 lb limit
 - 👎 Long waterline turns slowly
 - 👎 Twice the lashing
 
-- 📦 On a deck frame instead of boxes: 125 lb (-37), 5 sticks (-6).
+- 📦 On a deck frame instead of boxes: 125 lb (-54), 5 sticks (-8).
 
 ### —. Diamond: bow, stern, port, starboard
 
 One drum at each point of a diamond: bow and stern on the centerline, port and starboard at mid-length.
 
-- ✅ Steady fore and aft (pitch GM 82")
-- ✅ Rides high: 24% of lift used, 8.5" draft
+- ✅ Steady fore and aft (pitch GM 79")
+- ✅ Rides high: 25% of lift used, 8.7" draft
 - ✅ Uses drums you already have (4)
 - ✅ Each drum boxed in: no straps, and no separate deck frame
-- ⚠️ 167 lb: over the 150 lb limit
+- ⚠️ 186 lb: over the 150 lb limit
 - ⚠️ Losing one drum can sink or capsize it
-- ⚠️ Needs 4 more 10 ft pipe sticks (11 total)
+- ⚠️ Needs 6 more 10 ft pipe sticks (13 total)
 - 👍 Stable both ways with 4 drums spread over a short frame
 - 👍 Survives any single leak
 - 👍 Pivots well: drums are near the middle
 - 👎 Heaviest class, like the pontoon
 - 👎 Bow and stern drums need their own cross beams
 
-- 📦 On a deck frame instead of boxes: 128 lb (-39), 6 sticks (-5).
+- 📦 On a deck frame instead of boxes: 128 lb (-58), 6 sticks (-7).
 
 ### —. Wide raft: 4 drums across
 
@@ -828,15 +841,15 @@ Four drums side by side across a wide frame.
 - ✅ Uses drums you already have (4)
 - ✅ Each drum boxed in: no straps, and no separate deck frame
 - ⚠️ Does not float with this crew
-- ⚠️ 172 lb: over the 150 lb limit
+- ⚠️ 189 lb: over the 150 lb limit
 - ⚠️ Losing one drum can sink or capsize it
-- ⚠️ Needs 4 more 10 ft pipe sticks (11 total)
+- ⚠️ Needs 7 more 10 ft pipe sticks (14 total)
 - 👍 Hardest to tip sideways
 - 👍 Survives any single leak
 - 👎 Still rocks fore and aft: every drum is short
 - 👎 Widest and draggiest; needs longer beams
 
-- 📦 On a deck frame instead of boxes: 140 lb (-32), 8 sticks (-3).
+- 📦 On a deck frame instead of boxes: 140 lb (-49), 8 sticks (-6).
 
 
 ## Needed for this layout vs parts list
@@ -844,9 +857,9 @@ Four drums side by side across a wide frame.
 | Item | Needed | Listed |
 |------|--------|--------|
 | drum | 3 | 4 |
-| pipe | 8 | 7 ⚠️ |
+| pipe | 11 | 7 ⚠️ |
 | elbow | 0 | 16 |
-| tee | 30 | 4 ⚠️ |
+| tee | 36 | 4 ⚠️ |
 | cross | 0 | 3 |
 | coupling | 0 | 4 |
 | zip-tie | 63 | 5 ⚠️ |
@@ -855,61 +868,70 @@ Four drums side by side across a wide frame.
 | spray-foam | 4 | 4 |
 | cement | 1 | 1 |
 | panel | 3 | 4 |
-| noodle | 5 | 16 |
+| noodle | 14 | 16 |
 
 ### Pipe cut list (10 ft sticks)
 
-1. P10 box 1 top cut 36.5" → fit 36", P11 box 1 top cut 36.5" → fit 36", P12 box 1 bottom cut 36.5" → fit 36", P24 box 2 top cut 6" → fit 5.5" — offcut 4"
-2. P13 box 1 bottom cut 36.5" → fit 36", P30 box 2 top cut 36.5" → fit 36", P34 box 2 bottom cut 36.5" → fit 36", P42 box 2 bottom cut 6" → fit 5.5" — offcut 4"
-3. P33 box 3 top cut 36.5" → fit 36", P37 box 3 bottom cut 36.5" → fit 36", mast cut 36.5" → fit 36", P26 box 2 bottom cut 6" → fit 5.5" — offcut 4"
-4. P31 box 2 top cut 20.5" → fit 20", P35 box 2 bottom cut 20.5" → fit 20", P32 box 3 top cut 20.5" → fit 20", P36 box 3 bottom cut 20.5" → fit 20", P7 box 1 post cut 17.98" → fit 17.48", P8 box 1 post cut 17.98" → fit 17.48" — offcut 1"
-5. P46 box 2 post cut 17.98" → fit 17.48", P47 box 2 post cut 17.98" → fit 17.48", P17 box 2 post cut 17.98" → fit 17.48", P18 box 2 post cut 17.98" → fit 17.48", P48 box 3 post cut 17.98" → fit 17.48", P49 box 3 post cut 17.98" → fit 17.48", P41 box 3 top cut 6" → fit 5.5" — offcut 5"
-6. P19 box 3 post cut 17.98" → fit 17.48", P20 box 3 post cut 17.98" → fit 17.48", P1 box 1 nose cut 17.98" → fit 17.48", P4 box 1 nose cut 17.31" → fit 16.81", P5 box 1 nose cut 17.31" → fit 16.81", P2 box 1 nose cut 17.31" → fit 16.81", P38 box 2 link cut 12" → fit 11.5" — offcut 1"
-7. P3 box 1 nose cut 17.31" → fit 16.81", P44 box 2 top cut 13.65" → fit 13.15", P14 box 2 top cut 13.65" → fit 13.15", P50 box 2 bottom cut 13.65" → fit 13.15", P21 box 2 bottom cut 13.65" → fit 13.15", P45 box 3 top cut 13.65" → fit 13.15", P16 box 3 top cut 13.65" → fit 13.15", P51 box 3 bottom cut 13.65" → fit 13.15", P40 box 2 top cut 6" → fit 5.5" — offcut 0"
-8. P23 box 3 bottom cut 13.65" → fit 13.15", P39 box 2 link cut 12" → fit 11.5", P28 box 2 link cut 12" → fit 11.5", P29 box 2 link cut 12" → fit 11.5", P15 box 1 top cut 12" → fit 11.5", P6 box 1 top cut 12" → fit 11.5", P22 box 1 bottom cut 12" → fit 11.5", P9 box 1 bottom cut 12" → fit 11.5", P25 box 3 top cut 6" → fit 5.5", P43 box 3 bottom cut 6" → fit 5.5", P27 box 3 bottom cut 6" → fit 5.5" — offcut 3"
+1. P53 railing cut 43.3" → fit 42.8", P13 railing cut 39.56" → fit 39.06", P15 box 1 top cut 36.5" → fit 36" — offcut 0"
+2. P14 railing cut 39.56" → fit 39.06", P16 box 1 top cut 36.5" → fit 36", P17 box 1 bottom cut 36.5" → fit 36", P31 box 2 top cut 6" → fit 5.5" — offcut 1"
+3. P18 box 1 bottom cut 36.5" → fit 36", P39 box 2 top cut 36.5" → fit 36", P43 box 2 bottom cut 36.5" → fit 36", P54 rpost cut 8" → fit 7.5" — offcut 2"
+4. P42 box 3 top cut 36.5" → fit 36", P46 box 3 bottom cut 36.5" → fit 36", P37 railing cut 36.5" → fit 36", P19 rpost cut 8" → fit 7.5" — offcut 2"
+5. P38 railing cut 36.5" → fit 36", mast cut 36.5" → fit 36", P40 box 2 top cut 20.5" → fit 20", P44 box 2 bottom cut 20.5" → fit 20" — offcut 6"
+6. P41 box 3 top cut 20.5" → fit 20", P45 box 3 bottom cut 20.5" → fit 20", P10 box 1 post cut 17.98" → fit 17.48", P11 box 1 post cut 17.98" → fit 17.48", P58 box 2 post cut 17.98" → fit 17.48", P59 box 2 post cut 17.98" → fit 17.48", P49 box 2 top cut 6" → fit 5.5" — offcut 0"
+7. P24 box 2 post cut 17.98" → fit 17.48", P25 box 2 post cut 17.98" → fit 17.48", P60 box 3 post cut 17.98" → fit 17.48", P61 box 3 post cut 17.98" → fit 17.48", P26 box 3 post cut 17.98" → fit 17.48", P27 box 3 post cut 17.98" → fit 17.48", P7 rpost cut 8" → fit 7.5" — offcut 3"
+8. P1 box 1 nose cut 17.98" → fit 17.48", P4 box 1 nose cut 17.31" → fit 16.81", P5 box 1 nose cut 17.31" → fit 16.81", P2 box 1 nose cut 17.31" → fit 16.81", P3 box 1 nose cut 17.31" → fit 16.81", P56 box 2 top cut 13.65" → fit 13.15", P21 box 2 top cut 13.65" → fit 13.15" — offcut 5"
+9. P62 box 2 bottom cut 13.65" → fit 13.15", P28 box 2 bottom cut 13.65" → fit 13.15", P57 box 3 top cut 13.65" → fit 13.15", P23 box 3 top cut 13.65" → fit 13.15", P63 box 3 bottom cut 13.65" → fit 13.15", P30 box 3 bottom cut 13.65" → fit 13.15", P47 box 2 link cut 12" → fit 11.5", P48 box 2 link cut 12" → fit 11.5", P35 box 2 link cut 12" → fit 11.5" — offcut 1"
+10. P36 box 2 link cut 12" → fit 11.5", P22 box 1 top cut 12" → fit 11.5", P9 box 1 top cut 12" → fit 11.5", P29 box 1 bottom cut 12" → fit 11.5", P12 box 1 bottom cut 12" → fit 11.5", P6 railing cut 12" → fit 11.5", P8 rpost cut 8" → fit 7.5", P20 rpost cut 8" → fit 7.5", P55 rpost cut 8" → fit 7.5", P51 box 2 bottom cut 6" → fit 5.5", P33 box 2 bottom cut 6" → fit 5.5", P50 box 3 top cut 6" → fit 5.5" — offcut 5"
+11. P32 box 3 top cut 6" → fit 5.5", P52 box 3 bottom cut 6" → fit 5.5", P34 box 3 bottom cut 6" → fit 5.5" — offcut 102"
 
 ### Part IDs
 
 Every pipe (P), joint (J), drum (D), side panel (S), noodle (N), deck (K), mast (M) and crew seat (C) has an ID, numbered bow first, then top to bottom, then port to starboard. Turn on **🏷️ IDs** in the simulator to see them on the boat.
 
-<details><summary>Joints (30)</summary>
+<details><summary>Joints (36)</summary>
 
 | Joint | Fitting | Joins |
 |---|---|---|
 | J1 | 3-way | P1, P2, P3 |
 | J2 | 3-way | P1, P4, P5 |
-| J3 | 4-way | P2, P6, P7, P10 |
-| J4 | 4-way | P3, P6, P8, P11 |
-| J5 | 4-way | P4, P7, P9, P12 |
-| J6 | 4-way | P5, P8, P9, P13 |
-| J7 | 3-way | P14, P17, P30 |
-| J8 | 5-way | P10, P14, P15, P18, P24 |
-| J9 | 5-way | P11, P15, P16, P19, P25 |
-| J10 | 3-way | P16, P20, P33 |
-| J11 | 3-way | P17, P21, P34 |
-| J12 | 5-way | P12, P18, P21, P22, P26 |
-| J13 | 5-way | P13, P19, P22, P23, P27 |
-| J14 | 3-way | P20, P23, P37 |
-| J15 | 3-way | P24, P28, P31 |
-| J16 | 3-way | P25, P28, P32 |
-| J17 | 3-way | P26, P29, P35 |
-| J18 | 3-way | P27, P29, P36 |
-| J19 | 3-way | P31, P38, P40 |
-| J20 | 3-way | P32, P38, P41 |
-| J21 | 3-way | P35, P39, P42 |
-| J22 | 3-way | P36, P39, P43 |
-| J23 | 3-way | P30, P44, P46 |
-| J24 | 3-way | P40, P44, P47 |
-| J25 | 3-way | P41, P45, P48 |
-| J26 | 3-way | P33, P45, P49 |
-| J27 | 3-way | P34, P46, P50 |
-| J28 | 3-way | P42, P47, P50 |
-| J29 | 3-way | P43, P48, P51 |
-| J30 | 3-way | P37, P49, P51 |
+| J3 | 3-way | P6, P7, P13 |
+| J4 | 3-way | P6, P8, P14 |
+| J5 | 5-way | P2, P7, P9, P10, P15 |
+| J6 | 5-way | P3, P8, P9, P11, P16 |
+| J7 | 4-way | P4, P10, P12, P17 |
+| J8 | 4-way | P5, P11, P12, P18 |
+| J9 | 3-way | P13, P19, P37 |
+| J10 | 3-way | P14, P20, P38 |
+| J11 | 4-way | P19, P21, P24, P39 |
+| J12 | 5-way | P15, P21, P22, P25, P31 |
+| J13 | 5-way | P16, P22, P23, P26, P32 |
+| J14 | 4-way | P20, P23, P27, P42 |
+| J15 | 3-way | P24, P28, P43 |
+| J16 | 5-way | P17, P25, P28, P29, P33 |
+| J17 | 5-way | P18, P26, P29, P30, P34 |
+| J18 | 3-way | P27, P30, P46 |
+| J19 | 3-way | P31, P35, P40 |
+| J20 | 3-way | P32, P35, P41 |
+| J21 | 3-way | P33, P36, P44 |
+| J22 | 3-way | P34, P36, P45 |
+| J23 | 3-way | P40, P47, P49 |
+| J24 | 3-way | P41, P47, P50 |
+| J25 | 3-way | P44, P48, P51 |
+| J26 | 3-way | P45, P48, P52 |
+| J27 | 3-way | P37, P53, P54 |
+| J28 | 3-way | P38, P53, P55 |
+| J29 | 4-way | P39, P54, P56, P58 |
+| J30 | 3-way | P49, P56, P59 |
+| J31 | 3-way | P50, P57, P60 |
+| J32 | 4-way | P42, P55, P57, P61 |
+| J33 | 3-way | P43, P58, P62 |
+| J34 | 3-way | P51, P59, P62 |
+| J35 | 3-way | P52, P60, P63 |
+| J36 | 3-way | P46, P61, P63 |
 
 </details>
 
-<details><summary>Pipes (51)</summary>
+<details><summary>Pipes (63)</summary>
 
 | Pipe | Part | Center to center |
 |---|---|---|
@@ -918,52 +940,64 @@ Every pipe (P), joint (J), drum (D), side panel (S), noodle (N), deck (K), mast 
 | P3 | nose (box 1) | 19.31" |
 | P4 | nose (box 1) | 19.31" |
 | P5 | nose (box 1) | 19.31" |
-| P6 | top (box 1) | 14.00" |
-| P7 | post (box 1) | 19.98" |
-| P8 | post (box 1) | 19.98" |
-| P9 | bottom (box 1) | 14.00" |
-| P10 | top (box 1) | 38.50" |
-| P11 | top (box 1) | 38.50" |
-| P12 | bottom (box 1) | 38.50" |
-| P13 | bottom (box 1) | 38.50" |
-| P14 | top (box 2) | 15.65" |
-| P15 | top (box 1) | 14.00" |
-| P16 | top (box 3) | 15.65" |
-| P17 | post (box 2) | 19.98" |
-| P18 | post (box 2) | 19.98" |
-| P19 | post (box 3) | 19.98" |
-| P20 | post (box 3) | 19.98" |
-| P21 | bottom (box 2) | 15.65" |
-| P22 | bottom (box 1) | 14.00" |
-| P23 | bottom (box 3) | 15.65" |
-| P24 | top (box 2) | 8.00" |
-| P25 | top (box 3) | 8.00" |
-| P26 | bottom (box 2) | 8.00" |
-| P27 | bottom (box 3) | 8.00" |
-| P28 | link (box 2) | 14.00" |
-| P29 | link (box 2) | 14.00" |
-| P30 | top (box 2) | 38.50" |
-| P31 | top (box 2) | 22.50" |
-| P32 | top (box 3) | 22.50" |
-| P33 | top (box 3) | 38.50" |
-| P34 | bottom (box 2) | 38.50" |
-| P35 | bottom (box 2) | 22.50" |
-| P36 | bottom (box 3) | 22.50" |
-| P37 | bottom (box 3) | 38.50" |
-| P38 | link (box 2) | 14.00" |
-| P39 | link (box 2) | 14.00" |
-| P40 | top (box 2) | 8.00" |
-| P41 | top (box 3) | 8.00" |
-| P42 | bottom (box 2) | 8.00" |
-| P43 | bottom (box 3) | 8.00" |
-| P44 | top (box 2) | 15.65" |
-| P45 | top (box 3) | 15.65" |
-| P46 | post (box 2) | 19.98" |
-| P47 | post (box 2) | 19.98" |
-| P48 | post (box 3) | 19.98" |
-| P49 | post (box 3) | 19.98" |
-| P50 | bottom (box 2) | 15.65" |
-| P51 | bottom (box 3) | 15.65" |
+| P6 | railing | 14.00" |
+| P7 | rpost | 10.00" |
+| P8 | rpost | 10.00" |
+| P9 | top (box 1) | 14.00" |
+| P10 | post (box 1) | 19.98" |
+| P11 | post (box 1) | 19.98" |
+| P12 | bottom (box 1) | 14.00" |
+| P13 | railing | 41.56" |
+| P14 | railing | 41.56" |
+| P15 | top (box 1) | 38.50" |
+| P16 | top (box 1) | 38.50" |
+| P17 | bottom (box 1) | 38.50" |
+| P18 | bottom (box 1) | 38.50" |
+| P19 | rpost | 10.00" |
+| P20 | rpost | 10.00" |
+| P21 | top (box 2) | 15.65" |
+| P22 | top (box 1) | 14.00" |
+| P23 | top (box 3) | 15.65" |
+| P24 | post (box 2) | 19.98" |
+| P25 | post (box 2) | 19.98" |
+| P26 | post (box 3) | 19.98" |
+| P27 | post (box 3) | 19.98" |
+| P28 | bottom (box 2) | 15.65" |
+| P29 | bottom (box 1) | 14.00" |
+| P30 | bottom (box 3) | 15.65" |
+| P31 | top (box 2) | 8.00" |
+| P32 | top (box 3) | 8.00" |
+| P33 | bottom (box 2) | 8.00" |
+| P34 | bottom (box 3) | 8.00" |
+| P35 | link (box 2) | 14.00" |
+| P36 | link (box 2) | 14.00" |
+| P37 | railing | 38.50" |
+| P38 | railing | 38.50" |
+| P39 | top (box 2) | 38.50" |
+| P40 | top (box 2) | 22.50" |
+| P41 | top (box 3) | 22.50" |
+| P42 | top (box 3) | 38.50" |
+| P43 | bottom (box 2) | 38.50" |
+| P44 | bottom (box 2) | 22.50" |
+| P45 | bottom (box 3) | 22.50" |
+| P46 | bottom (box 3) | 38.50" |
+| P47 | link (box 2) | 14.00" |
+| P48 | link (box 2) | 14.00" |
+| P49 | top (box 2) | 8.00" |
+| P50 | top (box 3) | 8.00" |
+| P51 | bottom (box 2) | 8.00" |
+| P52 | bottom (box 3) | 8.00" |
+| P53 | railing | 45.30" |
+| P54 | rpost | 10.00" |
+| P55 | rpost | 10.00" |
+| P56 | top (box 2) | 15.65" |
+| P57 | top (box 3) | 15.65" |
+| P58 | post (box 2) | 19.98" |
+| P59 | post (box 2) | 19.98" |
+| P60 | post (box 3) | 19.98" |
+| P61 | post (box 3) | 19.98" |
+| P62 | bottom (box 2) | 15.65" |
+| P63 | bottom (box 3) | 15.65" |
 
 </details>
 
