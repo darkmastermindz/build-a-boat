@@ -159,7 +159,7 @@
   const DEFAULT_CONFIG = {
     preset: 'cat2', frameStyle: 'stacked', retention: 'bands', cageStyle: 'cradle', sidePanels: false, sideStyle: 'hull', hullBow: 18, platform: false, platformSpacing: 16, bowNoodle: false, packGap: 0, boxEndGap: 2, boxSideGap: 1, boxTopGap: 0, fittingTakeoff: 1.25, cutAllowance: 0.5, railsPerPontoon: 2, centerSpine: false, frameLength: 84, frameWidth: 72, beamCount: 4, pontoonSpacing: 47,
     drumOffset: 0, drumSpread: 20, bow: true, bowRiser: 12, bowStrut: 18,
-    deck: { length: 72, width: 24, thickness: 2.3 }, mastHeight: 30, noodleRail: true,
+    deck: { length: 72, width: 24, thickness: 2.3 }, mastHeight: 30, noodleRail: true, railing: false, railingHeight: 10, frameNoodles: 0,
     crew: { count: 2, weightEach: 175, xOffset: 0, zOffset: 0 }, failedDrum: null,
   };
 
@@ -243,6 +243,7 @@
       for (let k = 0; k < pl.bays; k++) for (let j = 0; j < pl.across; j++) noodles.push({ id: 'N' + (++n), bay: k, row: j, at: [(pl.xs[k] + pl.xs[k + 1]) / 2, pl.y, -pl.W / 2 + PIPE_R + 1.25 + j * 2.5 + ((pl.W - 2 * PIPE_R) - pl.across * 2.5) / 2] }); }
     if (g.bowNoodle) noodles.unshift({ id: 'N0', bow: true, at: [g.hull ? g.hull.tip : 0, g.bowNoodle.y, 0] });
     if (c.noodleRail) [-1, 1].forEach((sd, i) => noodles.push({ id: 'NR' + (i + 1), rail: sd, at: [0, g.deckTop + 1.25, sd * (c.deck.width / 2 - 1.25)] }));
+    if (g.frameNoodles) { let n = 0; g.frameNoodles.runs.forEach(rn => { for (let k = 0; k < g.frameNoodles.layers; k++) noodles.push({ id: 'NF' + (++n), frame: true, at: [(rn.x0 + rn.x1) / 2, rn.y + (k - (g.frameNoodles.layers - 1) / 2) * 2.5 + 1.25, rn.z + rn.side * (PIPE_R + 1.25)] }); }); }
     const lashings = ((g.platform && g.platform.lashings) || []).slice().sort((p, q) => byPlace(p.at, q.at)).map((l, i) => {
       l.id = 'L' + (i + 1);
       return { id: l.id, at: l.at, joins: [l.platformPiece.id, l.boxPiece.id] };
@@ -496,6 +497,37 @@
       const k2 = [key(pieces[i].a), key(pieces[i].b)].sort().join('|');
       if (seen.has(k2)) pieces.splice(i, 1); else seen.add(k2);
     }
+    // Railing (as built 2026-10-07): posts rise from the outer box corners and top rails run
+    // around the outline of all the boxes (the convex hull of their corners in plan), so the
+    // rails angle in from the wide rear pair to the narrow bow box. Posts sit in the corner fittings.
+    let railing = null;
+    if (c.railing && boxes.length) {
+      const rh = Math.max(4, +c.railingHeight || 10), ry = topY + rh;
+      const pts = [];
+      boxes.forEach(b => [[b.x0, b.z0], [b.x0, b.z1], [b.x1, b.z0], [b.x1, b.z1]].forEach(([x, z]) => { if (!pts.some(q => Math.hypot(q[0] - x, q[1] - z) < 0.5)) pts.push([x, z, b.yt]); }));
+      const cross = (o, a, b2) => (a[0] - o[0]) * (b2[1] - o[1]) - (a[1] - o[1]) * (b2[0] - o[0]);
+      const sorted = pts.slice().sort((a, b2) => a[0] - b2[0] || a[1] - b2[1]), lower = [], upper = [];
+      sorted.forEach(q => { while (lower.length >= 2 && cross(lower[lower.length - 2], lower[lower.length - 1], q) <= 1e-9) lower.pop(); lower.push(q); });
+      sorted.slice().reverse().forEach(q => { while (upper.length >= 2 && cross(upper[upper.length - 2], upper[upper.length - 1], q) <= 1e-9) upper.pop(); upper.push(q); });
+      const hull = lower.slice(0, -1).concat(upper.slice(0, -1));
+      hull.forEach(([x, z, y]) => add('rpost', [x, y, z], [x, ry, z], -1));
+      hull.forEach(([x, z], i) => { const [x2, z2] = hull[(i + 1) % hull.length]; add('railing', [x, ry, z], [x2, ry, z2], -1); });
+      railing = { y: ry, height: rh, outline: hull.map(([x, z]) => [x, z]) };
+    }
+    // Pool noodles zip-tied along the fore-aft box top rails (as built), N layers per rail
+    let frameNoodles = null;
+    const nl = Math.max(0, Math.round(+c.frameNoodles || 0));
+    if (nl) {
+      const runs = pieces.filter(pc => pc.kind === 'top' && Math.abs(pc.a[1] - pc.b[1]) < 0.1 && Math.abs(pc.a[0] - pc.b[0]) > Math.abs(pc.a[2] - pc.b[2]))
+        .flatMap(pc => {
+          const x0 = Math.min(pc.a[0], pc.b[0]), x1 = Math.max(pc.a[0], pc.b[0]), z = pc.a[2];
+          // a noodle row on the inside of each box this rail belongs to (both sides of a shared wall)
+          const sides = boxes.filter(b => b.x0 <= x0 + 0.5 && b.x1 >= x1 - 0.5 && (Math.abs(b.z0 - z) < 0.5 || Math.abs(b.z1 - z) < 0.5)).map(b => Math.abs(b.z0 - z) < 0.5 ? 1 : -1);
+          return [...new Set(sides)].map(side => ({ x0, x1, y: pc.a[1], z, side }));
+        });
+      const len = runs.reduce((t, r) => t + (r.x1 - r.x0), 0) * nl;
+      frameNoodles = { layers: nl, runs, length: len, count: Math.ceil(len / NOODLE_L) };
+    }
     pieces.forEach(pc => { pc.len = Math.hypot(pc.b[0] - pc.a[0], pc.b[1] - pc.a[1], pc.b[2] - pc.a[2]); });
     // How the platform is joined: it rests one pipe diameter above the box top rails, so it
     // can't share their fittings. Every place a platform pipe crosses a box top rail (or a
@@ -519,14 +551,14 @@
     const L = 2 * Math.max(...xsAll.map(Math.abs)), outerZ = Math.max(...zsAll.map(Math.abs));
     c.frameLength = Math.round(L);                       // used for freeboard corners
     const mastTop = c.mastHeight > 0 ? deckTop + c.mastHeight : deckTop;
-    const wallTop = c.noodleRail ? deckTop + 2.5 : 0;
+    const wallTop = Math.max(c.noodleRail ? deckTop + 2.5 : 0, railing ? railing.y + PIPE_R : 0);
     const overlaps = [];
     for (let i = 0; i < drums.length; i++) for (let j = i + 1; j < drums.length; j++) {
       const a = drums[i], b = drums[j];
       if (Math.abs(a.z - b.z) < a.ez + b.ez && Math.abs(a.x - b.x) < a.ex + b.ex) overlaps.push([i, j]);
     }
     return {
-      platform, bowNoodle: hull && c.bowNoodle ? bowNoodleShape(hull, topY) : null,
+      platform, railing, frameNoodles, bowNoodle: hull && c.bowNoodle ? bowNoodleShape(hull, topY) : null,
       sidePanels: !c.sidePanels ? [] : hull ? [hullPanel(hull, Math.min(...boxes.map(b => b.yb)), topY)] : boxOutline(boxes, topY),
       hull: hull ? Object.assign(hull, { y0: Math.min(...boxes.map(b => b.yb)), y1: topY }) : null,
       config: c, drum, r, mixed, fitted: false, boxes: true, boxList: boxes, boxContacts: contacts, frameWidth: 2 * outerZ, railOffset: 0,
@@ -656,8 +688,8 @@
     const req = baseRequirements(g, parts), c = g.config, extra = Array.isArray(c.extraTies) ? c.extraTies.length : 0;
     // pool noodles: platform bays (pieces cut from 52" noodles), the bow wrap, and the deck-edge rail
     const pl = g.platform, perNoodle = pl ? Math.max(1, Math.floor(NOODLE_L / Math.max(1, pl.bayLen))) : 1;
-    const noodles = { platform: pl ? Math.ceil(pl.bays * pl.across / perNoodle) : 0, bow: g.bowNoodle ? 1 : 0, rail: c.noodleRail ? 2 * Math.ceil(c.deck.length / NOODLE_L) : 0 };
-    noodles.total = noodles.platform + noodles.bow + noodles.rail;
+    const noodles = { platform: pl ? Math.ceil(pl.bays * pl.across / perNoodle) : 0, bow: g.bowNoodle ? 1 : 0, rail: c.noodleRail ? 2 * Math.ceil(c.deck.length / NOODLE_L) : 0, frame: g.frameNoodles ? g.frameNoodles.count : 0 };
+    noodles.total = noodles.platform + noodles.bow + noodles.rail + noodles.frame;
     req.noodles = noodles; if (noodles.total) req.items.noodle = noodles.total;
     if (extra) { req.extraTies = extra; req.tieCount += extra; req.items['zip-tie'] = Math.ceil(req.tieCount * 1.15); }
     return req;

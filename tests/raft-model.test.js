@@ -425,7 +425,7 @@ test('platform and noodles: PVC grid under the deck, noodles in its bays and aro
   assert.ok(g.platform && g.cagePieces.some(pc => pc.kind === 'platform'));
   assert.ok(g.deckBottom > g.platform.y, 'deck sits on the platform');
   assert.ok(g.bowNoodle && g.bowNoodle.len <= 52 + 10);
-  assert.strictEqual(q.items.noodle, q.noodles.platform + q.noodles.bow + q.noodles.rail);
+  assert.strictEqual(q.items.noodle, q.noodles.platform + q.noodles.bow + q.noodles.rail + q.noodles.frame);
   const off = M.requirements(M.geometry(Object.assign({}, current.config, { platform: false, bowNoodle: false })), current.parts);
   assert.ok(off.pipeLength_in < q.pipeLength_in);
 });
@@ -517,4 +517,28 @@ test('cut allowance: every pipe is cut long by the allowance and the sticks stil
   const none = M.requirements(M.geometry(Object.assign({}, current.config, { cutAllowance: 0 })), current.parts);
   assert.ok(none.items.pipe <= req.items.pipe);
   none.cuts.forEach(k => assert.strictEqual(k.cut, k.len));
+});
+
+test('railing and frame noodles (as built 2026-10-07): posts on the outline corners, rails around it', () => {
+  const cfg = M.withDefaults(current.config);
+  assert.ok(cfg.railing && cfg.frameNoodles >= 1, 'the default build has the railing and noodles on the box rails');
+  const g = M.geometry(cfg), posts = g.cagePieces.filter(pc => pc.kind === 'rpost'), rails = g.cagePieces.filter(pc => pc.kind === 'railing');
+  const outline = g.railing.outline;
+  assert.strictEqual(posts.length, outline.length); assert.strictEqual(rails.length, outline.length);
+  // every box corner lies inside or on the railing outline (it is the convex hull of the corners)
+  const inside = (x, z) => outline.every(([x1, z1], i) => { const [x2, z2] = outline[(i + 1) % outline.length]; return (x2 - x1) * (z - z1) - (z2 - z1) * (x - x1) >= -1e-6; });
+  g.boxList.forEach(b => [[b.x0, b.z0], [b.x0, b.z1], [b.x1, b.z0], [b.x1, b.z1]].forEach(([x, z]) => assert.ok(inside(x, z), `corner ${x},${z}`)));
+  // posts stand on box corners and reach the railing height; rails are level at that height
+  posts.forEach(pc => { assert.ok(g.boxList.some(b => [b.x0, b.x1].some(x => Math.abs(x - pc.a[0]) < 0.5) && [b.z0, b.z1].some(z => Math.abs(z - pc.a[2]) < 0.5))); near(pc.b[1], g.railing.y, 1e-9, 'post top'); });
+  rails.forEach(pc => { near(pc.a[1], g.railing.y, 1e-9, 'rail'); near(pc.b[1], g.railing.y, 1e-9, 'rail'); });
+  near(g.railing.y, Math.max(...g.boxList.map(b => b.yt)) + cfg.railingHeight, 1e-9, 'height above the box tops');
+  // the railing counts toward the wall height (rule: under 2 ft) and the overall height
+  assert.ok(g.wallHeight >= g.railing.y + M.PIPE_R - g.deckTop - 1e-9 && g.wallHeight < 24);
+  // frame noodles: layers × the fore-aft top rail rows, cut from 52" noodles
+  const q = M.requirements(g, current.parts);
+  near(g.frameNoodles.length, g.frameNoodles.runs.reduce((t, r) => t + r.x1 - r.x0, 0) * cfg.frameNoodles, 1e-9, 'noodle length');
+  assert.strictEqual(q.noodles.frame, Math.ceil(g.frameNoodles.length / 52));
+  // off means no railing pieces and no frame noodles
+  const g0 = M.geometry(Object.assign({}, cfg, { railing: false, frameNoodles: 0 }));
+  assert.ok(!g0.railing && !g0.frameNoodles && !g0.cagePieces.some(pc => /rpost|railing/.test(pc.kind)));
 });

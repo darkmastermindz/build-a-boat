@@ -47,7 +47,10 @@
     "boxSideGap": -2.6,
     "platform": false,
     "platformSpacing": 16,
-    "bowNoodle": true
+    "bowNoodle": true,
+    "railing": true,
+    "railingHeight": 10,
+    "frameNoodles": 2
   },
   "parts": [
     {
