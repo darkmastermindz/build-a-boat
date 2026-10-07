@@ -43,6 +43,34 @@ doc records the reasoning and the findings so far.
 
 ## Team progress
 
+### 2026-10-07: pool noodles and railings
+
+![Bow box with green and orange noodles and the new PVC railing frame, next to the noodle-wrapped rear pair](photos/2026-10-07-noodles-and-rails.jpg)
+![Overhead view: the rear pair of boxes wrapped in blue noodles, the bow box with its railing frame](photos/2026-10-07-noodles-overhead.jpg)
+
+- **Pool noodles on the frame:**
+  - **Rear pair:** the box rails are wrapped in blue noodles, zip-tied in
+    bundles. They're doubled and tripled along the shared middle wall
+    between drums D2 and D3, and run along the outer rails and ends.
+  - **Bow box:** green and orange noodles line its side and end rails.
+  - The noodles add flotation and padding, and cover the pipe and fitting
+    edges.
+- **Railings:** a raised PVC railing frame is going up on the bow box. Tall
+  corner posts carry long top rails that run aft over the drums.
+- **Fittings:** side-outlet tees on the bow box's lower rails have open
+  sockets for the next pieces.
+- **To check against the rules:**
+  - **Walls under 2 ft:** measured from the deck (interior floor) to the top
+    of the railing.
+  - **Overall height:** 5 ft maximum.
+  - **Weight:** 150 lb maximum; the railing pipe adds weight.
+  - Measure the railing height once the deck is on.
+- **Model follow-ups (not done yet):**
+  - Count the noodles as flotation.
+  - Add the railing frame to the 3D model and cut list.
+  - This needs the noodle count and lengths, plus the railing heights and
+    spans.
+
 ### 2026-10-06: glue-up progress
 
 ![The two side-by-side drum boxes glued up around their drums, with the bow box started beside them](photos/2026-10-06-glue-up.jpg)
