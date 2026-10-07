@@ -65,11 +65,25 @@ doc records the reasoning and the findings so far.
   - **Overall height:** 5 ft maximum.
   - **Weight:** 150 lb maximum; the railing pipe adds weight.
   - Measure the railing height once the deck is on.
-- **Model follow-ups (not done yet):**
-  - Count the noodles as flotation.
-  - Add the railing frame to the 3D model and cut list.
-  - This needs the noodle count and lengths, plus the railing heights and
-    spans.
+
+![The railing frame: corner posts and top rails around the outside, angling in toward the bow box](photos/2026-10-07-railing-frame.jpg)
+
+- **Now in the default model** (Configure → Railing, plus two sliders):
+  - **Railing:** a post at each outer box corner, with top rails around the
+    outline of all the boxes. The rails angle in from the wide rear pair to
+    the narrow bow box: 6 posts, 6 top rails, labelled P… in 🏷️ IDs and on the
+    cut list.
+  - **Noodles on the box rails:** 2 layers along every fore-aft top rail, on
+    both faces of the shared middle wall. They count toward the noodle total,
+    weight and emergency foam lift.
+- **Estimated, please measure:**
+  - **Railing height:** 10" above the box tops, guessed from the photo. That
+    puts the wall about 8" above the deck, well under the 2 ft rule.
+  - **Noodle layers:** 2.
+- **What it changes:**
+  - **Weight:** predicted ~145 lb, close to the 150 lb limit.
+  - **Pipe:** 11 sticks with the 0.5" cut allowance; 7 are on hand.
+  - **Roll stability:** GM is about 2.6" with this setup.
 
 ### 2026-10-06: glue-up progress
 
