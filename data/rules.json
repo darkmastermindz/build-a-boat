@@ -42,5 +42,11 @@
     "PFDs",
     "helmets"
   ],
-  "scoring": "Style and performance (max 60 entries)"
+  "scoring": "Style and performance (max 60 entries)",
+  "qualification": {
+    "date": "2026-10-09",
+    "time": "5 PM ET",
+    "test": "Float test with the crew aboard",
+    "source_note": "From the team (2026-10-09); details of the pass criteria not yet confirmed."
+  }
 }

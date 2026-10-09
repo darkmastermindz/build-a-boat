@@ -53,7 +53,7 @@
     "frameNoodles": 2,
     "floodPct": 70,
     "drumNoodles": 4,
-    "floodVented": false
+    "floodVented": true
   },
   "parts": [
     {

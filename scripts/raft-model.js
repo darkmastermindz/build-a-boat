@@ -1947,6 +1947,13 @@ ${ww.assumptions.map(x => `| ${x.name} | ${x.used} | ${x.source} | ${x.effect} |
       return { drum: d.id, sol: solve(gl, massItems(build, gl)) };
     });
     const rulesOut = checkRules(build, g, rules || {}, wt);
+    // Float test (qualification): the boat must float with its crew aboard
+    {
+      const q = rules && rules.qualification, when = q ? ` (${[q.date, q.time].filter(Boolean).join(', ')})` : '', n = c.crew.count;
+      const fails = !sol.ok ? (sol.reason === 'sinks' ? `sinks: ${sol.W.toFixed(0)} lb on ${sol.maxLb.toFixed(0)} lb of lift` : 'tips over') : !sol.stableRoll ? `tips over (GM ${sol.gmRoll.toFixed(1)}")` : sol.deckClearance < 0 ? `deck ${(-sol.deckClearance).toFixed(1)}" under water` : null;
+      if (fails) rulesOut.push({ level: 'error', id: 'floatTest', title: `Float test${when}: fails with ${n} crew`, detail: `It ${fails}.${isFlooded(c) ? ' The drums are flooded: plug the holes (no metal: no screws) and drain them.' : ''}` });
+      else rulesOut.push({ level: sol.deckClearance < FLOOD_MIN_CLEAR ? 'warn' : 'ok', id: 'floatTest', title: `Float test${when}: floats with ${n} crew, deck ${sol.deckClearance.toFixed(1)}" above the water`, detail: `GM ${sol.gmRoll.toFixed(1)}".` });
+    }
     const parts = build.parts || [];
     const cost = parts.reduce((s, p) => s + (+p.quantity || 0) * (+p.unit_cost_usd || 0), 0);
     const spent = parts.filter(isBought).reduce((s, p) => s + (+p.quantity || 0) * (+p.unit_cost_usd || 0), 0);
@@ -2031,12 +2038,13 @@ ${ww.assumptions.map(x => `| ${x.name} | ${x.used} | ${x.source} | ${x.effect} |
     if (fl) {
       const pct = (+c.floodPct).toFixed(0), sealed = fl.rows[0], f1 = v => (+v).toFixed(1);
       const state = r => !r.ok ? (r.reason === 'sinks' ? `sinks (${r.W.toFixed(0)} lb on ${r.maxLb.toFixed(0)} lb of lift)` : 'tips over') : `deck ${f1(r.deckClearance)}" above the water, GM ${f1(r.gmRoll)}"`;
-      if (c.floodVented) add(fl.current.usable ? 'warn' : 'error', `Drums flooded with the caps open: only the ${fl.noodles} noodles in each drum lift`, `Water inside an open drum stands at the river level and weighs nothing in the water, so it does not lower the centre of gravity; it only takes the drum's lift away. With ${fl.noodles} noodles per drum (${fl.noodlePct.toFixed(0)}% of it): ${state(fl.current)}. Sealed: ${state(sealed)}.`);
+      if (c.floodVented) add(fl.current.usable ? 'warn' : 'error', `Drums open to the river (holes top and bottom, or caps open): only the ${fl.noodles} noodles in each drum lift`, `Water inside an open drum stands at the river level and weighs nothing in the water, so it does not lower the centre of gravity; it only takes the drum's lift away. With ${fl.noodles} noodles per drum (${fl.noodlePct.toFixed(0)}% of it): ${state(fl.current)}. Sealed: ${state(sealed)}.`);
       else add(!fl.current.usable ? 'error' : fl.current.gmRoll >= sealed.gmRoll ? 'info' : 'warn', `Drums ${pct}% flooded, caps closed: ${state(fl.current)}`, `The trapped air holds the water in, so it rides along as ${(fl.current.W - sealed.W).toFixed(0)} lb of ballast low in the drums. But the boat sinks deeper, where the drums are narrower at the water line, and the loose water slides to the low side (free-surface effect). Sealed and dry: ${state(sealed)}.`);
       if (!c.floodVented) add(fl.best && fl.best.floodPct === +c.floodPct ? 'ok' : 'warn', fl.best ? `Most stable flood level: ${fl.best.floodPct}% (GM ${f1(fl.best.gmRoll)}", deck ${f1(fl.best.deckClearance)}" clear)` : 'No flood level keeps the deck clear and the boat upright',
         `Caps closed, crew as set. ${fl.rows.map(r => `${r.floodPct}%: ${r.ok ? `GM ${f1(r.gmRoll)}", deck ${f1(r.deckClearance)}"` : r.reason}`).join(' · ')}. Usable = upright with at least ${fl.minClear}" of deck clearance.`);
-      add(fl.airLost.usable ? 'ok' : 'error', fl.airLost.usable ? `If the trapped air escapes, the noodles still hold it up (${fl.noodles} per drum)` : `If the trapped air escapes, ${fl.noodles} noodles per drum ${fl.airLost.ok ? 'leave the deck awash' : 'cannot hold the boat up'}`,
-        `Air gets out through an open cap, a crack at the top, or holes that roll above the water. Then only the noodles lift: ${state(fl.airLost)}. ${fl.noodlesNeeded == null ? `Even ${fl.maxNoodles} noodles per drum (completely full) are not enough with this crew.` : `Needed: at least ${fl.noodlesNeeded} noodles per drum (${(fl.noodlesNeeded * fl.perNoodlePct).toFixed(0)}% of each drum) for ${fl.minClear}" of deck clearance${fl.noodlesNeeded > fl.noodles ? `, ${fl.noodlesNeeded - fl.noodles} more than now` : ''}.`} Sealing the holes and drums gives back the full lift.`);
+      const lead = c.floodVented ? 'With holes top and bottom' : 'If the trapped air escapes';
+      add(fl.airLost.usable ? 'ok' : 'error', fl.airLost.usable ? `${lead}, the noodles hold it up (${fl.noodles} per drum)` : `${lead}, ${fl.noodles} noodles per drum ${fl.airLost.ok ? 'leave the deck awash' : 'cannot hold the boat up'}`,
+        `${c.floodVented ? 'Air leaves through the top holes and the drums fill to the river level.' : 'Air gets out through an open cap, a crack at the top, or holes that roll above the water.'} Then only the noodles lift: ${state(fl.airLost)}. ${fl.noodlesNeeded == null ? `Even ${fl.maxNoodles} noodles per drum (completely full) are not enough with this crew.` : `Needed: at least ${fl.noodlesNeeded} noodles per drum (${(fl.noodlesNeeded * fl.perNoodlePct).toFixed(0)}% of each drum) for ${fl.minClear}" of deck clearance${fl.noodlesNeeded > fl.noodles ? `, ${fl.noodlesNeeded - fl.noodles} more than now` : ''}.`} Sealing the holes gives back the full lift; the rules ban metal, so plug them with plastic, hot glue or foam, not screws.`);
       if (fl.noodles > 0 && +c.floodPct > fl.maxFloodPct) add('info', `The noodles leave room for only ${fl.maxFloodPct.toFixed(0)}% water`, `${fl.noodles} noodles take ${fl.noodlePct.toFixed(0)}% of each drum, so it cannot flood past ${fl.maxFloodPct.toFixed(0)}%; the model uses that.`);
     }
     if (!sol.ok) {

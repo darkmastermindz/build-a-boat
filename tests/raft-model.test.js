@@ -3,7 +3,7 @@ const assert = require('node:assert');
 const M = require('../scripts/raft-model.js');
 const asBuilt = require('../data/build.json');
 // Most checks are about the sealed-drum design; the drums flooded on 2026-10-09 are tested on their own.
-const current = Object.assign({}, asBuilt, { config: Object.assign({}, asBuilt.config, { floodPct: 0 }) });
+const current = Object.assign({}, asBuilt, { config: Object.assign({}, asBuilt.config, { floodPct: 0, floodVented: false }) });
 const rules = require('../data/rules.json');
 const clone = o => JSON.parse(JSON.stringify(o));
 // reference boat for the physics tests: the team's parts on the earlier 2-drum spine-frame catamaran
@@ -578,7 +578,19 @@ test('flooded drums, caps closed: the water inside is ballast with a free surfac
   const need = M.analyze(at({ floodPct: 70, floodVented: true, drumNoodles: a.flood.noodlesNeeded })).solution;
   assert.ok(need.ok && need.deckClearance >= 6);
   assert.ok(a.recommendations.some(r => /noodles/.test(r.title)) && a.recommendations.some(r => /Most stable flood level/.test(r.title)));
-  // the shipped default is the team's 2026-10-09 boat: 70% flooded, caps closed
+  // the shipped default is the team's 2026-10-09 boat: drums 70% flooded through holes in their tops and bottoms
   assert.strictEqual(asBuilt.config.floodPct, 70);
-  assert.strictEqual(asBuilt.config.floodVented, false);
+  assert.strictEqual(asBuilt.config.floodVented, true);
+});
+
+test('float-test rule: passes for the sealed boat, fails when the flooded drums cannot carry the crew', () => {
+  const r = require('../data/rules.json');
+  const sealed = M.analyze(current, r).rules.find(x => x.id === 'floatTest');
+  assert.ok(sealed && sealed.level !== 'error' && /floats with 2 crew/.test(sealed.title));
+  const built = M.analyze(asBuilt, r), ft = built.rules.find(x => x.id === 'floatTest');
+  assert.ok(ft && ft.level === 'error' && /sinks/.test(ft.detail) && /no screws/.test(ft.detail));
+  assert.ok(/2026-10-09/.test(ft.title));
+  // enough noodles to carry the crew turns it back into a pass
+  const need = built.flood.noodlesNeeded, b = JSON.parse(JSON.stringify(asBuilt)); b.config.drumNoodles = need;
+  assert.notStrictEqual(M.analyze(b, r).rules.find(x => x.id === 'floatTest').level, 'error');
 });
