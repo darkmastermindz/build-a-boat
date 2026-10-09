@@ -1,6 +1,6 @@
 {
   "name": "Team BOB pirate raft",
-  "updated": "2026-10-04",
+  "updated": "2026-10-09",
   "notes": "The team's actual build. Edit it in raft-simulation.html (Parts tab), export it, and commit it here. Status: planned | bought | installed. Frame config inferred from purchases (3 double sani tees, 5 sticks): one rail per drum line plus a center spine, 5 beams. Confirm against the mockup.",
   "config": {
     "preset": "tri3pack",
@@ -50,7 +50,10 @@
     "bowNoodle": true,
     "railing": true,
     "railingHeight": 10,
-    "frameNoodles": 2
+    "frameNoodles": 2,
+    "floodPct": 70,
+    "drumNoodles": 4,
+    "floodVented": false
   },
   "parts": [
     {

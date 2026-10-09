@@ -1,7 +1,9 @@
 const test = require('node:test');
 const assert = require('node:assert');
 const M = require('../scripts/raft-model.js');
-const current = require('../data/build.json');
+const asBuilt = require('../data/build.json');
+// Most checks are about the sealed-drum design; the drums flooded on 2026-10-09 are tested on their own.
+const current = Object.assign({}, asBuilt, { config: Object.assign({}, asBuilt.config, { floodPct: 0 }) });
 const rules = require('../data/rules.json');
 const clone = o => JSON.parse(JSON.stringify(o));
 // reference boat for the physics tests: the team's parts on the earlier 2-drum spine-frame catamaran
@@ -541,4 +543,42 @@ test('railing and frame noodles (as built 2026-10-07): posts on the outline corn
   // off means no railing pieces and no frame noodles
   const g0 = M.geometry(Object.assign({}, cfg, { railing: false, frameNoodles: 0 }));
   assert.ok(!g0.railing && !g0.frameNoodles && !g0.cagePieces.some(pc => /rpost|railing/.test(pc.kind)));
+});
+
+test('flooded drums, caps closed: the water inside is ballast with a free surface; caps open: only the noodles lift', () => {
+  const at = over => { const b = JSON.parse(JSON.stringify(current)); Object.assign(b.config, over); return b; };
+  const dry = M.analyze(at({})), g = dry.geometry, WATER = 62.4 / 1728;
+  const vol = g.drums.reduce((t, d) => t + Math.PI * d.r * d.r * d.len, 0);
+  // closed: lift is the whole drum, and the water inside is added weight
+  const closed = M.analyze(at({ floodPct: 30, drumNoodles: 0 })).solution;
+  assert.ok(Math.abs(closed.maxLb - dry.solution.maxLb) < 1e-6);
+  assert.ok(Math.abs(closed.W - (dry.solution.W + 0.3 * vol * WATER)) < 0.5, `closed W ${closed.W}`);
+  // free surface: the same ballast as a solid block (no free surface) would be more stable
+  const gc = M.analyze(at({ floodPct: 30 })).geometry, items = M.massItems(at({ floodPct: 30 }), gc);
+  const solid = M.solve(Object.assign({}, gc, { config: Object.assign({}, gc.config, { floodPct: 0 }) }), items);
+  const yb = M.floodFloor(g.drums[0].r, 30), w = M.segWidth(yb, g.drums[0].r);
+  const fsc = g.drums.length * g.drums[0].len * w ** 3 / 12 / (closed.W / WATER);
+  assert.ok(Math.abs((solid.gmRoll - closed.gmRoll) - fsc) < 0.05, `free-surface loss ${solid.gmRoll - closed.gmRoll} vs i/∇ ${fsc}`);
+  // open: shells and inside water carry no weight; lift = the noodles' share of each drum (plus cage pipes)
+  const pipeLb = dry.solution.maxLb - vol * WATER;
+  for (const n of [0, 10, 20]) {
+    const s = M.analyze(at({ floodPct: 70, floodVented: true, drumNoodles: n })).solution;
+    const noodleLb = 3 * n * Math.PI * 1.25 ** 2 * 52 * WATER;
+    assert.ok(Math.abs(s.maxLb - (Math.min(noodleLb, vol * WATER) + pipeLb)) < 0.5, `${n} noodles: ${s.maxLb}`);
+    assert.ok(Math.abs(s.W - (dry.solution.W - g.drums.reduce((t, d) => t + d.spec.weight, 0))) < 1e-6);
+  }
+  // noodles take room the water cannot: 20 noodles (~37%) cap the flood at ~63%
+  const capped = M.analyze(at({ floodPct: 90, drumNoodles: 20 })).solution, c63 = M.analyze(at({ floodPct: 100 - 100 * 20 * Math.PI * 1.25 ** 2 * 52 / (vol / 3), drumNoodles: 0 })).solution;
+  assert.ok(Math.abs(capped.W - c63.W) < 0.5);
+  // advice: the sweep, the best level and the noodles needed if the air escapes
+  const a = M.analyze(at({ floodPct: 70, drumNoodles: 4 }));
+  assert.strictEqual(a.flood.rows.length, 10);
+  assert.ok(a.flood.best && a.flood.best.usable && a.flood.rows.every(r => !r.usable || r.gmRoll <= a.flood.best.gmRoll + 0.05));
+  assert.ok(a.flood.noodlesNeeded > 4 && !a.flood.airLost.usable);
+  const need = M.analyze(at({ floodPct: 70, floodVented: true, drumNoodles: a.flood.noodlesNeeded })).solution;
+  assert.ok(need.ok && need.deckClearance >= 6);
+  assert.ok(a.recommendations.some(r => /noodles/.test(r.title)) && a.recommendations.some(r => /Most stable flood level/.test(r.title)));
+  // the shipped default is the team's 2026-10-09 boat: 70% flooded, caps closed
+  assert.strictEqual(asBuilt.config.floodPct, 70);
+  assert.strictEqual(asBuilt.config.floodVented, false);
 });

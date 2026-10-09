@@ -43,6 +43,110 @@ doc records the reasoning and the findings so far.
 
 ## Team progress
 
+### 2026-10-09: drums drilled and stuffed with noodles (qualification float test, 5 PM ET)
+
+- **What changed this morning:**
+  - Holes were drilled in the bottom of the drums, front and back.
+  - Pool noodles were pushed inside.
+  - The aim: let the drums take on water to lower the centre of gravity, as
+    a fix for the tippiness seen in yesterday's dry run.
+- **Now in the default model:** `floodPct: 70`, `drumNoodles: 4`,
+  `floodVented: false`. All three are in Configure.
+  - **"Drums flooded" slider:** the share of each drum that is water.
+  - **"Noodles stuffed in each drum" slider:** 2.5" × 52" noodles, about 1.9%
+    of a drum each. They take room the water can't, so 20 noodles cap the
+    flood at about 63%.
+  - **"Flooded drums: caps open" checkbox.**
+  - **Noodle count is a guess:** 4 per drum, from the noodles on hand.
+    Please count them and set the slider.
+- **Two cases:**
+  - **Caps closed (the default):** the trapped air holds a fixed amount of
+    water in each drum.
+    - The drum still lifts with its whole outside shape.
+    - The water inside rides along as ballast at the bottom, about 1,040 lb
+      at 70% for 3 drums.
+    - That water is loose and slides to the low side (the free-surface
+      effect). For stability it acts as if the centre of gravity were higher
+      by i/∇, about 2" at 70%.
+  - **Caps open, or the air escapes:** the water inside stands at the river
+    level and weighs nothing in the water. Only the noodles lift.
+    - The flooded drums' HDPE shells float their own weight, so the barrels
+      are left out of the boat's weight: about 85 lb of boat instead of 145.
+- **What the model predicts at 70%, 4 noodles per drum:**
+
+  | Crew | Caps closed | Caps open / air lost |
+  |---|---|---|
+  | 0 | deck 8.5" above the water, GM 7.6" | deck 4.4" above the water |
+  | 1 (175 lb) | deck 5.8" above the water, GM 2.6" | **sinks** (260 lb on 241 lb of lift) |
+  | 2 (350 lb) | deck 3.1" above the water, **GM −2.4" (tips)**; −1.3" legs over the side | **sinks** (435 lb on 241 lb) |
+
+- **Flood level vs stability, caps closed, 2 crew seated:**
+
+  | Flooded | 0% | 10% | 20% | 30% | 40% | 50% | 60% | 70% | 80% |
+  |---|---|---|---|---|---|---|---|---|---|
+  | GM | 2.6" | **2.7"** | 2.3" | 1.9" | 1.2" | 0.5" | −0.6" | −2.4" | sinks |
+  | Deck above the water | 16.2" | 14.4" | 12.6" | 10.9" | 9.2" | 7.2" | 5.0" | 3.1" | — |
+
+  - The ballast does sit low. But it sinks the drums toward their tops,
+    where they are narrower at the water line, and the loose water cancels
+    most of the gain.
+  - The best level is about 10%, and it gains only 0.1" over sealed drums.
+- **Noodles needed if the air escapes,** so the deck stays at least 6" clear:
+  - 22 per drum with 2 crew (66 total).
+  - 15 per drum with 1 crew.
+- **Recommendation:**
+  - **Drain the drums, plug the holes and cap them.**
+    - **Plugs:** tapered softwood pegs swell tight when wet. Screws with a
+      washer and sealant also work. PVC cement does not bond HDPE.
+    - **Leave the noodles inside** as backup flotation.
+  - **Get stability from:**
+    - Crew sitting low with their legs over the side.
+    - Noodles at the water line on the outer sides of the rear boxes.
+    - A wider rear pair.
+  - See the 2026-10-08 entry for those numbers.
+- **Unknowns:**
+  - **How full the drums really are, and whether the caps are closed:** a
+    drum with bottom holes and a closed cap barely fills (trapped air), while
+    an open cap lets it fill to the river level.
+  - **The noodle count, and whether they are solid:** hollow-core noodles
+    lift less.
+
+### 2026-10-08: dry-run float test
+
+![Float test: the rear box at the water, the drum about a third under, with blue noodles tied along the top rail](photos/2026-10-08-float-test.jpg)
+
+- **What we saw:**
+  - It floats easily; the drums sit about a third under.
+  - It's tippy side to side with the crew aboard.
+  - Opening a drum cap didn't sink it. The air can't get out while the cap
+    sits above the water.
+- **Model diagnosis:** the problem is the centre of gravity, not the lift.
+  - **Crew high:** seated crew are about 34" above the drum bottoms, and
+    they're 350 of the ~495 lb.
+  - **Narrow rear pair:** the pair's centres are only 28" apart, and the bow
+    drum on the centre line adds almost no roll resistance.
+  - **Result:** GM is about 2.6". One person shifting about 2" sideways tips
+    it.
+- **Fixes evaluated, as GM / how far one person can shift before it tips:**
+
+  | Fix | Seated | Legs over the side |
+  |---|---|---|
+  | As built | 2.6" / 2" | 6.1" / 6" |
+  | Kneeling | −0.3" (tips) | — |
+  | Noodles moved to the water line, 6 per side, on the outer sides of the rear boxes | 17" / 7" | 21" / 10" |
+  | Rear pair 10" wider ("Pair gap" 14), railing off | 21" / 16" | 25" / 20" |
+  | Both | 40" / 21" | 44" / 24" |
+  | 100 lb of rock on the bottom rails | 3.8" | 7.0" |
+
+- **Drilling advice from the analysis:**
+  - **The PVC bottom rails:** OK to drill if they are sealed, a small gain.
+  - **The drums:** do not drill. The free surface and the lost lift outweigh
+    the lower weight.
+  - **Water ballast in jugs below the water line:** does nothing.
+- **Lesson:** the simulator had flagged "Low side-to-side stability" (GM
+  under 12") since the packed triangle was chosen. Treat that warning as a
+  blocker, not a note.
+
 ### 2026-10-07: pool noodles and railings
 
 ![Bow box with green and orange noodles and the new PVC railing frame, next to the noodle-wrapped rear pair](photos/2026-10-07-noodles-and-rails.jpg)
