@@ -51,7 +51,9 @@
     "railing": true,
     "railingHeight": 10,
     "frameNoodles": 2,
-    "floodPct": 85
+    "floodPct": 70,
+    "drumNoodles": 4,
+    "floodVented": false
   },
   "parts": [
     {

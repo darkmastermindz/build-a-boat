@@ -159,7 +159,7 @@
   const DEFAULT_CONFIG = {
     preset: 'cat2', frameStyle: 'stacked', retention: 'bands', cageStyle: 'cradle', sidePanels: false, sideStyle: 'hull', hullBow: 18, platform: false, platformSpacing: 16, bowNoodle: false, packGap: 0, boxEndGap: 2, boxSideGap: 1, boxTopGap: 0, fittingTakeoff: 1.25, cutAllowance: 0.5, railsPerPontoon: 2, centerSpine: false, frameLength: 84, frameWidth: 72, beamCount: 4, pontoonSpacing: 47,
     drumOffset: 0, drumSpread: 20, bow: true, bowRiser: 12, bowStrut: 18,
-    deck: { length: 72, width: 24, thickness: 2.3 }, mastHeight: 30, noodleRail: true, railing: false, railingHeight: 10, frameNoodles: 0, floodPct: 0,
+    deck: { length: 72, width: 24, thickness: 2.3 }, mastHeight: 30, noodleRail: true, railing: false, railingHeight: 10, frameNoodles: 0, floodPct: 0, drumNoodles: 0, floodVented: false,
     crew: { count: 2, weightEach: 175, xOffset: 0, zOffset: 0 }, failedDrum: null,
   };
 
@@ -972,7 +972,39 @@
     items.push({ w: deckW, x: 0, y: (g.deckBottom + g.deckTop) / 2, z: 0, label: 'deck' });
     items.push({ w: topW, x: 0, y: g.deckTop + 2, z: 0, label: 'fittings/decor' });
     crewPositions(c, crew).forEach(p => items.push({ w: crew.weightEach, x: p.x, y: g.deckTop + SEATED_CG, z: p.z, label: 'crew' }));
-    return items;
+    return applyFlood(items, g, c);
+  }
+
+  // Flooded drums (see floodFloor): with the cap open the HDPE shell floats its own weight and is left
+  // out of the load (about 1 lb each, on the safe side); with the cap closed the water inside rides
+  // along as ballast at the bottom of the drum.
+  function applyFlood(items, g, c) {
+    if (!isFlooded(c)) return items;
+    const open = floodOpen(c), out = items.filter(i => i.label !== 'drum water').map(i => i.label === 'drum' && open ? Object.assign({}, i, { w: 0 }) : i);
+    if (!open) g.drums.filter(d => !d.failed).forEach(d => {
+      const pct = floodShare(c, d), yb = floodFloor(d.r, pct);
+      if (pct > 0) out.push({ w: Math.PI * d.r * d.r * d.len * pct / 100 * WATER, x: d.x, y: d.y0 + segCentroidY(yb, d.r), z: d.z, label: 'drum water' });
+    });
+    return out;
+  }
+  // Flood level vs noodles: sweep the flooded share (caps closed), and find how many noodles per drum
+  // keep the boat up on their own if the trapped air escapes (cap open, a leak at the top).
+  const FLOOD_MIN_CLEAR = 6;   // inches of deck clearance to call a flooded set-up usable (judgement: a small wave)
+  function floodAdvice(build, g) {
+    const c = g.config, base = massItems(build, Object.assign({}, g, { config: Object.assign({}, c, { floodPct: 0 }) }));
+    const at = over => { const G = Object.assign({}, g, { config: Object.assign({}, c, over) }); return solve(G, applyFlood(base, G, G.config)); };
+    const usable = s => s.ok && s.stableRoll && s.deckClearance >= FLOOD_MIN_CLEAR;
+    const pick = s => ({ ok: s.ok, reason: s.reason, W: s.W, maxLb: s.maxLb, draft: s.d, deckClearance: s.deckClearance, gmRoll: s.gmRoll, loadPct: s.loadPct, usable: usable(s) });
+    const rows = [];
+    for (let pct = 0; pct <= 90; pct += 10) rows.push(Object.assign({ floodPct: pct }, pick(at({ floodPct: pct, floodVented: false }))));
+    const ok = rows.filter(r => r.usable), best = ok.length ? ok.reduce((a, b) => (b.gmRoll > a.gmRoll + 0.05 ? b : a)) : null;
+    const d0 = g.drums.find(d => !d.failed), per = d0 ? NOODLE_VOL / (Math.PI * d0.r * d0.r * d0.len) * 100 : 0;
+    const maxN = per ? Math.floor(100 / per) : 0;
+    let need = null;
+    for (let n = 0; n <= maxN; n++) if (usable(at({ floodPct: Math.max(1, +c.floodPct || 0), floodVented: true, drumNoodles: n }))) { need = n; break; }
+    const airLost = pick(at({ floodPct: Math.max(1, +c.floodPct || 0), floodVented: true }));
+    return { current: pick(at({})), rows, best, airLost, noodles: +c.drumNoodles || 0, noodlePct: d0 ? noodlePct(c, d0) : 0, perNoodlePct: per, noodlesNeeded: need, maxNoodles: maxN, minClear: FLOOD_MIN_CLEAR,
+      maxFloodPct: d0 ? 100 - noodlePct(c, d0) : 100 };
   }
 
   function crewPositions(c, crew) {
@@ -986,29 +1018,50 @@
   }
 
   // ── Hydrostatics: solve heave, trim and heel ──
-  // A drum drilled at the bottom and open to the river: water inside stands at the outside level,
-  // so it adds no weight in the water; it only takes that volume away from the lift. The noodles
-  // stuffed inside (and any trapped air) float to the top, so what still lifts is a band across the
-  // top of the drum, above the height yb where the flooded share of the cross-section ends.
-  // Free surface: the inside water level moves with the outside, so only the band's own width at the
-  // water line resists heel (Archimedes; free-surface effect).
-  function floodFloor(r, pct) {
-    const target = Math.PI * r * r * pct / 100;
+  // Drums drilled at the bottom (2026-10-09). Two cases:
+  //  • Cap closed: the trapped air pocket holds a fixed amount of water inside (Boyle: ~3% volume change
+  //    per foot of head, ignored). The drum still displaces its whole outside shape, and the water inside
+  //    rides along as ballast at the bottom of the drum, with a free surface that moves to the low side
+  //    (a virtual rise of G of i/∇: free-surface effect).
+  //  • Cap open (or the air escapes): the water inside stands at the river level, weighs nothing in the
+  //    water and only removes lift. What still lifts is the noodles stuffed inside, which float up into a
+  //    band across the top of the drum; below that band the drum gives no lift and no stability. The
+  //    flooded drum's HDPE shell (~0.95 g/cm³) then floats its own weight, so it is left out of the load.
+  function floodFloor(r, pct) {   // height above the drum bottom where pct % of the cross-section lies below
+    const target = Math.PI * r * r * Math.min(100, Math.max(0, pct)) / 100;
     let lo = 0, hi = 2 * r;
     for (let i = 0; i < 60; i++) { const m = (lo + hi) / 2; segArea(m, r) < target ? lo = m : hi = m; }
     return lo;
   }
+  const NOODLE_VOL = Math.PI * (NOODLE_D / 2) ** 2 * NOODLE_L;
+  const noodlePct = (c, d) => Math.min(100, 100 * Math.max(0, +c.drumNoodles || 0) * NOODLE_VOL / (Math.PI * d.r * d.r * d.len));
+  // share of a drum's inside that is water (%), capped by the room the noodles leave
+  const floodShare = (c, d) => Math.max(0, Math.min(+c.floodPct || 0, 100 - noodlePct(c, d)));
+  const isFlooded = c => (+c.floodPct || 0) > 0;
+  const floodOpen = c => isFlooded(c) && !!c.floodVented;
   function slicesOf(g) {
-    const out = [], pct = Math.max(0, Math.min(99, +g.config.floodPct || 0));
+    const out = [], c = g.config;
     g.drums.filter(d => !d.failed).forEach(d => {
-      const dl = d.len / SLICES, yb = pct ? floodFloor(d.r, pct) : 0;
+      // cap open: only the noodle band at the top lifts (yb = its floor); otherwise the whole drum
+      const dl = d.len / SLICES, yb = floodOpen(c) ? floodFloor(d.r, 100 - noodlePct(c, d)) : 0, none = floodOpen(c) && noodlePct(c, d) <= 0;
       for (let k = 0; k < SLICES; k++) {
         const u = -d.len / 2 + (k + 0.5) * dl;
-        out.push(d.axis === 'x' ? { x: d.x + u, z: d.z, dl, r: d.r, y0: d.y0, yb, axis: 'x', drum: d.id }
-                                : { x: d.x, z: d.z + u, dl, r: d.r, y0: d.y0, yb, axis: 'z', drum: d.id });
+        out.push(d.axis === 'x' ? { x: d.x + u, z: d.z, dl, r: d.r, y0: d.y0, yb: none ? 2 * d.r : yb, axis: 'x', drum: d.id }
+                                : { x: d.x, z: d.z + u, dl, r: d.r, y0: d.y0, yb: none ? 2 * d.r : yb, axis: 'z', drum: d.id });
       }
     });
     return out;
+  }
+  // Free surface of the water held inside closed, flooded drums: Σ i about the roll and pitch axes (in⁴)
+  function freeSurface(g) {
+    const c = g.config; let roll = 0, pitch = 0;
+    if (!isFlooded(c) || floodOpen(c)) return { roll, pitch };
+    g.drums.filter(d => !d.failed).forEach(d => {
+      const pct = floodShare(c, d); if (pct <= 0 || pct >= 100) return;
+      const w = segWidth(floodFloor(d.r, pct), d.r), across = d.axis === 'x' ? w : d.len, along = d.axis === 'x' ? d.len : w;
+      roll += along * across ** 3 / 12; pitch += across * along ** 3 / 12;
+    });
+    return { roll, pitch };
   }
   // lifting cross-section of a slice under water depth h (above the drum bottom), its centroid and water-line width
   const wetArea = (h, s) => Math.max(0, segArea(h, s.r) - (s.yb ? segArea(Math.min(h, s.yb), s.r) : 0));
@@ -1073,11 +1126,13 @@
 
   function solve(g, items, eta, opts) {
     const maxAngle = opts && opts.maxAngleDeg || 25;   // flat water: beyond 25° it is going over
-    const sl = slicesOf(g), ps = pipeSlices(g);
+    const sl = slicesOf(g), ps = pipeSlices(g), fs = freeSurface(g);
     const W = items.reduce((s, i) => s + i.w, 0);
     const xg = items.reduce((s, i) => s + i.w * i.x, 0) / W;
     const zg = items.reduce((s, i) => s + i.w * i.z, 0) / W;
     const KG = items.reduce((s, i) => s + i.w * i.y, 0) / W;
+    // loose water in closed drums acts as if G were higher by i/∇ (∇ = W ÷ water weight per in³)
+    const fsRoll = fs.roll * WATER / W, fsPitch = fs.pitch * WATER / W, KGr = KG + fsRoll, KGp = KG + fsPitch;
     const r = g.r;
     const maxLb = sl.reduce((s, k) => s + (Math.PI * k.r * k.r - (k.yb ? segArea(k.yb, k.r) : 0)) * k.dl * WATER, 0) + ps.reduce((s, q) => s + q.vol * WATER, 0);
     const base = { W, xg, zg, KG, maxLb, loadPct: maxLb ? (W / maxLb) * 100 : Infinity };
@@ -1095,7 +1150,7 @@
     // a boat on a uniformly sloping surface then balances aligned with it (righting acts relative
     // to the local surface, as in the beam-sea roll moment W·GM·k·ζ).
     const resid = x => { const f = forces(sl, x[0], x[1], x[2], ps, eta), yB = f.F > 0 ? f.My / f.F : 0;
-      return [(f.F - W) / W, (f.Mx - f.F * (xg + x[1] * (yB - KG)) + (f.Sxy - f.Sx * KG)) / (W * span), (f.Mz - f.F * (zg + x[2] * (yB - KG)) + (f.Szy - f.Sz * KG)) / (W * span)]; };
+      return [(f.F - W) / W, (f.Mx - f.F * (xg + x[1] * (yB - KGp)) + (f.Sxy - f.Sx * KGp)) / (W * span), (f.Mz - f.F * (zg + x[2] * (yB - KGr)) + (f.Szy - f.Sz * KGr)) / (W * span)]; };
     let res = resid(v), ok = false;
     for (let it = 0; it < 80; it++) {
       const n0 = Math.hypot(...res);
@@ -1146,8 +1201,8 @@
     const cx = A ? Ax / A : 0, cz = A ? Az / A : 0;
     Ix0 = Ixx - A * cx * cx; Iz0 = Izz - A * cz * cz;
     const KB = V ? KBm / V : 0;
-    const gmRoll = V ? Iz0 / V + KB - KG : 0;
-    const gmPitch = V ? Ix0 / V + KB - KG : 0;
+    const gmRoll = V ? Iz0 / V + KB - KGr : 0;
+    const gmPitch = V ? Ix0 / V + KB - KGp : 0;
     const railBottom = g.railY - PIPE_R;
     const c = g.config;
     const corners = [[-c.frameLength / 2, -g.outerZ], [-c.frameLength / 2, g.outerZ], [c.frameLength / 2, -g.outerZ], [c.frameLength / 2, g.outerZ]];
@@ -1388,7 +1443,7 @@
     { name: 'Slamming load factor', used: `× ${DYNAMIC}`, source: 'A load applied suddenly (no drop) gives 2× the static stress; a drop from a height gives more: 1 + √(1 + 2h/δ)', effect: 'Covers sitting down hard, not jumping onto the deck.', refs: ['suddenLoad'] },
     { name: 'Safety factor targets', used: `${SF_OK} target, ${SF_MIN} minimum`, source: 'No universal value: chosen by the designer for the uncertainty in loads and materials', effect: 'A judgement call for a one-off amateur build.', refs: ['safetyFactor'] },
     { name: 'Cable tie strength', used: '50 lb (8"), 175 lb (heavy 36")', source: 'Standard loop tensile ratings 18, 50, 120, 175 lb', effect: 'Matches the standard classes.', refs: ['cableTies'] },
-    { name: 'Flooded drums (drilled at the bottom)', used: 'Water inside at the outside level; noodles and trapped air as a fixed band across the top', source: 'Water inside a hull open to the sea weighs nothing in the water and only removes lift; a free surface inside cancels that part of the water plane', effect: 'Trapped air behaves like the band only while it stays under water; if the drum rides higher the air pocket shifts and gives a little less stability than shown. The flooded share is the team\'s estimate (80–90%).', refs: ['archimedes', 'freeSurface', 'metacentric'] },
+    { name: 'Flooded drums (drilled at the bottom)', used: 'Caps closed: the water share is fixed (trapped air), ballast at the drum bottom with a free surface (G rises by i/∇). Caps open or air lost: water at the river level, only the noodles lift, as a band across the top', source: 'Water inside a hull open to the sea weighs nothing in the water and only removes lift; loose water inside a closed hull raises the effective centre of gravity by i/∇', effect: 'Air compression (~3% per foot of head) is ignored. Noodles are taken as solid 2.5" × 52" foam; hollow-core noodles lift less. The flooded share and the noodle count are the team\'s estimates.', refs: ['archimedes', 'freeSurface', 'metacentric'] },
     { name: 'Water viscosity (Reynolds number)', used: '1.0 cSt', source: '≈ 1 cSt at 20 °C', effect: 'Used only to say which drag regime applies.', refs: ['viscosity', 'reynolds'] },
   ].map(a => Object.assign({}, a, { refs: a.refs.map(k => { if (!SOURCES[k]) throw new Error(`Unknown source "${k}"`); return Object.assign({ id: k }, SOURCES[k]); }) }));
   function engineering(build, g, sol, items, req) {
@@ -1401,7 +1456,7 @@
     // buoyancy
     const flood = Math.max(0, Math.min(99, +c.floodPct || 0));
     const drums = g.drums.filter(d => !d.failed).map(d => {
-      const cap = Math.PI * d.r * d.r * d.len * WATER * (1 - flood / 100), pd = sol.perDrum[d.id] || { lb: 0, max: 0 };
+      const cap = Math.PI * d.r * d.r * d.len * WATER * (floodOpen(c) ? noodlePct(c, d) / 100 : 1), pd = sol.perDrum[d.id] || { lb: 0, max: 0 };
       return { id: d.id, capacity: cap, lb: pd.lb, share: pd.lb / sol.W, used: pd.lb / cap, depth: pd.max, freeboard: 2 * d.r - pd.max };
     });
     const parts = build.parts || [];
@@ -1416,7 +1471,7 @@
     };
     const B = out.buoyancy, drumCap = drums.reduce((t, d) => t + d.capacity, 0);
     work('buoy.max', 'Lift = Σ (π r² L × 0.0361) for each drum + foam-filled pipe below the deck',
-      [...g.drums.filter(d => !d.failed).map(d => `Drum ${d.id + 1}: π × ${n(d.r, 2)}² × ${n(d.len, 1)} = ${n(Math.PI * d.r * d.r * d.len, 0)} in³ × 0.0361${flood ? ` × (1 − ${n(flood, 0)}% flooded)` : ''} = ${n(Math.PI * d.r * d.r * d.len * WATER * (1 - flood / 100), 1)} lb`),
+      [...g.drums.filter(d => !d.failed).map(d => `Drum ${d.id + 1}: π × ${n(d.r, 2)}² × ${n(d.len, 1)} = ${n(Math.PI * d.r * d.r * d.len, 0)} in³ × 0.0361${floodOpen(c) ? ` × ${n(noodlePct(c, d), 0)}% noodles (cap open: only they lift)` : ''} = ${n(Math.PI * d.r * d.r * d.len * WATER * (floodOpen(c) ? noodlePct(c, d) / 100 : 1), 1)} lb`),
         `Foam-filled pipe that can go under: ${n(sol.maxLb - drumCap, 1)} lb`, `Total = ${n(drumCap, 1)} + ${n(sol.maxLb - drumCap, 1)} = ${n(sol.maxLb, 0)} lb`],
       `Archimedes: a body pushed under water is lifted by the weight of water it displaces (${WATER_TXT}). This is the most the boat can ever hold up.`);
     work('buoy.load', 'W = boat parts + drums + crew', [...items.reduce((acc, it) => { const k = it.label === 'cage' ? 'frame' : it.label; const e = acc.find(x => x[0] === k); e ? e[1] += it.w : acc.push([k, it.w]); return acc; }, []).map(([k, w]) => `${k}: ${n(w, 1)} lb`), `Total W = ${n(sol.W, 1)} lb`],
@@ -1895,7 +1950,8 @@ ${ww.assumptions.map(x => `| ${x.name} | ${x.used} | ${x.source} | ${x.effect} |
     const parts = build.parts || [];
     const cost = parts.reduce((s, p) => s + (+p.quantity || 0) * (+p.unit_cost_usd || 0), 0);
     const spent = parts.filter(isBought).reduce((s, p) => s + (+p.quantity || 0) * (+p.unit_cost_usd || 0), 0);
-    const recs = recommend({ build, g, req, wt, sol, fwd, side, leaks, rulesOut, crewW });
+    const flood = isFlooded(g.config) ? floodAdvice(build, g) : null;
+    const recs = recommend({ build, g, req, wt, sol, fwd, side, leaks, rulesOut, crewW, flood });
     if (g.cageUnsupported) recs.push({ level: 'warn', title: 'The cage is only modeled for lengthwise drums', detail: 'Crosswise drums use zip-tie bands here. Switch to a lengthwise layout to compare a caged build.' });
     const plan = paintPlan(g.config, build.parts);
     if (plan) {
@@ -1945,7 +2001,7 @@ ${ww.assumptions.map(x => `| ${x.name} | ${x.used} | ${x.source} | ${x.effect} |
     const eng = engineering(build, g, sol, items, req);
     eng.structure.filter(s => s.level !== 'ok').forEach(s => recs.push({ level: s.level, title: `Structure: ${s.name}: safety factor ${s.sf.toFixed(1)}`, detail: `${s.detail} Target ${SF_OK} or more. Shorten the span, add a support or a second pipe, or a fitting in the middle.` }));
     if (eng.buoyancy && eng.buoyancy.emergency < eng.buoyancy.structure) recs.push({ level: 'warn', title: 'The wreck may not float without the drums', detail: `Foam in the deck, noodles and pipes lifts about ${eng.buoyancy.emergency.toFixed(0)} lb; the structure without drums weighs about ${eng.buoyancy.structure.toFixed(0)} lb. Add foam (rules: everything must float, even broken).` });
-    const result = { placement, shopping, geometry: g, requirements: req, weights: wt, solution: sol, scenarios: { crewForward: fwd, crewSide: side, leaks }, rules: rulesOut, recommendations: recs, cost, spent, crewWeight: crewW, engineering: eng };
+    const result = { placement, shopping, geometry: g, requirements: req, weights: wt, solution: sol, scenarios: { crewForward: fwd, crewSide: side, leaks }, rules: rulesOut, recommendations: recs, cost, spent, crewWeight: crewW, engineering: eng, flood };
     result.issues = issueMarkers(result);
     return result;
   }
@@ -1971,10 +2027,17 @@ ${ww.assumptions.map(x => `| ${x.name} | ${x.used} | ${x.source} | ${x.effect} |
     if (g.overlaps.length) add('error', 'Drums overlap', 'Increase pontoon spacing or move the drums apart.');
     if (g.beamsTooShort) add('error', 'Beams are shorter than the outer rail spacing', `Make the frame width at least ${Math.ceil(2 * (g.outerZ + PIPE_R))}" or reduce pontoon spacing.`);
     if (g.drumsOffFrame) add('warn', 'Drums extend past the frame ends', 'Lengthen the rails or center the drums, or the lashing has nothing to hold.');
-    if (+c.floodPct > 0) {
-      const dry = g.drums.filter(d => !d.failed).reduce((t, d) => t + drumMaxLb(Object.assign({}, d.spec, { dia: 2 * d.r, len: d.len })), 0);
-      add(sol.ok && sol.loadPct <= 80 ? 'warn' : 'error', `Drums ${(+c.floodPct).toFixed(0)}% flooded: ${(dry * (1 - c.floodPct / 100)).toFixed(0)} lb of drum lift left of ${dry.toFixed(0)} lb`,
-        'Water inside a drum open to the river weighs nothing in the water, so it does not lower the centre of gravity: it only takes away lift, and its free surface takes away stability. To undo it, tip the drums to drain them, plug the holes and cap them; the noodles inside can stay as backup flotation.');
+    const fl = a.flood;
+    if (fl) {
+      const pct = (+c.floodPct).toFixed(0), sealed = fl.rows[0], f1 = v => (+v).toFixed(1);
+      const state = r => !r.ok ? (r.reason === 'sinks' ? `sinks (${r.W.toFixed(0)} lb on ${r.maxLb.toFixed(0)} lb of lift)` : 'tips over') : `deck ${f1(r.deckClearance)}" above the water, GM ${f1(r.gmRoll)}"`;
+      if (c.floodVented) add(fl.current.usable ? 'warn' : 'error', `Drums flooded with the caps open: only the ${fl.noodles} noodles in each drum lift`, `Water inside an open drum stands at the river level and weighs nothing in the water, so it does not lower the centre of gravity; it only takes the drum's lift away. With ${fl.noodles} noodles per drum (${fl.noodlePct.toFixed(0)}% of it): ${state(fl.current)}. Sealed: ${state(sealed)}.`);
+      else add(!fl.current.usable ? 'error' : fl.current.gmRoll >= sealed.gmRoll ? 'info' : 'warn', `Drums ${pct}% flooded, caps closed: ${state(fl.current)}`, `The trapped air holds the water in, so it rides along as ${(fl.current.W - sealed.W).toFixed(0)} lb of ballast low in the drums. But the boat sinks deeper, where the drums are narrower at the water line, and the loose water slides to the low side (free-surface effect). Sealed and dry: ${state(sealed)}.`);
+      if (!c.floodVented) add(fl.best && fl.best.floodPct === +c.floodPct ? 'ok' : 'warn', fl.best ? `Most stable flood level: ${fl.best.floodPct}% (GM ${f1(fl.best.gmRoll)}", deck ${f1(fl.best.deckClearance)}" clear)` : 'No flood level keeps the deck clear and the boat upright',
+        `Caps closed, crew as set. ${fl.rows.map(r => `${r.floodPct}%: ${r.ok ? `GM ${f1(r.gmRoll)}", deck ${f1(r.deckClearance)}"` : r.reason}`).join(' · ')}. Usable = upright with at least ${fl.minClear}" of deck clearance.`);
+      add(fl.airLost.usable ? 'ok' : 'error', fl.airLost.usable ? `If the trapped air escapes, the noodles still hold it up (${fl.noodles} per drum)` : `If the trapped air escapes, ${fl.noodles} noodles per drum ${fl.airLost.ok ? 'leave the deck awash' : 'cannot hold the boat up'}`,
+        `Air gets out through an open cap, a crack at the top, or holes that roll above the water. Then only the noodles lift: ${state(fl.airLost)}. ${fl.noodlesNeeded == null ? `Even ${fl.maxNoodles} noodles per drum (completely full) are not enough with this crew.` : `Needed: at least ${fl.noodlesNeeded} noodles per drum (${(fl.noodlesNeeded * fl.perNoodlePct).toFixed(0)}% of each drum) for ${fl.minClear}" of deck clearance${fl.noodlesNeeded > fl.noodles ? `, ${fl.noodlesNeeded - fl.noodles} more than now` : ''}.`} Sealing the holes and drums gives back the full lift.`);
+      if (fl.noodles > 0 && +c.floodPct > fl.maxFloodPct) add('info', `The noodles leave room for only ${fl.maxFloodPct.toFixed(0)}% water`, `${fl.noodles} noodles take ${fl.noodlePct.toFixed(0)}% of each drum, so it cannot flood past ${fl.maxFloodPct.toFixed(0)}%; the model uses that.`);
     }
     if (!sol.ok) {
       add('error', sol.reason === 'sinks' ? `Not enough flotation: ${sol.W.toFixed(0)} lb on ${sol.maxLb.toFixed(0)} lb max` : 'Configuration cannot balance (capsizes)', 'Add drums, reduce crew, or center the load.');
@@ -2276,7 +2339,7 @@ ${ww.assumptions.map(x => `| ${x.name} | ${x.used} | ${x.source} | ${x.effect} |
   return {
     WATER, DRUM, DRUM_SIZES, drumSpec, drumLabel, PIPE_R, RAIL_OFFSET, PRESETS, DEFAULT_CONFIG, inventory,
     STATUSES, isBought, engineering, PVC, SF_OK, SF_MIN, CONSUMABLE_SHARE, onBoatShare, paintPlan, decalPlan, DECALS, PAINT_LB_PER_SQFT, withDefaults, geometry, requirements, shoppingList, storeLinks, fitFrame, rankPresets, PRIORITIES, weights, massItems, crewPositions, solve, checkRules, analyze, comparePresets,
-    segArea, segWidth, segCentroidY, drumMaxLb, labelParts, LASH_TIE_MIN_IN, PLATFORM_TIES_PER_CROSSING, SOURCES, WORK_REFS, ASSUMPTIONS, RHO, NU_WATER, PADDLER_W, DYNAMIC,
+    segArea, segWidth, segCentroidY, drumMaxLb, floodAdvice, floodFloor, labelParts, LASH_TIE_MIN_IN, PLATFORM_TIES_PER_CROSSING, SOURCES, WORK_REFS, ASSUMPTIONS, RHO, NU_WATER, PADDLER_W, DYNAMIC,
     whitewater, whitewaterMarkdown, whitewaterArtifact, whitewaterHydraulics, manningDepth, standingWaveK, supercriticalDepth, belanger, WW_CHANNELS, WW_CLASS, WW_DEFAULTS, G_SI,
   };
 });

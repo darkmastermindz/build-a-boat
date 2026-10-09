@@ -48,52 +48,68 @@ doc records the reasoning and the findings so far.
 - **What changed this morning:**
   - Holes were drilled in the bottom of the drums, front and back.
   - Pool noodles were pushed inside.
-  - The aim: let the drums fill 80–90% with water to lower the centre of
-    gravity, as a fix for the tippiness seen in yesterday's dry run.
-- **Now in the default model:** `floodPct: 85`, from the Configure slider
-  "Drums flooded".
-  - Each drum floats as water inside at the outside level, plus a band of
-    noodles and trapped air across its top.
-  - Below that band it gives no lift and no stability.
-- **What the model predicts:**
+  - The aim: let the drums take on water to lower the centre of gravity, as
+    a fix for the tippiness seen in yesterday's dry run.
+- **Now in the default model:** `floodPct: 70`, `drumNoodles: 4`,
+  `floodVented: false`. All three are in Configure.
+  - **"Drums flooded" slider:** the share of each drum that is water.
+  - **"Noodles stuffed in each drum" slider:** 2.5" × 52" noodles, about 1.9%
+    of a drum each. They take room the water can't, so 20 noodles cap the
+    flood at about 63%.
+  - **"Flooded drums: caps open" checkbox.**
+  - **Noodle count is a guess:** 4 per drum, from the noodles on hand.
+    Please count them and set the slider.
+- **Two cases:**
+  - **Caps closed (the default):** the trapped air holds a fixed amount of
+    water in each drum.
+    - The drum still lifts with its whole outside shape.
+    - The water inside rides along as ballast at the bottom, about 1,040 lb
+      at 70% for 3 drums.
+    - That water is loose and slides to the low side (the free-surface
+      effect). For stability it acts as if the centre of gravity were higher
+      by i/∇, about 2" at 70%.
+  - **Caps open, or the air escapes:** the water inside stands at the river
+    level and weighs nothing in the water. Only the noodles lift.
+    - The flooded drums' HDPE shells float their own weight, so the barrels
+      are left out of the boat's weight: about 85 lb of boat instead of 145.
+- **What the model predicts at 70%, 4 noodles per drum:**
 
-  | Flooded | Drum + pipe lift | Empty boat | 1 crew (175 lb) | 2 crew (350 lb) |
-  |---|---|---|---|---|
-  | 0% (sealed) | 1,617 lb | 2.7" draft, GM 43" | 5.4" draft, GM 14" | 7.7" draft, GM 2.6" (6.1" legs over the side) |
-  | 80% | 428 lb | 18.0" draft, deck 6.4" clear | 20.8" draft, deck 3.6" clear, GM 10" | **sinks** (495 lb on 428 lb) |
-  | 85% | 354 lb | 19.2" draft, deck 5.3" clear | 22.2" draft, deck 1.8" clear, GM −2.5" (tips) | **sinks** (495 lb on 354 lb) |
-  | 90% | 279 lb | 20.4" draft, deck 4.0" clear | **sinks** | **sinks** |
+  | Crew | Caps closed | Caps open / air lost |
+  |---|---|---|
+  | 0 | deck 8.5" above the water, GM 7.6" | deck 4.4" above the water |
+  | 1 (175 lb) | deck 5.8" above the water, GM 2.6" | **sinks** (260 lb on 241 lb of lift) |
+  | 2 (350 lb) | deck 3.1" above the water, **GM −2.4" (tips)**; −1.3" legs over the side | **sinks** (435 lb on 241 lb) |
 
-- **Why it backfires:**
-  - **Inside water is weightless in the water.** Water that stands inside a
-    drum at the river's own level weighs nothing in the water. It cannot
-    lower the centre of gravity; it only removes that drum's lift.
-  - **Only the top band still lifts.** What lifts is the noodles plus
-    whatever air stays trapped, 10–20% of each drum. That's about 50–100 lb
-    a drum instead of about 500 lb.
-  - **The free surface removes stability.** The water inside moves with the
-    outside level, so a drum that dips on the low side no longer pushes back.
-    Only the band's own width at the water line resists heel.
-- **What gets the stability the change was after:**
-  - **Weight that stays above the water line:** the crew sitting low.
-  - **Solid weight hung low:** rocks or weights tied low on the frame.
-  - **More waterline width far from the centre:** noodles tied at the water
-    line on the outer sides, or a wider rear pair. See the 2026-10-08 entry.
-- **Before the test:**
-  1. **Float it with the full crew at the dock first,** tied off.
-  2. **If the deck is near the water, drain and plug:** tip each drum to
-     drain it, plug the holes and cap the drums.
-     - **Plugs:** tapered softwood pegs swell tight when wet. Screws with a
-       washer and sealant also work.
-     - **No PVC cement:** it does not bond the drums' HDPE.
-     - **The noodles can stay inside:** a sealed drum keeps its full lift,
-       and the noodles become backup flotation if it leaks.
+- **Flood level vs stability, caps closed, 2 crew seated:**
+
+  | Flooded | 0% | 10% | 20% | 30% | 40% | 50% | 60% | 70% | 80% |
+  |---|---|---|---|---|---|---|---|---|---|
+  | GM | 2.6" | **2.7"** | 2.3" | 1.9" | 1.2" | 0.5" | −0.6" | −2.4" | sinks |
+  | Deck above the water | 16.2" | 14.4" | 12.6" | 10.9" | 9.2" | 7.2" | 5.0" | 3.1" | — |
+
+  - The ballast does sit low. But it sinks the drums toward their tops,
+    where they are narrower at the water line, and the loose water cancels
+    most of the gain.
+  - The best level is about 10%, and it gains only 0.1" over sealed drums.
+- **Noodles needed if the air escapes,** so the deck stays at least 6" clear:
+  - 22 per drum with 2 crew (66 total).
+  - 15 per drum with 1 crew.
+- **Recommendation:**
+  - **Drain the drums, plug the holes and cap them.**
+    - **Plugs:** tapered softwood pegs swell tight when wet. Screws with a
+      washer and sealant also work. PVC cement does not bond HDPE.
+    - **Leave the noodles inside** as backup flotation.
+  - **Get stability from:**
+    - Crew sitting low with their legs over the side.
+    - Noodles at the water line on the outer sides of the rear boxes.
+    - A wider rear pair.
+  - See the 2026-10-08 entry for those numbers.
 - **Unknowns:**
-  - **How full the drums actually get:** this sets everything above. With
-    the caps on and only bottom holes, trapped air keeps most of the water
-    out. If so, the drums lose little lift but also stop resisting heel.
-  - **Whether the frame noodles were moved inside:** the frame-noodle count
-    is unchanged in the model.
+  - **How full the drums really are, and whether the caps are closed:** a
+    drum with bottom holes and a closed cap barely fills (trapped air), while
+    an open cap lets it fill to the river level.
+  - **The noodle count, and whether they are solid:** hollow-core noodles
+    lift less.
 
 ### 2026-10-08: dry-run float test
 

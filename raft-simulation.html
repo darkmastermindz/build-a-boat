@@ -295,6 +295,7 @@
         <label><input type="checkbox" id="bow"> Bow frame + guard</label>
         <label><input type="checkbox" id="noodleRail"> Noodle rail</label>
         <label title="Posts on the outer box corners and top rails around the outline of the boxes, as built"><input type="checkbox" id="railing"> Railing</label>
+        <label title="Flooded drums with the cap open (or the trapped air escaped): the water inside stands at the river level and only the noodles inside lift"><input type="checkbox" id="floodVented"> Flooded drums: caps open</label>
         <label title="Corrugated PVC roofing panels around the boxes, bottom rail to top rail"><input type="checkbox" id="sidePanels"> Side panels</label>
         <label title="A PVC grid on the box tops for the foam deck to sit on; yellow pool noodles fill its gaps"><input type="checkbox" id="platform"> PVC platform + noodles</label>
         <label title="One yellow pool noodle wrapped around the bow (curved hull)"><input type="checkbox" id="bowNoodle"> Noodle around the bow</label>
@@ -511,6 +512,7 @@ const SL = [
   ['railingHeight','Railing height above box tops',4,20,0.5,'"', c => c.frameStyle === 'boxes' && c.railing],
   ['frameNoodles','Noodle layers on box rails',0,4,1,'', c => c.frameStyle === 'boxes'],
   ['floodPct','Drums flooded (drilled; water inside)',0,95,5,'%'],
+  ['drumNoodles','Noodles stuffed in each drum',0,50,1,'', c => c.floodPct > 0],
   ['drumOffset','Drums fore/aft',-30,30,1,'"'],
   ['drumSpread','Fore-aft spread',10,45,1,'"', c => ['tri3bow','tri3stern','tandem2','diamond4','stagger2'].includes(c.preset)],
   ['deck.length','Deck length',36,96,6,'"'],
@@ -579,6 +581,7 @@ function initControls(){
   $('bow').onchange = e => { build.config.bow = e.target.checked; changed(); };
   $('noodleRail').onchange = e => { build.config.noodleRail = e.target.checked; changed(); };
   $('railing').onchange = e => { build.config.railing = e.target.checked; changed(); };
+  $('floodVented').onchange = e => { build.config.floodVented = e.target.checked; changed(); };
   $('sidePanels').onchange = e => { build.config.sidePanels = e.target.checked; syncControls(); changed(); };
   $('sideStyle').onchange = e => { build.config.sideStyle = e.target.value; changed(); };
   $('platform').onchange = e => { build.config.platform = e.target.checked; syncControls(); changed(); };
@@ -665,7 +668,7 @@ function syncControls(){
   $('railsPerPontoon').value = String(c.railsPerPontoon || 2);
   $('retention').value = c.retention === 'cage' ? 'cage:' + (c.cageStyle === 'single' ? 'single' : 'cradle') : 'bands';
   $('centerSpine').checked = !!c.centerSpine;
-  $('bow').checked = !!c.bow; $('noodleRail').checked = !!c.noodleRail; $('railing').checked = !!c.railing; $('sidePanels').checked = !!c.sidePanels;
+  $('bow').checked = !!c.bow; $('noodleRail').checked = !!c.noodleRail; $('railing').checked = !!c.railing; $('floodVented').checked = !!c.floodVented; $('sidePanels').checked = !!c.sidePanels;
   $('sidePanels').closest('label').style.display = boxes ? '' : 'none';
   $('platform').checked = !!c.platform; $('bowNoodle').checked = !!c.bowNoodle;
   $('platform').closest('label').style.display = boxes ? '' : 'none';
