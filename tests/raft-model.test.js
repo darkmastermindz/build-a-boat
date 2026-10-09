@@ -1,7 +1,9 @@
 const test = require('node:test');
 const assert = require('node:assert');
 const M = require('../scripts/raft-model.js');
-const current = require('../data/build.json');
+const asBuilt = require('../data/build.json');
+// Most checks are about the sealed-drum design; the drums flooded on 2026-10-09 are tested on their own.
+const current = Object.assign({}, asBuilt, { config: Object.assign({}, asBuilt.config, { floodPct: 0 }) });
 const rules = require('../data/rules.json');
 const clone = o => JSON.parse(JSON.stringify(o));
 // reference boat for the physics tests: the team's parts on the earlier 2-drum spine-frame catamaran
@@ -541,4 +543,28 @@ test('railing and frame noodles (as built 2026-10-07): posts on the outline corn
   // off means no railing pieces and no frame noodles
   const g0 = M.geometry(Object.assign({}, cfg, { railing: false, frameNoodles: 0 }));
   assert.ok(!g0.railing && !g0.frameNoodles && !g0.cagePieces.some(pc => /rpost|railing/.test(pc.kind)));
+});
+
+test('flooded drums: water inside open to the river only removes lift; noodles and air lift from the top band', () => {
+  const at = pct => { const b = JSON.parse(JSON.stringify(current)); b.config.floodPct = pct; return b; };
+  const dry = M.analyze(at(0)), g = dry.geometry;
+  const pipeLb = dry.solution.maxLb - g.drums.reduce((t, d) => t + Math.PI * d.r * d.r * d.len * 62.4 / 1728, 0);
+  for (const pct of [50, 80, 90]) {
+    const a = M.analyze(at(pct)), s = a.solution;
+    // lift left = (1 − flooded share) of each drum, plus the unchanged cage pipes
+    const drumLb = g.drums.reduce((t, d) => t + Math.PI * d.r * d.r * d.len * (1 - pct / 100) * 62.4 / 1728, 0);
+    assert.ok(Math.abs(s.maxLb - (drumLb + pipeLb)) < 0.5, `${pct}%: max lift ${s.maxLb} vs ${drumLb + pipeLb}`);
+    // the water inside adds no weight: the boat's weight is unchanged
+    assert.ok(Math.abs(s.W - dry.solution.W) < 1e-9);
+    assert.ok(a.recommendations.some(r => /flooded/.test(r.title)));
+  }
+  // with nobody aboard the flooded boat still floats, deeper, and lift balances weight
+  const empty = at(85); empty.config.crew.count = 0;
+  const e = M.analyze(empty).solution, e0 = (() => { const b = at(0); b.config.crew.count = 0; return M.analyze(b).solution; })();
+  assert.ok(e.ok && e.d > e0.d + 10, `empty: draft ${e.d} vs dry ${e0.d}`);
+  // the team's 2026-10-09 estimate (80–90% flooded) cannot hold the 2-person crew: lift < weight
+  for (const pct of [80, 85, 90]) { const s = M.analyze(at(pct)).solution; assert.ok(!s.ok && s.reason === 'sinks' && s.maxLb < s.W); }
+  // the shipped default is the as-built (flooded) boat and the report flags it
+  assert.strictEqual(asBuilt.config.floodPct, 85);
+  assert.ok(M.analyze(asBuilt).recommendations.some(r => r.level === 'error' && /flotation|flooded/.test(r.title)));
 });

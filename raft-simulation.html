@@ -510,6 +510,7 @@ const SL = [
   ['packGap','Pair gap',0,14,0.5,'"', c => c.preset === 'tri3pack'],
   ['railingHeight','Railing height above box tops',4,20,0.5,'"', c => c.frameStyle === 'boxes' && c.railing],
   ['frameNoodles','Noodle layers on box rails',0,4,1,'', c => c.frameStyle === 'boxes'],
+  ['floodPct','Drums flooded (drilled; water inside)',0,95,5,'%'],
   ['drumOffset','Drums fore/aft',-30,30,1,'"'],
   ['drumSpread','Fore-aft spread',10,45,1,'"', c => ['tri3bow','tri3stern','tandem2','diamond4','stagger2'].includes(c.preset)],
   ['deck.length','Deck length',36,96,6,'"'],
