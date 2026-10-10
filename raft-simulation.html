@@ -248,6 +248,7 @@
     <button class="btn ghost sm" id="setDefault" title="Open the simulator with this design from now on">Set as default</button>
     <button class="btn ghost sm" id="resetDefault" title="Discard changes and go back to the default design">Reset to default</button>
     <button class="btn ghost sm" id="exportDesign" title="Download every setting of this design (layout, parts, paint, decals, ties) as JSON">⬇️ Export</button>
+    <button class="btn ghost sm" id="exportStep" title="Download this design as a STEP file (inches) for SolidWorks or other CAD: one named solid per pipe, fitting, drum, deck and noodle">📐 STEP (SolidWorks)</button>
     <button class="btn ghost sm" id="proposeDesign" title="Open a GitHub pull request with this design, as the new default or as a new saved design">⇪ Propose PR</button>
     <span id="proposeForm" hidden>
       <select id="proposeMode" aria-label="Propose as"><option value="new">as a new saved design</option><option value="default">as the default design</option></select>
@@ -440,6 +441,7 @@
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script src="scripts/raft-model.js"></script>
+<script src="scripts/step-export.js"></script>
 <script>
 'use strict';
 const M = window.RaftModel;
@@ -1779,6 +1781,11 @@ function themePlain(){
   delete c.flag; delete c.theme; changed();
 }
 // ── Export and propose ──
+// STEP for SolidWorks: the current design's geometry, one named solid per part ID (scripts/step-export.js)
+function exportStep(){
+  const text = RaftStep.exportStep(A.geometry, { name: designName() });
+  const a = el('a', { href: URL.createObjectURL(new Blob([text], { type: 'application/step' })), download: slug(designName()) + '.step' }); document.body.append(a); a.click(); a.remove();
+}
 function designName(){ return active ? active.name : (build.name || 'Our raft'); }
 function exportDesign(){
   const out = Object.assign(clone(build), { name: designName(), updated: new Date().toISOString().slice(0, 10) });
@@ -1870,6 +1877,7 @@ function initTools(){
   });
   $('themeOnePiece').onclick = themeOnePiece; $('themePlain').onclick = themePlain;
   $('exportDesign').onclick = exportDesign;
+  $('exportStep').onclick = exportStep;
   $('proposeDesign').onclick = () => { $('proposeForm').hidden = false; };
   $('proposeCancel').onclick = () => { $('proposeForm').hidden = true; };
   $('proposeGo').onclick = () => { $('proposeForm').hidden = true; proposeDesign($('proposeMode').value); };

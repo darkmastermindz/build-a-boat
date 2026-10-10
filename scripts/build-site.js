@@ -16,6 +16,7 @@ const files = {
   'icons/icon-512.png': 'icons/icon-512.png',
   'icons/icon-maskable-512.png': 'icons/icon-maskable-512.png',
   'scripts/raft-model.js': 'scripts/raft-model.js',
+  'scripts/step-export.js': 'scripts/step-export.js',
   'data/build.json': 'data/build.json',
   'data/catalog.json': 'data/catalog.json',
   'data/rules.json': 'data/rules.json',
@@ -37,4 +38,10 @@ const designs = (fs.existsSync(dir) ? fs.readdirSync(dir) : []).filter(f => f.en
 });
 fs.mkdirSync(path.join(OUT, 'data/designs'), { recursive: true });
 fs.writeFileSync(path.join(OUT, 'data/designs/index.json'), JSON.stringify({ designs }) + '\n');
+// the team's design as a STEP file for SolidWorks, at /bob-raft.step
+{
+  const M = require('./raft-model.js'), S = require('./step-export.js');
+  const b = JSON.parse(fs.readFileSync(path.join(ROOT, 'data/build.json'), 'utf8'));
+  fs.writeFileSync(path.join(OUT, 'bob-raft.step'), S.exportStep(M.geometry(b.config), { name: b.name || 'BOB raft' }));
+}
 console.log(`Built ${Object.keys(files).length} files and ${designs.length} repo designs into dist/`);

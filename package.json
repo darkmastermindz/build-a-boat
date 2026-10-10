@@ -7,7 +7,8 @@
     "test": "node --test tests/*.test.js",
     "report": "node scripts/generate-report.js",
     "dev": "netlify dev",
-    "profiles": "node scripts/make-profiles.js"
+    "profiles": "node scripts/make-profiles.js",
+    "step": "node scripts/export-step.js"
   },
   "engines": {
     "node": ">=24"

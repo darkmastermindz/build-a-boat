@@ -1,3 +1,5 @@
 node_modules/
 dist/
 .netlify/
+# generated STEP exports (npm run step)
+*.step
