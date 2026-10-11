@@ -81,3 +81,10 @@ test('STEP geometry matches the model: tube and drum radii, deck box, volumes fr
   const drum = bodies.find(b => b.name.startsWith('D1 '));
   assert.ok(Math.abs(S.volume(drum) - Math.PI * g.drums[0].r ** 2 * g.drums[0].len) < 1e-6);
 });
+
+test('STEP export includes parts added in edit mode', () => {
+  const c = Object.assign({}, build.config, { extras: [{ type: 'noodle', at: [0, 10, 30], axis: 'x', len: 52 }, { type: 'fitting', role: 'elbow', at: [0, 30, 0] }] });
+  const t = S.exportStep(M.geometry(c), { timestamp: 't' });
+  assert.match(t, /MANIFOLD_SOLID_BREP\('X1 added noodle'/);
+  assert.match(t, /MANIFOLD_SOLID_BREP\('X2 added fitting elbow'/);
+});

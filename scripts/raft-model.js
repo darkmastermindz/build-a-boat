@@ -159,7 +159,7 @@
   const DEFAULT_CONFIG = {
     preset: 'cat2', frameStyle: 'stacked', retention: 'bands', cageStyle: 'cradle', sidePanels: false, sideStyle: 'hull', hullBow: 18, platform: false, platformSpacing: 16, bowNoodle: false, packGap: 0, boxEndGap: 2, boxSideGap: 1, boxTopGap: 0, fittingTakeoff: 1.25, cutAllowance: 0.5, railsPerPontoon: 2, centerSpine: false, frameLength: 84, frameWidth: 72, beamCount: 4, pontoonSpacing: 47,
     drumOffset: 0, drumSpread: 20, bow: true, bowRiser: 12, bowStrut: 18,
-    deck: { length: 72, width: 24, thickness: 2.3 }, mastHeight: 30, noodleRail: true, railing: false, railingHeight: 10, frameNoodles: 0, floodPct: 0, drumNoodles: 0, floodVented: false,
+    deck: { length: 72, width: 24, thickness: 2.3 }, mastHeight: 30, noodleRail: true, railing: false, railingHeight: 10, frameNoodles: 0, floodPct: 0, drumNoodles: 0, floodVented: false, extras: [],
     crew: { count: 2, weightEach: 175, xOffset: 0, zOffset: 0 }, failedDrum: null,
   };
 
@@ -193,8 +193,39 @@
   // ── Geometry ──
   function geometry(cfgIn) {
     const g = buildGeometry(cfgIn);
+    g.extras = extrasOf(g.config);
     labelParts(g);
     return g;
+  }
+  // ── Added parts (edit mode): pieces from the parts list placed by hand ──
+  // config.extras = [{ type, at: [x, y, z], axis: 'x'|'y'|'z', len, role, dia, weight }]
+  //   pipe / noodle: a cylinder of length len centred on `at` along `axis`
+  //   fitting (role elbow, tee, side-tee, five-way, cross, coupling, elbow45, cap): a joint at `at`
+  //   drum: a sealed drum centred on `at`, laid along `axis` (x or z)
+  // They count toward weight, centre of gravity, flotation, the cut list and the parts used.
+  const EXTRA_TYPES = {
+    pipe: { label: '1-1/2" PVC pipe', role: 'pipe', len: 24, r: PIPE_R },
+    noodle: { label: 'Pool noodle', role: 'noodle', len: NOODLE_L, r: NOODLE_D / 2 },
+    fitting: { label: 'Fitting', role: 'tee' },
+    drum: { label: 'Drum', role: 'drum' },
+  };
+  const FITTING_ROLES = ['elbow', 'elbow45', 'tee', 'side-tee', 'five-way', 'cross', 'coupling', 'cap'];
+  function extrasOf(c) {
+    const list = Array.isArray(c.extras) ? c.extras : [];
+    return list.map((x, i) => {
+      const t = EXTRA_TYPES[x.type]; if (!t) throw new Error(`added part ${i + 1}: unknown type ${x.type}`);
+      const at = (x.at || [0, 0, 0]).map(v => +v || 0), axis = ['x', 'y', 'z'].includes(x.axis) ? x.axis : 'x', ax = { x: 0, y: 1, z: 2 }[axis];
+      const out = { id: 'X' + (i + 1), i, type: x.type, role: x.type === 'fitting' ? (FITTING_ROLES.includes(x.role) ? x.role : 'tee') : t.role, at, axis };
+      if (x.type === 'pipe' || x.type === 'noodle') {
+        out.len = Math.max(1, +x.len || t.len); out.r = t.r;
+        out.a = at.slice(); out.b = at.slice(); out.a[ax] -= out.len / 2; out.b[ax] += out.len / 2;
+      } else if (x.type === 'drum') {
+        const sp = drumSpec(c, 0); out.axis = axis === 'z' ? 'z' : 'x';
+        out.r = (+x.dia || sp.dia) / 2; out.len = +x.len || sp.len; out.weight = +x.weight || sp.weight;
+        const k = out.axis === 'z' ? 2 : 0; out.a = at.slice(); out.b = at.slice(); out.a[k] -= out.len / 2; out.b[k] += out.len / 2;
+      }
+      return out;
+    });
   }
 
   // ── Part IDs: a short label on every pipe, joint and part, to reference in conversation ──
@@ -248,7 +279,8 @@
       l.id = 'L' + (i + 1);
       return { id: l.id, at: l.at, joins: [l.platformPiece.id, l.boxPiece.id] };
     });
-    g.labels = { pipes, joints, drums, panels, noodles, others, lashings };
+    const extras = (g.extras || []).map(x => ({ id: x.id, type: x.type, role: x.role, at: x.at }));
+    g.labels = { pipes, joints, drums, panels, noodles, others, lashings, extras };
     return g.labels;
   }
 
@@ -692,6 +724,19 @@
     noodles.total = noodles.platform + noodles.bow + noodles.rail + noodles.frame;
     req.noodles = noodles; if (noodles.total) req.items.noodle = noodles.total;
     if (extra) { req.extraTies = extra; req.tieCount += extra; req.items['zip-tie'] = Math.ceil(req.tieCount * 1.15); }
+    const ex = g.extras || [];
+    if (ex.length) {
+      req.extras = {};
+      ex.forEach(x => {
+        req.extras[x.role] = (req.extras[x.role] || 0) + 1;
+        if (x.type === 'pipe') req.cuts.push({ id: x.id, label: 'added pipe', len: +x.len.toFixed(2) });
+        else if (x.type === 'noodle') { req.noodles.extra = (req.noodles.extra || 0) + Math.ceil(x.len / NOODLE_L); req.noodles.total += Math.ceil(x.len / NOODLE_L); }
+        else if (x.type === 'drum') req.items.drum = (req.items.drum || 0) + 1;
+        else { const k = USED_ROLES[x.role] || x.role; req.items[k] = (req.items[k] || 0) + 1; }
+      });
+      if (ex.some(x => x.type === 'pipe')) { req.sticks = binPack(req.cuts, g.config.cutAllowance); req.items.pipe = req.sticks.length; req.pipeLength_in = req.cuts.reduce((t, k) => t + k.len, 0); }
+      if (req.noodles.total) req.items.noodle = req.noodles.total;
+    }
     return req;
   }
   function baseRequirements(g, parts) {
@@ -929,8 +974,8 @@
   function weights(build, g) {
     const parts = boatParts(build.parts);
     const drumPart = parts.find(p => p.role === 'drum');
-    const drumW = g.drums.reduce((t, d) => t + d.spec.weight, 0);
-    const drumEach = drumW / Math.max(1, g.drums.length);
+    const drumW = g.drums.reduce((t, d) => t + d.spec.weight, 0) + (g.extras || []).filter(x => x.type === 'drum').reduce((t, x) => t + x.weight, 0);
+    const drumEach = drumW / Math.max(1, g.drums.length + (g.extras || []).filter(x => x.type === 'drum').length);
     const allMeasured = drumPart && drumPart.weight_measured;
     let total = drumW, measured = g.drums.reduce((t, d) => t + (allMeasured || d.spec.weightMeasured ? d.spec.weight : 0), 0);
     const drumsBoughtW = drumPart && isBought(drumPart) ? g.drums.slice(0, +drumPart.quantity || 0).reduce((t, d) => t + d.spec.weight, 0) : 0;
@@ -953,6 +998,13 @@
     };
   }
 
+  // weight of each added part: a listed part's weight per piece (per inch for pipe), else a typical weight
+  function extraWeights(build, g) {
+    const parts = boatParts(build.parts), TYPICAL = { pipe: 5.1, noodle: 0.3, elbow: 0.2, elbow45: 0.15, tee: 0.35, 'side-tee': 0.3, 'five-way': 0.4, cross: 0.45, coupling: 0.15, cap: 0.08 };
+    const each = role => { const p = parts.find(q => q.role === role && +q.weight_lb_each > 0); return p ? +p.weight_lb_each : TYPICAL[role] || 0; };
+    return (g.extras || []).map(x => Object.assign({}, x, {
+      w: x.type === 'drum' ? x.weight : x.type === 'pipe' ? each('pipe') * x.len / STOCK : x.type === 'noodle' ? each('noodle') * x.len / NOODLE_L : each(x.role) }));
+  }
   function massItems(build, g, crewOverride) {
     const c = g.config, crew = Object.assign({}, c.crew, crewOverride || {});
     const wt = weights(build, g);
@@ -961,6 +1013,13 @@
     partWeights(build, g).forEach(({ part: p, w }) => {
       if (FRAME_ROLES.has(p.role)) frameW += w; else if (DECK_ROLES.has(p.role)) deckW += w; else topW += w;
     });
+    // added parts sit where they were placed; their weight was counted in their role's group above
+    extraWeights(build, g).forEach(x => {
+      if (x.type === 'drum') { items.push({ w: x.w, x: x.at[0], y: x.at[1], z: x.at[2], label: 'added drum' }); return; }
+      if (FRAME_ROLES.has(x.role)) frameW -= x.w; else if (DECK_ROLES.has(x.role)) deckW -= x.w; else topW -= x.w;
+      items.push({ w: x.w, x: x.at[0], y: x.at[1], z: x.at[2], label: 'added ' + x.type });
+    });
+    frameW = Math.max(0, frameW); deckW = Math.max(0, deckW); topW = Math.max(0, topW);
     const fx = g.bow ? c.bowStrut * 0.15 : 0;
     if (g.cage) {
       const req = requirements(g, build.parts), frac = req.pipeLength_in ? req.cageLength_in / req.pipeLength_in : 0;
@@ -1050,6 +1109,13 @@
                                 : { x: d.x, z: d.z + u, dl, r: d.r, y0: d.y0, yb: none ? 2 * d.r : yb, axis: 'z', drum: d.id });
       }
     });
+    (g.extras || []).filter(x => x.type === 'drum').forEach(x => {   // added drums are sealed
+      const dl = x.len / SLICES;
+      for (let k = 0; k < SLICES; k++) {
+        const u = -x.len / 2 + (k + 0.5) * dl;
+        out.push(x.axis === 'z' ? { x: x.at[0], z: x.at[2] + u, dl, r: x.r, y0: x.at[1] - x.r, yb: 0, axis: 'z', drum: x.id } : { x: x.at[0] + u, z: x.at[2], dl, r: x.r, y0: x.at[1] - x.r, yb: 0, axis: 'x', drum: x.id });
+      }
+    });
     return out;
   }
   // Free surface of the water held inside closed, flooded drums: Σ i about the roll and pitch axes (in⁴)
@@ -1074,8 +1140,15 @@
   const PIPE_AREA = Math.PI * PIPE_R * PIPE_R;
   // Cage pipes, cut into short pieces; a piece adds lift by how much of it is under water.
   function pipeSlices(g) {
-    if (!g.cage) return [];
     const out = [];
+    (g.extras || []).filter(x => x.type === 'pipe' || x.type === 'noodle').forEach(x => {   // added pipes (foam-filled) and noodles
+      const n = Math.max(1, Math.ceil(x.len / 6));
+      for (let k = 0; k < n; k++) {
+        const f = (k + 0.5) / n;
+        out.push({ x: x.a[0] + (x.b[0] - x.a[0]) * f, y: x.a[1] + (x.b[1] - x.a[1]) * f, z: x.a[2] + (x.b[2] - x.a[2]) * f, vol: Math.PI * x.r * x.r * x.len / n, vertical: x.axis === 'y', dl: x.len / n, r: x.r });
+      }
+    });
+    if (!g.cage) return out;
     g.cagePieces.forEach(pc => {
       const n = Math.max(1, Math.ceil(pc.len / 6));
       for (let k = 0; k < n; k++) {
@@ -1085,7 +1158,7 @@
     });
     return out;
   }
-  const wetFrac = (h, ps) => ps.vertical ? Math.max(0, Math.min(1, (h - (ps.y - ps.dl / 2)) / ps.dl)) : Math.max(0, Math.min(1, (h - (ps.y - PIPE_R)) / (2 * PIPE_R)));
+  const wetFrac = (h, ps) => { const r = ps.r || PIPE_R; return ps.vertical ? Math.max(0, Math.min(1, (h - (ps.y - ps.dl / 2)) / ps.dl)) : Math.max(0, Math.min(1, (h - (ps.y - r)) / (2 * r))); };
   // Buoyancy and its moments for a water plane y = d − x·t − z·p (boat frame).
   // My is the lift-weighted height of the centre of buoyancy.
   // An optional wave adds a surface height η(x, z) above that plane (inches, measured
@@ -1195,8 +1268,12 @@
       pd.min = Math.min(pd.min, hh); pd.max = Math.max(pd.max, hh); pd.lb += vol * WATER;
     }
     for (const q of ps) {   // submerged cage pipes add volume low down (raises KB slightly)
-      const vol = wetFrac(hAt(q.x, q.z), q) * q.vol;
+      const hq = hAt(q.x, q.z), vol = wetFrac(hq, q) * q.vol;
       V += vol; KBm += vol * q.y;
+      // a pipe or noodle cut by the water line adds water-plane area: its chord (lying) or its circle (upright)
+      const r = q.r || PIPE_R, dh = hq - q.y;
+      const wa = q.vertical ? (Math.abs(dh) < q.dl / 2 ? Math.PI * r * r : 0) : (Math.abs(dh) < r ? 2 * Math.sqrt(r * r - dh * dh) * q.dl : 0);
+      if (wa) { A += wa; Ax += wa * q.x; Az += wa * q.z; Izz += wa * q.z * q.z; Ixx += wa * q.x * q.x; }
     }
     const cx = A ? Ax / A : 0, cz = A ? Az / A : 0;
     Ix0 = Ixx - A * cx * cx; Iz0 = Izz - A * cz * cz;
@@ -2339,7 +2416,7 @@ ${ww.assumptions.map(x => `| ${x.name} | ${x.used} | ${x.source} | ${x.effect} |
   return {
     WATER, DRUM, DRUM_SIZES, drumSpec, drumLabel, PIPE_R, RAIL_OFFSET, PRESETS, DEFAULT_CONFIG, inventory,
     STATUSES, isBought, engineering, PVC, SF_OK, SF_MIN, CONSUMABLE_SHARE, onBoatShare, paintPlan, decalPlan, DECALS, PAINT_LB_PER_SQFT, withDefaults, geometry, requirements, shoppingList, storeLinks, fitFrame, rankPresets, PRIORITIES, weights, massItems, crewPositions, solve, checkRules, analyze, comparePresets,
-    segArea, segWidth, segCentroidY, drumMaxLb, floodAdvice, floodFloor, labelParts, LASH_TIE_MIN_IN, PLATFORM_TIES_PER_CROSSING, SOURCES, WORK_REFS, ASSUMPTIONS, RHO, NU_WATER, PADDLER_W, DYNAMIC,
+    segArea, segWidth, segCentroidY, drumMaxLb, floodAdvice, floodFloor, EXTRA_TYPES, FITTING_ROLES, extraWeights, labelParts, LASH_TIE_MIN_IN, PLATFORM_TIES_PER_CROSSING, SOURCES, WORK_REFS, ASSUMPTIONS, RHO, NU_WATER, PADDLER_W, DYNAMIC,
     whitewater, whitewaterMarkdown, whitewaterArtifact, whitewaterHydraulics, manningDepth, standingWaveK, supercriticalDepth, belanger, WW_CHANNELS, WW_CLASS, WW_DEFAULTS, G_SI,
   };
 });

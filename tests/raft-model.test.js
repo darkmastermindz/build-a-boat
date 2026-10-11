@@ -582,3 +582,36 @@ test('flooded drums, caps closed: the water inside is ballast with a free surfac
   assert.strictEqual(asBuilt.config.floodPct, 70);
   assert.strictEqual(asBuilt.config.floodVented, false);
 });
+
+test('added parts (edit mode): weight, centre of gravity, flotation, cut list and parts used', () => {
+  const at = extras => { const b = JSON.parse(JSON.stringify(current)); b.config.extras = extras; return b; };
+  const base = M.analyze(at([])), g0 = base.geometry;
+  // a 52" noodle along the outer side at the water line: lift, weight and the noodle count go up
+  const zOut = Math.max(...g0.boxList.map(b => b.z1)) + 3, y = base.solution.d;
+  const n = M.analyze(at([{ type: 'noodle', at: [-13, y, zOut], axis: 'x', len: 52 }]));
+  assert.strictEqual(n.geometry.labels.extras[0].id, 'X1');
+  assert.strictEqual(n.requirements.items.noodle, (base.requirements.items.noodle || 0) + 1);
+  const noodleVol = Math.PI * 1.25 ** 2 * 52;
+  assert.ok(Math.abs(n.solution.maxLb - base.solution.maxLb - noodleVol * 62.4 / 1728) < 1e-6);
+  assert.ok(n.weights.total > base.weights.total && n.weights.total - base.weights.total < 1);
+  // a half-submerged noodle out to the side adds roll stability
+  assert.ok(n.solution.gmRoll > base.solution.gmRoll);
+  // an added pipe goes on the cut list and is weighed per inch
+  const p = M.analyze(at([{ type: 'pipe', at: [0, 30, 0], axis: 'z', len: 30 }]));
+  assert.ok(p.requirements.cuts.some(k => k.id === 'X1' && k.len === 30));
+  assert.ok(Math.abs(p.requirements.pipeLength_in - base.requirements.pipeLength_in - 30) < 1e-9);
+  const pw = M.extraWeights(at([{ type: 'pipe', at: [0, 30, 0], axis: 'z', len: 30 }]), p.geometry)[0].w;
+  assert.ok(Math.abs(pw - 5.1 * 30 / 120) < 1e-9);
+  // weight placed up high raises the centre of gravity; the total weight stays consistent
+  assert.ok(p.solution.KG > base.solution.KG);
+  assert.ok(Math.abs(p.solution.W - (base.solution.W + (p.weights.total - base.weights.total))) < 0.05, `W ${p.solution.W} vs ${base.solution.W} + ${p.weights.total - base.weights.total}`);
+  // a fitting counts toward its role; the spare drum adds weight and lift
+  const f = M.analyze(at([{ type: 'fitting', role: 'elbow', at: [0, 30, 0] }]));
+  assert.strictEqual(f.requirements.items.elbow, (base.requirements.items.elbow || 0) + 1);
+  const d = M.analyze(at([{ type: 'drum', at: [-50, 11.25, 0], axis: 'z' }]));
+  const spec = M.drumSpec(current.config, 0);
+  assert.strictEqual(d.requirements.items.drum, base.requirements.items.drum + 1);
+  assert.ok(Math.abs(d.weights.total - base.weights.total - spec.weight) < 1e-9);
+  assert.ok(Math.abs(d.solution.maxLb - base.solution.maxLb - Math.PI * (spec.dia / 2) ** 2 * spec.len * 62.4 / 1728) < 1e-6);
+  assert.throws(() => M.geometry(Object.assign({}, current.config, { extras: [{ type: 'rocket', at: [0, 0, 0] }] })), /unknown type/);
+});

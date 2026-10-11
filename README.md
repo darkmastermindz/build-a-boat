@@ -104,6 +104,45 @@ bob/
 └── reports/latest-report.md # Latest generated report
 ```
 
+## ✏️ Edit mode (SolidWorks-style)
+
+Press **E**, or the ✏️ Edit button under the 3D view, to turn edit mode on.
+It works on top of the parametric model:
+
+- **FeatureManager** (left): every part by its ID (drums, pipes, fittings,
+  noodles, deck, added parts).
+  - Click to select; Ctrl-click to add more.
+  - Double-click to zoom to a part, or use 👁 to hide and show it.
+  - **Parts available** compares what you bought with what the design uses.
+- **PropertyManager** (right):
+  - **For a frame part:** its driving dimensions (Smart Dimension).
+  - **For an added part:** its position, direction and length.
+  - **Always:** mass properties (weight, centre of gravity, draft, GM).
+- **Insert (I):** places a pipe, noodle, fitting or the spare drum from the
+  parts list.
+  - Placement: at the selected part, or under the pointer.
+  - Saved in `config.extras`.
+  - Added parts count toward weight, centre of gravity, flotation, the cut
+    list and the parts used, and export to STEP.
+
+| Shortcut | Does |
+|---|---|
+| S | Shortcut bar at the pointer |
+| Space | View orientation menu |
+| Ctrl+1 … Ctrl+7 (or 1 … 7) | Front, Back, Left, Right, Top, Bottom, Isometric |
+| F, Z / Shift+Z | Zoom to fit, zoom out / in |
+| Arrows (Shift: 90° or 6") | Rotate the view, or move the selected added parts 1" |
+| PageUp / PageDown, R | Move added parts up / down; turn them (x → z → upright) |
+| Tab / Shift+Tab | Hide the part under the pointer (or the selection) / show all |
+| Delete | Delete added parts; suppress frame noodles, the noodle rail, the railing, the mast or the side panels |
+| Ctrl+C / Ctrl+V | Copy / paste (a copied frame part pastes as an added part, 6" over) |
+| D, M | Smart Dimension, Measure |
+| Ctrl+Z / Ctrl+Y, Enter | Undo / redo, repeat the last command |
+| Ctrl+B, Ctrl+S, ?, Esc | Rebuild, save the profile, the shortcut list, clear the selection |
+
+Browsers keep some Ctrl+number keys for switching tabs, so the plain number
+keys give the same views.
+
 ## ⛵ Simulator
 
 - **Frame joinery**: *Fitted* (1-1/2" DWV tees, double sani tees and
