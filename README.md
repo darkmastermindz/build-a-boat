@@ -39,6 +39,41 @@ npx netlify dev        # full site incl. shared profiles API at http://localhost
 rather than opening the file directly. If the data doesn't load, the page
 falls back to defaults and lets you import a `build.json`.
 
+## 📐 Export to SolidWorks (STEP)
+
+The model exports as a STEP AP214 file in inches. SolidWorks opens it with
+**File → Open**, file type STEP, as a multibody part with one named solid for
+each part. Every solid is named by its part ID:
+
+- **P… pipes:** hollow 1-1/2" Sch 40 tubes (OD 1.900", ID 1.610"), centre to
+  centre between joints.
+- **J… fittings:** 2.6" spheres at the joints, as drawn in the 3D view.
+- **D… drums:** solid cylinders at their outside size.
+- **K1 deck:** a box.
+- **N… noodles:** 2.5" cylinders.
+
+Each solid is coloured. Axes match the simulator: x is fore-aft (bow +), y is
+up (drum bottoms at 0) and z runs port (−) to starboard (+). Side panels, the
+curved bow noodle, the mast and the crew are left out.
+
+There are three ways to get the file:
+
+- **Simulator:** the 📐 STEP (SolidWorks) button downloads the design you have
+  on screen.
+- **Live site:** [/bob-raft.step](https://bob-sim.netlify.app/bob-raft.step)
+  is the team's `data/build.json`, rebuilt on every deploy.
+- **Command line:**
+
+  ```bash
+  npm run step -- data/build.json bob-raft.step
+  # optional check with OpenCascade (pip install cadquery-ocp):
+  node scripts/export-step.js data/build.json bob-raft.step --expect expected.json
+  python3 scripts/check-step.py bob-raft.step expected.json
+  ```
+
+  The check confirms that every solid is a valid closed shape and that its
+  volume matches its dimensions.
+
 ## 🗂️ Project structure
 
 ```
@@ -57,8 +92,12 @@ bob/
 ├── scripts/
 │   ├── build-site.js        # Assembles dist/ for Netlify
 │   ├── raft-model.js        # Shared geometry, hydrostatics, rules and recommendations (browser + Node)
+│   ├── step-export.js       # STEP (AP214) export for SolidWorks (browser + Node)
+│   ├── export-step.js       # CLI: build.json → .step
+│   ├── check-step.py        # Optional: validate a .step with OpenCascade
 │   └── generate-report.js   # Markdown build report from build.json
 ├── tests/raft-model.test.js # node --test
+├── tests/step-export.test.js # STEP structure and solid topology checks
 ├── tests/engineering.test.js # physics checked against hand calculations
 ├── docs/design.md           # Design notes, rules compliance, findings
 ├── PLAN.md                  # Roadmap to the final build
