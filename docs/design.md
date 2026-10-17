@@ -40,18 +40,28 @@ doc records the reasoning and the findings so far.
 | Wood ≤ 1/4" | Checked from `thickness_in`; the 1" dowel mast was replaced by a PVC offcut |
 | Rope/straps ≤ 18" | Checked from `max_piece_length_in`. Drums are held by **daisy-chained 17" zip ties**; **confirm with the organizers** |
 | Zip ties trimmed flush | Flush-cut snips on the list |
+| Qualification float test (2026-10-09, 5 PM ET) | Checked: the boat must float upright with its crew and the deck above the water. Flooded drums fail it unless enough noodles are inside. Hole plugs must not be metal: no screws |
 
 ## Team progress
 
 ### 2026-10-09: drums drilled and stuffed with noodles (qualification float test, 5 PM ET)
 
 - **What changed this morning:**
-  - Holes were drilled in the bottom of the drums, front and back.
+  - Holes were drilled in the top and bottom sides of each drum, near the
+    caps.
   - Pool noodles were pushed inside.
   - The aim: let the drums take on water to lower the centre of gravity, as
     a fix for the tippiness seen in yesterday's dry run.
 - **Now in the default model:** `floodPct: 70`, `drumNoodles: 4`,
-  `floodVented: false`. All three are in Configure.
+  `floodVented: true`. All three are in Configure.
+  - **Holes top and bottom vent the drum:** air leaves through the top hole
+    and water comes in through the bottom one, up to the river level. That
+    is the "caps open" case below, so only the noodles lift.
+  - **No trapped air is left:** with the top hole on the very top of the
+    drum, the 70% setting only marks the drums as flooded.
+  - **Float-test rule:** the model now checks the qualification float test
+    (2026-10-09, 5 PM ET) and fails it: 435 lb on 241 lb of lift with 2
+    crew.
   - **"Drums flooded" slider:** the share of each drum that is water.
   - **"Noodles stuffed in each drum" slider:** 2.5" × 52" noodles, about 1.9%
     of a drum each. They take room the water can't, so 20 noodles cap the
@@ -96,8 +106,13 @@ doc records the reasoning and the findings so far.
   - 15 per drum with 1 crew.
 - **Recommendation:**
   - **Drain the drums, plug the holes and cap them.**
-    - **Plugs:** tapered softwood pegs swell tight when wet. Screws with a
-      washer and sealant also work. PVC cement does not bond HDPE.
+    - **Plugs:** the rules ban metal, so no screws or bolts. Wood over 1/4"
+      thick is also banned, so no wooden pegs.
+      - **Use instead:** snug plastic plugs (offcuts of a noodle or HDPE)
+        or hot glue, with duct tape over the top.
+      - **Pressure:** the bottom holes see about 1–2 ft of water, so tape
+        alone may leak.
+      - **Cement:** PVC cement does not bond HDPE.
     - **Leave the noodles inside** as backup flotation.
   - **Get stability from:**
     - Crew sitting low with their legs over the side.
