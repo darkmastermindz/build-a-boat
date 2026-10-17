@@ -187,6 +187,29 @@
   .ww .work{margin:4px 0 6px;padding:5px;border-left:3px solid var(--accent);background:color-mix(in srgb,var(--accent) 5%,transparent)}
   .ww .work ol{margin:2px 0 2px 16px;padding:0;font:11.5px ui-monospace,Menlo,Consolas,monospace}
   .tools #toolSummary div{margin-top:2px}
+  /* ✏️ Edit mode: FeatureManager (left), PropertyManager (right), status bar, floating menus */
+  .edtree,.edprops{position:absolute;top:44px;z-index:4;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:8px 10px;font-size:12.5px;box-shadow:0 4px 14px rgba(0,0,0,.12);max-height:calc(100% - 110px);overflow:auto}
+  .edtree{left:12px;width:240px} .edprops{right:12px;width:270px}
+  .edtree details{margin-top:4px} .edtree summary{cursor:pointer;font-weight:600}
+  .edtree .it{display:grid;grid-template-columns:20px 44px 1fr;gap:4px;align-items:center;padding:1px 3px;border-radius:5px;cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .edtree .it[aria-selected="true"]{background:var(--accent);color:var(--accent-ink)}
+  .edtree .it .eye{border:0;background:none;color:inherit;cursor:pointer;padding:0;font-size:12px}
+  .edtree .it.off{opacity:.45}
+  .edtree table{width:100%;border-collapse:collapse;font-size:12px} .edtree td,.edtree th{padding:1px 3px;text-align:right} .edtree td:first-child,.edtree th:first-child{text-align:left}
+  .edtree .short{color:var(--err);font-weight:600}
+  .edprops .prow{display:grid;grid-template-columns:70px 1fr;gap:6px;align-items:center;margin-top:5px}
+  .edprops .prow input,.edprops .prow select{width:100%}
+  .edbar{position:absolute;top:10px;left:50%;transform:translateX(-50%);z-index:5;background:var(--accent);color:var(--accent-ink);border-radius:999px;padding:4px 12px;font:500 12.5px Barlow,sans-serif;white-space:nowrap;max-width:calc(100% - 24px);overflow:hidden;text-overflow:ellipsis}
+  .edmenu{position:absolute;z-index:7;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:6px;box-shadow:0 6px 18px rgba(0,0,0,.2);display:grid;gap:4px;font-size:12.5px;min-width:180px}
+  .edmenu.grid{grid-template-columns:repeat(4,auto)}
+  .edmenu b{grid-column:1/-1;font-weight:600;padding:2px 4px}
+  .edmenu button{font:500 12.5px Barlow,sans-serif;border:1px solid var(--line);background:var(--panel);color:var(--ink);padding:5px 8px;border-radius:7px;cursor:pointer;text-align:left;white-space:nowrap}
+  .edmenu button:hover,.edmenu button:focus-visible{border-color:var(--accent)}
+  .edmenu kbd,.edhelp kbd{font:11px ui-monospace,Menlo,Consolas,monospace;border:1px solid var(--line);border-radius:4px;padding:0 4px;margin-left:6px;opacity:.8}
+  .edmenu .muted{opacity:.7;font-size:11.5px}
+  .edhelp{position:absolute;z-index:8;top:50%;left:50%;transform:translate(-50%,-50%);background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px 16px;box-shadow:0 8px 24px rgba(0,0,0,.25);font-size:12.5px;width:min(560px,calc(100% - 32px));max-height:calc(100% - 40px);overflow:auto}
+  .edhelp table{width:100%;border-collapse:collapse} .edhelp td{padding:2px 4px;vertical-align:top;border-top:1px solid var(--line)} .edhelp td:first-child{white-space:nowrap;width:40%}
+  @media (max-width:760px){ .edtree{width:180px} .edprops{width:200px} }
   .mhint{position:absolute;bottom:56px;left:50%;transform:translateX(-50%);z-index:4;background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:6px 10px;font-size:12.5px;max-width:min(300px,60%)}
   .profiles{display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-left:auto}
   .profiles select{width:auto;min-width:200px;max-width:min(320px,100%)}
@@ -400,6 +423,11 @@
       <div id="idMsg" class="small muted"></div>
     </div>
     <div class="ilist" id="ilist" hidden></div>
+    <div class="edbar" id="edBar" hidden role="status"></div>
+    <div class="edtree" id="edTree" hidden aria-label="FeatureManager: parts of the boat"></div>
+    <div class="edprops" id="edProps" hidden aria-label="PropertyManager: the selected part"></div>
+    <div class="edmenu" id="edMenu" hidden role="menu"></div>
+    <div class="edhelp" id="edHelp" hidden role="dialog" aria-label="Edit mode shortcuts"></div>
     <div class="tools ww" id="wwPanel" hidden>
       <b>🌊 Whitewater (U.S. National Whitewater Center)</b>
       <div class="small muted">Balances the boat on Class II and III waves and holes, using the channel's published flow and slope.</div>
@@ -944,7 +972,8 @@ function initScene(){
   bar.append(el('button', { class: 'measure', id: 'idBtn', 'aria-pressed': 'false', 'aria-controls': 'idBar', title: 'Show an ID label on every pipe, joint and part (P12, J3, D1…) so you can reference it', onclick: () => toggleIds() }, '🏷️ IDs'));
   bar.append(el('button', { class: 'measure', id: 'wwBtn', 'aria-pressed': 'false', 'aria-controls': 'wwPanel', title: 'Simulate the U.S. National Whitewater Center Class II and III rapids', onclick: () => toggleWW() }, '🌊 Whitewater'));
   bar.append(el('button', { class: 'measure', id: 'toolsBtn', 'aria-pressed': 'false', 'aria-controls': 'tools', title: 'Show tools: zip-tie supports, paint, measure', onclick: () => toggleTools() }, '🧰 Tools'));
-  orbit(); initPicking(); initTools(); initWW(); initIds(); resize(); addEventListener('resize', resize);
+  bar.append(el('button', { class: 'measure', id: 'editBtn', 'aria-pressed': 'false', title: 'Edit mode with SolidWorks-style shortcuts: FeatureManager tree, PropertyManager, insert parts you own (E; ? for shortcuts)', onclick: () => toggleEdit() }, '✏️ Edit'));
+  orbit(); initPicking(); initTools(); initWW(); initIds(); initEdit(); resize(); addEventListener('resize', resize);
   loop(0);
 }
 // a vertical band following a closed 2-D outline (x, z), pushed `off` inches outward
@@ -1076,10 +1105,17 @@ function buildBoat(){
     const head = new THREE.Mesh(new THREE.SphereGeometry(4.6, 16, 12), MAT.helmet); head.position.set(p.x, y0 + 27, p.z); G.crew.add(head);
     cu.id = 'C' + (i + 1); torso.userData = legs.userData = head.userData = cu;
   });
+  // parts added in edit mode (config.extras), drawn like the parts they copy
+  (g.extras || []).forEach(x => {
+    const ud = { kind: 'extra', x, id: x.id };
+    if (x.type === 'pipe' || x.type === 'noodle') { const m = pipe(x.a, x.b, G.frame, x.type === 'pipe' ? R : x.r, x.type === 'noodle' ? MAT.noodle : MAT.pvc); m.userData = ud; }
+    else if (x.type === 'fitting') { const m = new THREE.Mesh(new THREE.SphereGeometry(1.3, 16, 12), MAT.fit); m.position.set(...x.at); m.userData = ud; G.frame.add(m); }
+    else { const m = new THREE.Mesh(new THREE.CylinderGeometry(x.r, x.r, x.len, 44), MAT.drum); if (x.axis === 'z') m.rotation.x = Math.PI/2; else m.rotation.z = Math.PI/2; m.position.set(...x.at); m.userData = ud; G.drums.add(m); }
+  });
   const s = A.solution;
   boat.position.y = -(s.ok ? s.d : 2*r + 4);
   pivot.rotation.set(s.ok ? -Math.atan(s.p) : 0, 0, s.ok ? Math.atan(s.t) : 0, 'XZY');
-  target.set(8, Math.max(4, g.deckTop - (s.ok ? s.d : 0) - 6), 0);
+  if (!ED.on) target.set(8, Math.max(4, g.deckTop - (s.ok ? s.d : 0) - 6), 0);
   place();
   afterBuild();
 }
@@ -1132,7 +1168,7 @@ function loop(t){
   else if (!still) {
     water.position.y = Math.sin(t * .0012) * .35;
     pivot.position.y = Math.sin(t * .0012 - .4) * .35;
-    if (!pts.size && t - idle > 6000 && t - idle < 12000) { th += .0018; place(); }
+    if (!ED.on && !pts.size && t - idle > 6000 && t - idle < 12000) { th += .0018; place(); }
   }
   positionMeasureLabel(); positionIssues(); positionIds();
   renderer.render(scene, camera); requestAnimationFrame(loop);
@@ -1358,6 +1394,8 @@ function partInfoBase(ud){
     case 'lash': return { title: 'Platform lashing (2 zip ties in an X)', lines: [`Ties platform pipe ${ud.joins[0]} onto box rail ${ud.joins[1]}`, `Ties at least ${M.LASH_TIE_MIN_IN}" long, at most 18"; trim flush`] };
     case 'tie': return { title: 'Zip-tie support', lines: ['Added in the 3D view', 'Remove it with 🔗 Zip tie in 🧰 Tools'] };
     case 'crew': return { title: `Crew ${ud.i + 1}`, lines: [`${c.crew.weightEach} lb, seated`, `Head ≈ ${inch(ud.top - g.deckTop)} above the deck`] };
+    case 'extra': { const x = ud.x, t = M.EXTRA_TYPES[x.type];
+      return { title: `Added ${x.type === 'fitting' ? x.role + ' fitting' : t.label.toLowerCase()}`, lines: [x.len ? `Length ${inch(x.len)} along ${x.axis}` : 'At a joint', `At x ${inch(x.at[0])}, height ${inch(x.at[1])}, z ${inch(x.at[2])}`, 'From the parts list (✏️ Edit mode)'] }; }
   }
   return null;
 }
@@ -1370,6 +1408,7 @@ function snapPoints(ud){
     case 'deck': { const [cx, cy, cz] = ud.c, [l, t, w] = ud.size, out = [[cx, cy + t / 2, cz]];
       [-1, 1].forEach(a => [-1, 1].forEach(b => [-1, 1].forEach(e => out.push([cx + a * l / 2, cy + b * t / 2, cz + e * w / 2])))); return out; }
     case 'crew': return [[ud.p[0], ud.top, ud.p[2]], ud.p];
+    case 'extra': return ud.x.a ? [ud.x.a, ud.x.b, ud.x.at] : [ud.x.at];
     case 'panel': if (ud.sp.hull) { const hl = A.geometry.hull, sp = ud.sp; return [ud.c, [hl.tip, sp.y1, 0], [hl.tip, sp.y0, 0], [hl.xs, sp.y1, -hl.half], [hl.xs, sp.y1, hl.half], [hl.xs, sp.y0, -hl.half], [hl.xs, sp.y0, hl.half]]; }
     { const [cx, cy, cz] = ud.c, sp = ud.sp, alongX = sp.a[0] !== sp.b[0], hl = sp.len / 2, hh = sp.height / 2, out = [ud.c];
       [-1, 1].forEach(a => [-1, 1].forEach(b => out.push(alongX ? [cx + a * hl, cy + b * hh, cz] : [cx, cy + b * hh, cz + a * hl]))); return out; }
@@ -1377,8 +1416,8 @@ function snapPoints(ud){
   return [];
 }
 // a stable name for parts that survive a rebuild; pipes and fittings are found again by position
-const partKey = ud => ud.kind === 'panel' && ud.sp.hull ? 'hull' : ud.kind === 'panel' ? `panel:${ud.sp.box}:${ud.sp.face}:${ud.sp.n}` : ud.kind === 'drum' ? 'drum:' + ud.d.id : ud.kind === 'crew' ? 'crew:' + ud.i : ['deck', 'mast', 'flag', 'guard'].includes(ud.kind) ? ud.kind : null;
-const refPoint = ud => { const sp = snapPoints(ud); return sp[ud.kind === 'pipe' || ud.kind === 'noodle' ? 2 : 0] || null; };
+const partKey = ud => ud.kind === 'extra' ? 'extra:' + ud.x.i : ud.kind === 'panel' && ud.sp.hull ? 'hull' : ud.kind === 'panel' ? `panel:${ud.sp.box}:${ud.sp.face}:${ud.sp.n}` : ud.kind === 'drum' ? 'drum:' + ud.d.id : ud.kind === 'crew' ? 'crew:' + ud.i : ['deck', 'mast', 'flag', 'guard'].includes(ud.kind) ? ud.kind : null;
+const refPoint = ud => { const sp = snapPoints(ud); return sp[ud.kind === 'pipe' || ud.kind === 'noodle' || (ud.kind === 'extra' && ud.x.a) ? 2 : 0] || null; };
 function scenePartList(){
   const out = new Map();
   boat.traverse(o => { const ud = o.userData; if (ud && ud.kind && o.isMesh) { if (!out.has(ud)) out.set(ud, []); out.get(ud).push(o); } });
@@ -1473,6 +1512,10 @@ function controlsFor(ud){
     case 'panel': if (ud.sp.hull) add(cfgCtl('hullBow', 'Bow point (ahead of the boxes)', 0, 36, 1));
       add(cfgCtl('boxEndGap', 'Box end clearance', 0.5, 8, .25)); add(cfgCtl('boxSideGap', 'Side fit (− = rails press on the drum)', -6, 6, .1)); add(fromSL('packGap')); break;
     case 'crew': CREW.forEach(d => add(fromSL(d[0]))); break;
+    case 'extra': { const i = ud.x.i, ex = () => build.config.extras[i];
+      [['X (fore-aft)', 0, -90, 90], ['Height', 1, -12, 60], ['Z (across)', 2, -60, 60]].forEach(([label, k, min, max]) => out.push({ label, min, max, step: .5, unit: '"', get: () => ex().at[k], set: v => { ex().at[k] = v; } }));
+      if (ud.x.type === 'pipe' || ud.x.type === 'noodle') out.push({ label: 'Length', min: 2, max: ud.x.type === 'pipe' ? 120 : 52, step: .5, unit: '"', get: () => ud.x.len, set: v => { ex().len = v; } });
+      break; }
   }
   return out;
 }
@@ -1523,7 +1566,7 @@ function afterBuild(){
   const parts = scenePartList();
   mA = reanchor(mA, parts); mB = mB && mA ? reanchor(mB, parts) : null; hoverSnap = null;
   drawTies(parts); applyPaint(parts); drawDecals(parts); drawIssues(); renderIds();
-  drawMeasure(); refreshPin(parts); renderToolSummary();
+  drawMeasure(); refreshPin(parts); renderToolSummary(); edAfterBuild(parts);
 }
 // ── Tools: zip-tie supports and paint ──
 // Both live in build.config so they are saved with the design and profiles:
@@ -1931,7 +1974,7 @@ function initPicking(){
     if (pts.size || e.pointerType === 'touch') return;          // dragging to orbit
     const h = pick(e);
     if (measureOn || toolMode === 'tie') { hoverSnap = h; drawMeasure(); return; }
-    showHover(h);
+    showHover(h); ED.hover = h; ED.mouse = [e.clientX, e.clientY];
     if (toolMode === 'paint') { cv.style.cursor = h && partArea(h.ud) ? 'cell' : 'not-allowed'; return; }
     cv.style.cursor = h && partInfo(h.ud) ? 'pointer' : '';
   });
@@ -1947,9 +1990,326 @@ function initPicking(){
     if (toolMode === 'tie') { if (h) tieClick(h); return; }
     if (toolMode === 'paint') { if (h) paintClick(h, e.shiftKey); return; }
     if (toolMode === 'decal') { if (h) decalClick(h); return; }
+    if (ED.on) { edClick(h, e); return; }
     if (h) pinPart(h); else closePin();
   });
   addEventListener('keydown', e => { if (e.key === 'Escape' && !/INPUT|SELECT|TEXTAREA/.test(document.activeElement.tagName)) { if (toolMode !== 'select') setTool('select'); closePin(); clearMeasure(); } });
+}
+
+// ── ✏️ Edit mode ─────────────────────────────
+// SolidWorks-style editing on top of the parametric model:
+//   FeatureManager (left): every part by ID, hide/show, and the parts you own vs. use
+//   PropertyManager (right): the selection's driving dimensions, or an added part's position
+//   Insert (I): place a pipe, noodle, fitting or drum from the parts list (config.extras)
+//   Shortcuts follow SolidWorks defaults where the browser allows: S shortcut bar, Space view
+//   orientation, Ctrl+1…7 (or 1…7) standard views, F zoom to fit, Z / Shift+Z zoom, arrows rotate
+//   (or move an added part), Tab / Shift+Tab hide / show, Delete, Ctrl+C / Ctrl+V, Ctrl+Z / Ctrl+Y,
+//   Ctrl+B rebuild, Enter repeat last command, Ctrl+S save, D Smart Dimension, M measure, ? help.
+const ED = { on: false, sel: [], hidden: new Set(), clip: null, last: null, lastLabel: '', mouse: [0, 0], hover: null, filter: '' };
+const VIEWS = [['1', 'Front', Math.PI / 2, Math.PI / 2], ['2', 'Back', -Math.PI / 2, Math.PI / 2], ['3', 'Left', Math.PI, Math.PI / 2], ['4', 'Right', 0, Math.PI / 2],
+  ['5', 'Top', -Math.PI / 2, 0.01], ['6', 'Bottom', -Math.PI / 2, Math.PI - 0.01], ['7', 'Isometric', Math.PI / 4, Math.atan(Math.SQRT2)]];
+const FIT_FOR_JOINT = t => /elbow/.test(t) ? (/45/.test(t) ? 'elbow45' : 'elbow') : t === 'coupling' ? 'coupling' : t === '5-way' || t === '6-way' ? 'five-way' : 'side-tee';
+const typing = () => /INPUT|SELECT|TEXTAREA/.test(document.activeElement.tagName) || document.activeElement.isContentEditable;
+const udId = ud => ud.id || partKey(ud);
+function toggleEdit(force){
+  ED.on = force ?? !ED.on;
+  $('editBtn').setAttribute('aria-pressed', ED.on);
+  ['edTree', 'edProps', 'edBar'].forEach(k => { $(k).hidden = !ED.on; }); $('hud').hidden = ED.on;
+  edMenu(null); $('edHelp').hidden = true;
+  if (ED.on) { closePin(); if (!$('tools').hidden) toggleTools(false); if (!$('wwPanel').hidden) toggleWW(false); }
+  else { ED.sel = []; ED.hidden.clear(); }
+  if (boat) afterBuild();
+  try { localStorage.setItem('bob-edit', ED.on ? '1' : ''); } catch (e) {}
+}
+// after a rebuild: find the selection again (by ID or key), hide hidden parts, highlight, redraw panels
+function edAfterBuild(parts){
+  if (!ED.on) { parts.forEach((meshes, ud) => meshes.forEach(o => { if (o.__hid) { o.visible = true; o.__hid = false; } })); return; }
+  const byId = new Map(); parts.forEach((m, ud) => byId.set(udId(ud), ud));
+  ED.sel = ED.sel.map(ud => parts.has(ud) ? ud : byId.get(udId(ud))).filter(Boolean);
+  if (ED.pendingSel) { ED.sel = ED.pendingSel.map(id => byId.get(id)).filter(Boolean); ED.pendingSel = null; }
+  const selIds = new Set(ED.sel.map(udId));
+  parts.forEach((meshes, ud) => {
+    const hid = ED.hidden.has(udId(ud)), on = selIds.has(udId(ud));
+    meshes.forEach(o => { o.visible = !hid; o.__hid = hid; if (o.__base && !on) o.material = o.__base; if (on) { o.__base = o.__base || o.material; o.material = selMat(o.__base); } });
+  });
+  renderTree(parts); renderProps(); renderEdBar();
+}
+const SEL = new Map();   // selection look: a blue glow, like SolidWorks
+function selMat(m){ if (Array.isArray(m)) return m.map(selMat); if (!SEL.has(m)) { const h = m.clone(); if (h.emissive) h.emissive.setHex(0x1d5fd6); if (h.color) h.color.lerp(new THREE.Color(0x4d8dff), 0.35); SEL.set(m, h); } return SEL.get(m); }
+function edRefresh(){ if (boat) edAfterBuild(scenePartList()); }
+function edSelect(ud, add){
+  if (!ud) { if (!add) ED.sel = []; }
+  else if (add) ED.sel = ED.sel.includes(ud) ? ED.sel.filter(u => u !== ud) : [...ED.sel, ud];
+  else ED.sel = [ud];
+  edRefresh();
+}
+function edClick(h, e){ edMenu(null); edSelect(h ? h.ud : null, e.ctrlKey || e.metaKey || e.shiftKey); }
+function renderEdBar(){
+  const n = ED.sel.length, one = n === 1 ? partInfo(ED.sel[0]) : null;
+  $('edBar').textContent = `✏️ Edit · ${n ? (one ? one.title : n + ' selected') : 'nothing selected'}${ED.hidden.size ? ` · ${ED.hidden.size} hidden` : ''} · S shortcuts · I insert · ? help · E exit`;
+}
+// ── FeatureManager ──
+function treeGroups(parts){
+  const groups = [['Drums', /^D\d/], ['Pipes', /^P\d/], ['Fittings', /^J\d/], ['Noodles', /^N/], ['Deck, mast, panels', /^(K|M|S)\d/], ['Added parts', /^X\d/]].map(([name, re]) => ({ name, re, items: [] }));
+  const seen = new Set();   // a joint is drawn once per pipe end: list each ID once
+  parts.forEach((m, ud) => { const id = ud.id; if (!id || seen.has(id)) return; seen.add(id); const gp = groups.find(g => g.re.test(id)); if (gp) gp.items.push(ud); });
+  const n = id => { const m = /(\d+)/.exec(id); return m ? +m[1] : 0; };
+  groups.forEach(g => g.items.sort((a, b) => a.id.localeCompare(b.id, 'en', { numeric: true }) || n(a.id) - n(b.id)));
+  return groups.filter(g => g.items.length || g.name === 'Added parts');
+}
+function shortLabel(ud){
+  const i = partInfo(ud); if (!i) return ud.kind;
+  return i.title.replace(/^[A-Z]+\d+ · /, '').replace(/^1-1\/2" PVC pipe \(/, 'pipe (').replace(/\)$/, ')');
+}
+const OWN_KEYS = [['drum', 'Drums'], ['pipe', 'Pipe sticks (10 ft)'], ['noodle', 'Pool noodles'], ['elbow', '90° elbows'], ['tee', 'Tees / side-outlet'], ['cross', 'Crosses'], ['coupling', 'Couplings']];
+function partsAvailable(){
+  const owned = M.inventory((build.parts || []).filter(M.isBought)), used = A.requirements.items;
+  return OWN_KEYS.map(([k, label]) => ({ k, label, have: +(owned[k] || 0), used: +(used[k] || 0) })).filter(r => r.have || r.used);
+}
+function renderTree(parts){
+  const box = $('edTree'); if (box.hidden) return;
+  const open = new Set([...box.querySelectorAll('details[open]')].map(d => d.dataset.g));
+  if (!box.dataset.init) ['Added parts', 'Parts available'].forEach(g => open.add(g));
+  box.dataset.init = '1';
+  const q = ED.filter.trim().toLowerCase();
+  const item = ud => {
+    const hid = ED.hidden.has(udId(ud)), lab = shortLabel(ud);
+    if (q && !(ud.id.toLowerCase().includes(q) || lab.toLowerCase().includes(q))) return null;
+    return el('div', { class: 'it' + (hid ? ' off' : ''), role: 'option', 'aria-selected': ED.sel.includes(ud), title: lab,
+      onclick: e => edSelect(ud, e.ctrlKey || e.metaKey || e.shiftKey), ondblclick: () => { edSelect(ud); zoomTo([ud]); } },
+      el('button', { class: 'eye', title: hid ? 'Show (Shift+Tab)' : 'Hide (Tab)', 'aria-label': (hid ? 'Show ' : 'Hide ') + ud.id, onclick: e => { e.stopPropagation(); hid ? ED.hidden.delete(udId(ud)) : ED.hidden.add(udId(ud)); edRefresh(); } }, hid ? '◌' : '👁'),
+      el('b', {}, ud.id), el('span', {}, lab));
+  };
+  const avail = partsAvailable();
+  box.replaceChildren(
+    el('b', {}, '🌳 FeatureManager'),
+    el('input', { type: 'search', placeholder: 'Filter: P12, noodle, elbow…', value: ED.filter, 'aria-label': 'Filter parts', oninput: e => { ED.filter = e.target.value; renderTree(scenePartList()); }, style: 'width:100%;margin-top:6px' }),
+    ...treeGroups(parts).map(g => { const kids = g.items.map(item).filter(Boolean);
+      return el('details', { 'data-g': g.name, open: open.has(g.name) || !!(q && kids.length) }, el('summary', {}, `${g.name} (${g.items.length})`), ...(kids.length ? kids : [el('div', { class: 'small muted' }, g.name === 'Added parts' ? 'Press I to insert a part you own.' : 'No match')])); }),
+    el('details', { 'data-g': 'Parts available', open: open.has('Parts available') }, el('summary', {}, 'Parts available (bought vs. used)'),
+      el('table', {}, el('tr', {}, el('th', {}, 'Part'), el('th', {}, 'Have'), el('th', {}, 'Use'), el('th', {}, 'Left')),
+        ...avail.map(r => el('tr', {}, el('td', {}, r.label), el('td', {}, String(+r.have.toFixed(2))), el('td', {}, String(+r.used.toFixed(2))), el('td', { class: r.have - r.used < 0 ? 'short' : '' }, String(+(r.have - r.used).toFixed(2)))))),
+      el('div', { class: 'small muted' }, 'Pipe is counted in 10 ft sticks after the cut list. Added parts count here.')));
+}
+// ── PropertyManager ──
+function numRow(label, value, step, onset){
+  return el('div', { class: 'prow' }, el('label', {}, label), el('input', { type: 'number', step, value: +(+value).toFixed(2), onchange: e => { const v = +e.target.value; if (isFinite(v)) onset(v); } }));
+}
+function setExtra(i, f){ const x = build.config.extras[i]; if (!x) return; f(x); changed(); }
+function renderProps(){
+  const box = $('edProps'); if (box.hidden) return;
+  const sel = ED.sel;
+  if (!sel.length) { box.replaceChildren(el('b', {}, '📋 PropertyManager'), el('div', { class: 'small muted', style: 'margin:4px 0' }, 'Click a part (Ctrl-click for more). Press S for the shortcut bar.'), massBlock()); return; }
+  if (sel.length > 1) {
+    const ex = sel.filter(u => u.kind === 'extra');
+    box.replaceChildren(el('b', {}, `${sel.length} parts selected`), el('div', { class: 'small' }, sel.map(u => u.id || u.kind).join(', ')),
+      el('div', { class: 'row2', style: 'display:flex;gap:6px;flex-wrap:wrap;margin-top:6px' },
+        el('button', { class: 'btn ghost sm', onclick: () => cmd.copy() }, 'Copy'), el('button', { class: 'btn ghost sm', onclick: () => cmd.hide() }, 'Hide'),
+        ex.length ? el('button', { class: 'btn ghost sm', onclick: () => cmd.del() }, `Delete ${ex.length} added`) : '', el('button', { class: 'btn ghost sm', onclick: () => zoomTo(sel) }, 'Zoom to')),
+      massBlock(sel));
+    return;
+  }
+  const ud = sel[0], info = partInfo(ud) || { title: ud.kind, lines: [] };
+  const head = [el('b', {}, info.title), ...info.lines.map(t => el('div', { class: 'small' }, t))];
+  const actions = el('div', { style: 'display:flex;gap:6px;flex-wrap:wrap;margin-top:8px' },
+    el('button', { class: 'btn ghost sm', title: 'Ctrl+C', onclick: () => cmd.copy() }, ud.kind === 'extra' ? 'Copy' : 'Copy as added part'),
+    el('button', { class: 'btn ghost sm', title: 'Tab', onclick: () => cmd.hide() }, 'Hide'),
+    el('button', { class: 'btn ghost sm', onclick: () => zoomTo([ud]) }, 'Zoom to'),
+    el('button', { class: 'btn ghost sm', title: 'Delete', onclick: () => cmd.del() }, ud.kind === 'extra' ? 'Delete' : 'Suppress'));
+  if (ud.kind === 'extra') {
+    const x = ud.x, i = x.i, rows = [];
+    if (x.type === 'fitting') rows.push(el('div', { class: 'prow' }, el('label', {}, 'Fitting'), el('select', { onchange: e => setExtra(i, c => { c.role = e.target.value; }) }, ...M.FITTING_ROLES.map(r => el('option', { value: r, selected: r === x.role }, r)))));
+    ['X (fore-aft)', 'Height', 'Z (across)'].forEach((lab, k) => rows.push(numRow(lab, x.at[k], 0.5, v => setExtra(i, c => { c.at[k] = v; }))));
+    if (x.type !== 'fitting') rows.push(el('div', { class: 'prow' }, el('label', {}, 'Along'), el('select', { onchange: e => setExtra(i, c => { c.axis = e.target.value; }) },
+      ...(x.type === 'drum' ? ['x', 'z'] : ['x', 'y', 'z']).map(a => el('option', { value: a, selected: a === x.axis }, { x: 'x (fore-aft)', y: 'y (upright)', z: 'z (across)' }[a])))));
+    if (x.type === 'pipe' || x.type === 'noodle') rows.push(numRow('Length', x.len, 0.5, v => setExtra(i, c => { c.len = Math.max(1, v); })));
+    box.replaceChildren(...head, el('div', { class: 'tctl' }, el('div', { class: 'small muted' }, 'Position (inches; arrows move it, R turns it):'), ...rows), actions, massBlock(sel));
+    return;
+  }
+  const ctls = controlsFor(ud);
+  box.replaceChildren(...head, ctls.length ? el('div', { class: 'tctl', id: 'smartDim' }, el('div', { class: 'small muted' }, 'Smart Dimension (D): driving dimensions'), ...ctls.map(ctlRow)) : el('div', { class: 'small muted', style: 'margin-top:6px' }, 'No driving dimension for this part.'), actions, massBlock(sel));
+}
+// Mass properties (SolidWorks: Evaluate → Mass Properties): weight and centre of gravity
+function massBlock(sel){
+  const g = A.geometry, items = M.massItems(build, g), W = items.reduce((t, i) => t + i.w, 0);
+  const cg = k => items.reduce((t, i) => t + i.w * i[k], 0) / Math.max(1e-9, W), sum = f => items.filter(f).reduce((t, i) => t + i.w, 0);
+  const Wc = sum(i => i.label === 'crew'), Ww = sum(i => i.label === 'drum water'), Wb = W - Wc - Ww;
+  const ex = (sel || []).filter(u => u.kind === 'extra'), exW = ex.length ? M.extraWeights(build, g).filter(x => ex.some(u => u.x.i === x.i)).reduce((t, x) => t + x.w, 0) : 0;
+  const s = A.solution;
+  return el('div', { class: 'tctl' }, el('b', {}, '⚖️ Mass properties'),
+    el('div', { class: 'small' }, `Boat ${Wb.toFixed(1)} lb${Ww ? ` · water held in the drums ${Ww.toFixed(0)} lb` : ''} · crew ${Wc.toFixed(0)} lb · total ${W.toFixed(1)} lb`),
+    el('div', { class: 'small' }, `Centre of gravity: x ${inch(cg('x'))}, height ${inch(cg('y'))}, z ${inch(cg('z'))}`),
+    s.ok ? el('div', { class: 'small' }, `Draft ${inch(s.d)} · GM roll ${inch(s.gmRoll)} · pitch ${inch(s.gmPitch)}`) : el('div', { class: 'small', style: 'color:var(--err)' }, s.reason === 'sinks' ? 'Does not float' : 'Tips over'),
+    exW ? el('div', { class: 'small' }, `Selected added parts: ${exW.toFixed(2)} lb`) : '');
+}
+// ── camera: standard views, zoom to fit / selection ──
+function setView(v){ th = v[2]; ph = v[3]; place(); idle = performance.now(); }
+function zoomTo(uds){
+  const box = new THREE.Box3(), parts = scenePartList();
+  (uds && uds.length ? uds : [...parts.keys()]).forEach(ud => (parts.get(ud) || []).forEach(o => { if (o.visible) box.expandByObject(o); }));
+  if (box.isEmpty()) return;
+  const c = box.getCenter(new THREE.Vector3()), size = box.getSize(new THREE.Vector3()).length();
+  target.copy(c); rad = Math.min(600, Math.max(30, size * 1.25 / Math.tan(camera.fov * Math.PI / 360) / 2 + size / 2)); place();
+}
+// ── commands ──
+function extraFrom(ud){
+  if (ud.kind === 'extra') return JSON.parse(JSON.stringify(build.config.extras[ud.x.i]));
+  const mid = (a, b) => a.map((v, k) => (v + b[k]) / 2), axisOf = (a, b) => { const d = a.map((v, k) => Math.abs(b[k] - v)); return ['x', 'y', 'z'][d.indexOf(Math.max(...d))]; };
+  if (ud.kind === 'pipe' || ud.kind === 'mast') return { type: 'pipe', at: mid(ud.a, ud.b), axis: axisOf(ud.a, ud.b), len: +ud.len.toFixed(2) };
+  if (ud.kind === 'noodle') return { type: 'noodle', at: mid(ud.a, ud.b), axis: axisOf(ud.a, ud.b), len: Math.min(52, +ud.len.toFixed(2)) };
+  if (ud.kind === 'fitting') return { type: 'fitting', role: ud.joint ? FIT_FOR_JOINT(ud.joint.type) : 'tee', at: ud.p.slice() };
+  if (ud.kind === 'drum') { const d = ud.d; return { type: 'drum', at: [d.x, d.y0 + d.r, d.z], axis: d.axis === 'z' ? 'z' : 'x' }; }
+  return null;
+}
+function insertPoint(){
+  const g = A.geometry;
+  if (ED.sel.length === 1) { const p = refPoint(ED.sel[0]); if (p) return p.slice(); }
+  if (ED.hover && ED.hover.point) return ED.hover.point.slice();
+  return [0, g.deckTop + 3, 0];
+}
+function addExtras(list){
+  const c = build.config; if (!Array.isArray(c.extras)) c.extras = [];
+  const first = c.extras.length; list.forEach(x => c.extras.push(x));
+  ED.sel = []; ED.pendingSel = list.map((_, k) => 'X' + (first + k + 1));
+  changed();
+}
+const INSERTS = [
+  ['pipe', 'PVC pipe 12"', { len: 12 }], ['pipe', 'PVC pipe 24"', { len: 24 }], ['pipe', 'PVC pipe 36"', { len: 36 }], ['pipe', 'PVC pipe 48"', { len: 48 }],
+  ['noodle', 'Pool noodle 52"', { len: 52 }], ['fitting', 'Elbow 90°', { role: 'elbow' }], ['fitting', 'Elbow 45°', { role: 'elbow45' }], ['fitting', 'Tee', { role: 'tee' }],
+  ['fitting', 'Side-outlet tee', { role: 'side-tee' }], ['fitting', '5-way', { role: 'five-way' }], ['fitting', 'Cross', { role: 'cross' }], ['fitting', 'Coupling', { role: 'coupling' }], ['fitting', 'Cap', { role: 'cap' }],
+  ['drum', 'Drum (spare)', {}]];
+function insertPart(type, opts){
+  const at = insertPoint(), x = Object.assign({ type, at, axis: type === 'drum' ? 'z' : 'x' }, opts);
+  ED.last = () => insertPart(type, opts); ED.lastLabel = 'Insert ' + (opts.role || type);
+  addExtras([x]);
+}
+const cmd = {
+  copy(){ const list = ED.sel.map(extraFrom).filter(Boolean); if (!list.length) return; ED.clip = list; edToast(`Copied ${list.length} part${list.length > 1 ? 's' : ''} (Ctrl+V pastes)`); },
+  paste(){ if (!ED.clip) return; const list = ED.clip.map(x => Object.assign(JSON.parse(JSON.stringify(x)), { at: x.at.map((v, k) => v + (k === 2 ? 6 : 0)) })); ED.last = () => cmd.paste(); ED.lastLabel = 'Paste'; addExtras(list); ED.clip = list; },
+  hide(){ const t = ED.sel.length ? ED.sel : ED.hover ? [ED.hover.ud] : []; t.forEach(ud => ED.hidden.add(udId(ud))); ED.sel = ED.sel.filter(u => !t.includes(u)); edRefresh(); },
+  showAll(){ ED.hidden.clear(); edRefresh(); },
+  del(){
+    const c = build.config, ex = ED.sel.filter(u => u.kind === 'extra').map(u => u.x.i), other = ED.sel.filter(u => u.kind !== 'extra');
+    let msg = '';
+    other.forEach(ud => {   // parametric parts: suppress the feature they belong to, where there is one
+      if (ud.kind === 'noodle' && /^NF/.test(ud.id || '')) c.frameNoodles = 0;
+      else if (ud.kind === 'noodle' && /^NR/.test(ud.id || '')) c.noodleRail = false;
+      else if (ud.kind === 'noodle' && ud.bow) c.bowNoodle = false;
+      else if (ud.kind === 'pipe' && /railing|rpost/.test(ud.piece || '')) c.railing = false;
+      else if (ud.kind === 'mast' || ud.kind === 'flag') c.mastHeight = 0;
+      else if (ud.kind === 'panel') c.sidePanels = false;
+      else msg = `${ud.id || ud.kind} is part of the parametric frame: change it with Smart Dimension (D).`;
+    });
+    if (ex.length) c.extras = c.extras.filter((_, i) => !ex.includes(i));
+    ED.sel = []; if (msg) edToast(msg);
+    if (ex.length || other.length) { syncControls(); changed(); }
+  },
+  move(d){
+    const ex = ED.sel.filter(u => u.kind === 'extra'); if (!ex.length) return false;
+    ex.forEach(u => { const a = build.config.extras[u.x.i].at; for (let k = 0; k < 3; k++) a[k] = +(a[k] + d[k]).toFixed(2); });
+    changed(); return true;
+  },
+  turn(){
+    const ex = ED.sel.filter(u => u.kind === 'extra' && u.x.type !== 'fitting'); if (!ex.length) return;
+    ex.forEach(u => { const x = build.config.extras[u.x.i], seq = x.type === 'drum' ? ['x', 'z'] : ['x', 'z', 'y']; x.axis = seq[(seq.indexOf(x.axis) + 1) % seq.length]; });
+    changed();
+  },
+  smartDim(){ if (ED.sel.length !== 1) { edToast('Select one part for Smart Dimension.'); return; } renderProps(); const i = $('edProps').querySelector('input'); if (i) i.focus(); },
+  selectAdded(){ const parts = scenePartList(); ED.sel = [...parts.keys()].filter(u => u.kind === 'extra'); edRefresh(); },
+  rebuild(){ update(); edToast('Rebuilt'); },
+};
+// screen-aligned move step for the arrow keys: right/left along the axis closest to screen right,
+// up/down along height, or the ground axis closest to screen up when looking from above
+function arrowStep(key, step){
+  const right = new THREE.Vector3().setFromMatrixColumn(camera.matrixWorld, 0), up = new THREE.Vector3().setFromMatrixColumn(camera.matrixWorld, 1);
+  const dom = v => { const a = [Math.abs(v.x), 0, Math.abs(v.z)], k = a[0] >= a[2] ? 0 : 2, d = [0, 0, 0]; d[k] = Math.sign(k ? v.z : v.x) || 1; return d; };
+  if (key === 'ArrowLeft' || key === 'ArrowRight') return dom(right).map(v => v * step * (key === 'ArrowRight' ? 1 : -1));
+  const fromAbove = Math.abs(up.y) < 0.5, d = fromAbove ? dom(up) : [0, 1, 0];
+  return d.map(v => v * step * (key === 'ArrowUp' ? 1 : -1));
+}
+// ── floating menus: S shortcut bar, Space view orientation, I insert ──
+function edMenu(kind){
+  const m = $('edMenu');
+  if (!kind) { m.hidden = true; m.dataset.kind = ''; return; }
+  const btn = (label, key, f) => el('button', { role: 'menuitem', onclick: () => { edMenu(null); f(); } }, label, key ? el('kbd', {}, key) : '');
+  m.className = 'edmenu';
+  if (kind === 'view') { m.classList.add('grid'); m.replaceChildren(el('b', {}, 'View orientation'), ...VIEWS.map(v => btn(v[1], 'Ctrl+' + v[0], () => setView(v))), btn('Zoom to fit', 'F', () => zoomTo()), btn('Selection', '', () => zoomTo(ED.sel))); }
+  else if (kind === 'insert') {
+    const avail = partsAvailable(), left = k => { const r = avail.find(a => a.k === k); return r ? r.have - r.used : null; };
+    const keyOf = (type, o) => type === 'fitting' ? ({ 'side-tee': 'tee', 'five-way': 'tee', elbow45: null, cap: null }[o.role] ?? o.role) : type;
+    m.classList.add('grid');
+    m.replaceChildren(el('b', {}, 'Insert a part you own (at the selection or pointer)'), ...INSERTS.map(([type, label, o]) => { const k = keyOf(type, o), n = k ? left(k) : null;
+      return el('button', { role: 'menuitem', title: n == null ? 'Not counted against the parts list' : `${+n.toFixed(2)} left after this design`, onclick: () => { edMenu(null); insertPart(type, o); } }, label, n == null ? '' : el('span', { class: 'muted' }, n < 0 ? ` · ${+(-n).toFixed(1)} short` : ` · ${+n.toFixed(1)} left`)); }));
+  } else {
+    m.replaceChildren(el('b', {}, 'Shortcut bar'),
+      btn('Insert part', 'I', () => edMenu('insert')), btn('Smart Dimension', 'D', cmd.smartDim), btn('Measure', 'M', () => setMeasure(!measureOn)),
+      btn('Hide', 'Tab', cmd.hide), btn('Show all', 'Shift+Tab', cmd.showAll), btn('Copy', 'Ctrl+C', cmd.copy), btn('Paste', 'Ctrl+V', cmd.paste), btn('Delete / suppress', 'Del', cmd.del),
+      btn('View orientation', 'Space', () => edMenu('view')), btn('Zoom to fit', 'F', () => zoomTo()), btn('Rebuild', 'Ctrl+B', cmd.rebuild), btn('Shortcuts', '?', edHelp));
+  }
+  m.hidden = false; m.dataset.kind = kind;
+  const st = $('stage').getBoundingClientRect(), w = m.offsetWidth, h = m.offsetHeight;
+  m.style.left = Math.max(4, Math.min(ED.mouse[0] - st.left, st.width - w - 8)) + 'px'; m.style.top = Math.max(4, Math.min(ED.mouse[1] - st.top, st.height - h - 8)) + 'px';
+  const f = m.querySelector('button'); if (f) f.focus();
+}
+const SHORTCUTS = [['E', 'Edit mode on / off'], ['S', 'Shortcut bar at the pointer'], ['Space', 'View orientation menu'], ['Ctrl+1 … Ctrl+7 (or 1 … 7)', 'Front, Back, Left, Right, Top, Bottom, Isometric'],
+  ['F', 'Zoom to fit'], ['Z / Shift+Z', 'Zoom out / in'], ['Arrows (Shift: 90° / 6")', 'Rotate the view, or move the selected added parts 1"'], ['PageUp / PageDown', 'Move the selected added parts up / down'],
+  ['R', 'Turn the selected added parts (x → z → upright)'], ['Click / Ctrl+click', 'Select / add to the selection'], ['Ctrl+A', 'Select all added parts'], ['Tab / Shift+Tab', 'Hide the part under the pointer (or the selection) / show all'],
+  ['I', 'Insert a part you own'], ['D', 'Smart Dimension: edit the driving dimension'], ['M', 'Measure'], ['Delete', 'Delete added parts; suppress noodles, railing, mast or panels'],
+  ['Ctrl+C / Ctrl+V', 'Copy / paste (a copied frame part pastes as an added part, 6" over)'], ['Ctrl+Z / Ctrl+Y', 'Undo / redo'], ['Enter', 'Repeat the last command'], ['Ctrl+B', 'Rebuild'], ['Ctrl+S', 'Save the design profile'], ['Esc', 'Clear the selection, close menus']];
+function edHelp(){
+  const h = $('edHelp');
+  h.replaceChildren(el('b', {}, '✏️ Edit mode shortcuts (SolidWorks-style)'), el('button', { class: 'x', style: 'float:right', 'aria-label': 'Close', onclick: () => { h.hidden = true; } }, '×'),
+    el('table', {}, ...SHORTCUTS.map(([k, d]) => el('tr', {}, el('td', {}, ...k.split(' / ').flatMap((x, i) => [i ? ' / ' : '', el('kbd', {}, x)])), el('td', {}, d)))),
+    el('p', { class: 'small muted' }, 'Browsers keep some Ctrl+number keys for tabs: the plain number keys do the same views. Added parts are saved with the design, count toward weight, flotation and the parts list, and export to STEP.'));
+  h.hidden = false;
+}
+let toastT = 0;
+function edToast(t){ const b = $('edBar'); b.textContent = t; clearTimeout(toastT); toastT = setTimeout(renderEdBar, 2200); }
+function initEdit(){
+  addEventListener('keydown', e => {
+    if (typing()) { if (ED.on && e.key === 'Escape') document.activeElement.blur(); return; }   // Esc leaves a dimension box
+    const k = e.key, ctrl = e.ctrlKey || e.metaKey, low = k.length === 1 ? k.toLowerCase() : k;
+    if (!ED.on) { if (!ctrl && !e.altKey && low === 'e') { e.preventDefault(); toggleEdit(true); } return; }
+    const done = () => e.preventDefault();
+    if (k === 'Escape') { if (!$('edMenu').hidden || !$('edHelp').hidden) { edMenu(null); $('edHelp').hidden = true; } else edSelect(null); return; }
+    if (ctrl) {
+      const v = VIEWS.find(x => x[0] === k);
+      if (v) { done(); setView(v); return; }
+      if (low === 'c') { done(); cmd.copy(); } else if (low === 'v') { done(); cmd.paste(); } else if (low === 'a') { done(); cmd.selectAdded(); }
+      else if (low === 'b' || low === 'q') { done(); cmd.rebuild(); } else if (low === 's') { done(); const b = $('profSave'); if (b) b.click(); }
+      return;                                  // Ctrl+Z / Ctrl+Y: the undo handler in Tools
+    }
+    if (e.altKey) return;
+    const v = VIEWS.find(x => x[0] === k);
+    if (v) { done(); setView(v); return; }
+    if (k === 'Tab') { done(); e.shiftKey ? cmd.showAll() : cmd.hide(); return; }
+    if (k.startsWith('Arrow')) {
+      done(); const big = e.shiftKey;
+      if (ED.sel.some(u => u.kind === 'extra')) { cmd.move(arrowStep(k, big ? 6 : 1)); return; }
+      const a = (big ? 90 : 15) * Math.PI / 180;
+      if (k === 'ArrowLeft') th -= a; else if (k === 'ArrowRight') th += a; else if (k === 'ArrowUp') ph = Math.max(0.01, ph - a); else ph = Math.min(Math.PI - 0.01, ph + a);
+      place(); return;
+    }
+    if (k === 'PageUp' || k === 'PageDown') { done(); cmd.move([0, (k === 'PageUp' ? 1 : -1) * (e.shiftKey ? 6 : 1), 0]); return; }
+    if (k === 'Delete' || k === 'Backspace') { done(); cmd.del(); return; }
+    if (k === 'Enter') { if (ED.last) { done(); ED.last(); edToast('Repeated: ' + ED.lastLabel); } return; }
+    if (k === ' ') { done(); edMenu($('edMenu').dataset.kind === 'view' ? null : 'view'); return; }
+    if (k === '?') { done(); $('edHelp').hidden ? edHelp() : ($('edHelp').hidden = true); return; }
+    switch (low) {
+      case 'e': done(); toggleEdit(false); break;
+      case 's': done(); edMenu($('edMenu').dataset.kind === 'shortcut' ? null : 'shortcut'); break;
+      case 'i': done(); edMenu('insert'); break;
+      case 'f': done(); zoomTo(); break;
+      case 'z': done(); rad = Math.min(600, Math.max(30, rad * (e.shiftKey ? 1 / 1.15 : 1.15))); place(); break;
+      case 'r': done(); cmd.turn(); break;
+      case 'd': done(); cmd.smartDim(); break;
+      case 'm': done(); setMeasure(!measureOn); break;
+    }
+  });
+  addEventListener('pointermove', e => { ED.mouse = [e.clientX, e.clientY]; }, { passive: true });
+  renderer.domElement.addEventListener('pointerdown', () => edMenu(null));
+  let on = false; try { on = localStorage.getItem('bob-edit') === '1'; } catch (e) {}
+  if (on) toggleEdit(true);
 }
 
 // ── Design profiles ──────────────────────────

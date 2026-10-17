@@ -3,6 +3,7 @@
 //   P… pipes as hollow 1-1/2" Sch 40 tubes (OD 1.900", ID 1.610"), centre to centre between joints
 //   J… fittings as 2.6" spheres at the joints (as in the 3D view)
 //   D… drums as solid cylinders (outside size), K1 the deck as a box, N… noodles as 2.5" cylinders
+//   X… parts added in edit mode (pipes, noodles, fittings, drums)
 // Axes follow the simulator: x fore-aft (bow +), y up (drum bottoms at 0), z port(−)/starboard(+).
 // Left out: side panels, the bow noodle (curved), mast, flag and crew.
 // Topology follows ISO 10303-42: each solid is a closed shell of faces whose loops run
@@ -108,6 +109,11 @@
     g.drums.forEach(d => {
       const cy = d.y0 + d.r, h = d.len / 2, a = d.axis === 'z' ? [d.x, cy, d.z - h] : [d.x - h, cy, d.z], b = d.axis === 'z' ? [d.x, cy, d.z + h] : [d.x + h, cy, d.z];
       out.push({ kind: 'cyl', name: `D${d.id + 1} drum ${d.spec.dia}x${d.len}${d.failed ? ' (failed)' : ''}`, a, b, ro: d.r, ri: 0, color: [0.12, 0.35, 0.75] });
+    });
+    (g.extras || []).forEach(x => {   // parts added in edit mode
+      if (x.type === 'fitting') out.push({ kind: 'sphere', name: `${x.id} added fitting ${x.role}`, c: x.at, r: FIT_R, color: [0.85, 0.85, 0.82] });
+      else out.push({ kind: 'cyl', name: `${x.id} added ${x.type}`, a: x.a, b: x.b, ro: x.type === 'pipe' ? PIPE_OD / 2 : x.r, ri: x.type === 'pipe' ? PIPE_ID / 2 : 0,
+        color: x.type === 'drum' ? [0.12, 0.35, 0.75] : x.type === 'noodle' ? [0.95, 0.85, 0.2] : [0.94, 0.94, 0.92] });
     });
     const dk = c.deck;
     out.push({ kind: 'box', name: 'K1 deck', c: [0, g.deckBottom + dk.thickness / 2, 0], s: [dk.length, dk.thickness, dk.width], color: [0.55, 0.6, 0.65] });
