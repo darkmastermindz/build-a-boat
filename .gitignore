@@ -3,3 +3,6 @@ dist/
 .netlify/
 # generated STEP exports (npm run step)
 *.step
+
+# Claude Code personal settings (local permissions, may hold secrets)
+.claude/settings.local.json
